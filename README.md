@@ -1,6 +1,6 @@
 easyselenium
 ============
-Simple selenium wrapper. Easies and expands selenium functions.
+Simple selenium wrapper. Easies and expands selenium functionality.
 * Supports Firefox, Chrome, IE and Opera.
 * Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 * Suits for novice users.
