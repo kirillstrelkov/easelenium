@@ -7,7 +7,7 @@ Simple selenium wrapper. Easies and expands selenium functionality.
 
 Usage
 -----
-Most of `Browser` functions support both `WebElement` object and tuple/list which represents html element. This tuple/list object should contains selector/locator as first element and value as a second element. Example: `input = (By.NAME, 'q')`
+Most of `Browser` functions support both `WebElement` object and tuple/list which represents html element. This tuple/list object should contain selector/locator as first element and value as a second element. Example: `input = (By.NAME, 'q')`
 
 Here is simple example: 
 ```python
@@ -19,6 +19,7 @@ Here is simple example:
 >>> input = (By.NAME, 'q') # input element
 >>> search_btn = (By.NAME, 'btnG') # search button element
 >>> result = (By.CSS_SELECTOR, '.r') # found results titles' elements
+>>> # back to action
 >>> browser.type(input, u'selenium') # typing 'selenium' into search field
 >>> browser.click(search_btn) # clicking search button
 >>> browser.get_text(result) # getting first found title
