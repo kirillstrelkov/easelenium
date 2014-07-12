@@ -1,13 +1,13 @@
 easyselenium
 ============
-Simple selenium wrapper for most of selenium command.
+Simple selenium wrapper. Easies and expands selenium functions.
 * Supports Firefox, Chrome, IE and Opera.
+* Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 * Suits for novice users.
 
 Usage
 -----
-Main idea - each element should contains selector/locator as first element and value as a second element.
-Example: `input = (By.NAME, 'q')`
+Most of `Browser` functions support both `WebElement` object and tuple/list which represents html element. This tuple/list object should contains selector/locator as first element and value as a second element. Example: `input = (By.NAME, 'q')`
 
 Here is simple example: 
 ```python
@@ -26,7 +26,7 @@ u'Selenium - Web Browser Automation'
 >>> browser.quit() # closing browser
 ```
 
-Check [browser_test.py](/ambi7ks/easyselenium/easyselenium/browser_test.py) for more examples.
+Check [browser_test.py](/easyselenium/browser_test.py) for more examples.
 
 Installation
 ------------
