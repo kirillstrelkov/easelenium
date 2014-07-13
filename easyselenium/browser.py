@@ -110,6 +110,16 @@ class Browser(object):
             else:
                 raise Exception("Chromedriver wasn't found in " + 
                                 path_to_chromedriver)
+        elif name == self.OP:
+            path_to_selenium_server = os.path.join(
+                os.path.expanduser("~"),
+                "selenium-server-standalone.jar"
+            )
+            if os.path.exists(path_to_selenium_server):
+                return webdriver.Opera(executable_path=path_to_selenium_server)
+            else:
+                raise Exception("Selenium server jar file wasn't found in " + 
+                                path_to_selenium_server)
         elif name == self.FF:
             return webdriver.Firefox()
         else:
