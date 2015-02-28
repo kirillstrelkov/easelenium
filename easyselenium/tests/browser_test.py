@@ -124,16 +124,16 @@ class BrowserTest(BaseTest):
 
     def test_js_script(self):
         self.browser.get('https://duckduckgo.com/')
-        js_statement = "return document.getElementById('tagline_homepage')"\
+        js_statement = "return document.getElementsByClassName('tag-home')[0]"\
                        '.textContent;'
         value = self.browser.execute_js(js_statement)
 
-        self.assertEqual("The search engine that doesn't track you.",
-                         value.strip())
+        self.assertIn(
+            "The search engine that doesn't track you.", value.strip())
 
     def test_open_close_new_window(self):
-        self.browser.get('https://developer.mozilla.org/' +
-                         'en-US/docs/Web/HTML/Element/a')
+        self.browser.get('https://mdn.mozillademos.org/en-US/docs/Web/HTML/'
+                         'Element/a$samples/Example.3A_Creating_a_clickable_image')
 
         a_element = (By.CSS_SELECTOR, 'a[target="_blank"]')
 
