@@ -3,17 +3,19 @@ import os
 import tempfile
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.common.exceptions import WebDriverException, TimeoutException, \
+    NoSuchElementException
 
-from easyselenium.utils import get_random_value, get_timestamp
+from easyselenium.utils import get_random_value, get_timestamp, is_windows
 
 
 class Mouse(object):
-
     def __init__(self, browser, logger=None):
         self.browser = browser
         self.logger = logger
@@ -101,11 +103,22 @@ class Browser(object):
         self.mouse = Mouse(self, self.logger)
 
     def __create_driver(self, name):
+        folder_with_drivers = os.path.expanduser('~')
         if name == self.IE:
-            return webdriver.Ie()
+            path_to_iedriver = os.path.join(
+                folder_with_drivers,
+                'IEDriverServer.exe'
+            )
+            if os.path.exists(path_to_iedriver):
+                return webdriver.Ie(executable_path=path_to_iedriver)
+            else:
+                raise Exception("IEDriver.exe wasn't found in " +
+                                path_to_iedriver)
         elif name == self.GC:
-            path_to_chromedriver = os.path.join(os.path.expanduser('~'),
-                                                'chromedriver')
+            path_to_chromedriver = os.path.join(
+                folder_with_drivers,
+                'chromedriver.exe' if is_windows() else 'chromedriver'
+            )
             if os.path.exists(path_to_chromedriver):
                 return webdriver.Chrome(executable_path=path_to_chromedriver)
             else:
@@ -113,11 +126,14 @@ class Browser(object):
                                 path_to_chromedriver)
         elif name == self.OP:
             path_to_selenium_server = os.path.join(
-                os.path.expanduser('~'),
-                'selenium-server-standalone.jar'
+                folder_with_drivers,
+                'operadriver.exe' if is_windows else 'operadriver'
             )
             if os.path.exists(path_to_selenium_server):
-                return webdriver.Opera(executable_path=path_to_selenium_server)
+                capabilities = DesiredCapabilities.OPERA.copy()
+                capabilities['engine'] = 2
+                return webdriver.Opera(desired_capabilities=capabilities,
+                                       executable_path=path_to_selenium_server)
             else:
                 raise Exception("Selenium server jar file wasn't found in " +
                                 path_to_selenium_server)
@@ -130,16 +146,16 @@ class Browser(object):
                                                 "', '".join(self.__BROWSERS))
             )
 
-    def __get_webelement(self, element, single_element=True):
+    def __get_webelements(self, element, parent=None):
         if isinstance(element, WebElement):
-            return element
+            return [element]
         elif type(element) in [list, tuple] and len(element) == 2:
-            if single_element:
-                return self._driver.find_element(*element)
+            if parent:
+                return parent.find_elements(*element)
             else:
                 return self._driver.find_elements(*element)
         else:
-            raise Exception('Unsupported element ' + str(element))
+            raise Exception('Unsupported element - %s' % str(element))
 
     def __get_by_and_locator(self, element):
         if (type(element) == list or type(element) == tuple) and \
@@ -155,13 +171,19 @@ class Browser(object):
             return "Element {By: '%s', value: '%s'}" % (by_and_locator[0],
                                                         by_and_locator[1])
         else:
-            string = ''
+            string = "tag_name: '%s'" % element.tag_name
+            _id = element.get_attribute('id')
+            if _id:
+                string += ", id: '%s'" % _id
+            class_name = element.get_attribute('class')
+            if class_name:
+                string += ", class: '%s'" % class_name
             text = element.text
-            value = element.get_attribute('value')
             if text:
-                string += "text: '%s'" % text
+                string += ", text: '%s'" % text
+            value = element.get_attribute('value')
             if value:
-                string += "value: '%s'" % value
+                string += ", value: '%s'" % value
             return 'Element {%s}' % string
 
     def is_ff(self):
@@ -179,11 +201,6 @@ class Browser(object):
     """
         WebElement's wrapped functions
     """
-
-    def get_text(self, element):
-        self.wait_for_visible(element)
-        element = self.find_element(element)
-        return element.text
 
     def type(self, element, text):
         self.wait_for_visible(element)
@@ -210,13 +227,45 @@ class Browser(object):
 
         element.click()
 
-    def get_attribute(self, element, attr):
+    def get_parent(self, element):
+        element = self.find_element(element)
+        parent = element.parent
+        if isinstance(parent, WebElement):
+            return parent
+        else:
+            return self.find_child(element, (By.XPATH, u'./..'))
+
+    def get_text(self, element):
         self.wait_for_visible(element)
         element = self.find_element(element)
+        return element.text
+
+    def get_attribute(self, element, attr):
+        self.wait_for_visible(element)
+        element = self.find_elements(element)[0]
         return element.get_attribute(attr)
+
+    def get_tag_name(self, element):
+        return self.find_element(element).tag_name
+
+    def get_id(self, element):
+        return self.get_attribute(element, 'id')
+
+    def get_class(self, element):
+        return self.get_attribute(element, 'class')
 
     def get_value(self, element):
         return self.get_attribute(element, 'value')
+
+    def get_location(self, element):
+        '''Return tuple like (x, y).'''
+        location = self.find_element(element).location
+        return location['x'], location['y']
+
+    def get_dimensions(self, element):
+        '''Return tuple like (width, height).'''
+        size = self.find_element(element).size
+        return size['width'], size['height']
 
     """
         Dropdown list related methods
@@ -305,21 +354,34 @@ class Browser(object):
     def get_action_chains(self):
         return ActionChains(self._driver)
 
+    def open(self, url):
+        self.get(url)
+
     def get(self, url):
         self._driver.get(url)
 
-    def execute_js(self, js_script):
-        return self._driver.execute_script(js_script)
+    def execute_js(self, js_script, *args):
+        return self._driver.execute_script(js_script, *args)
 
     def find_element(self, element):
-        return self.__get_webelement(element)
+        return self.find_child(None, element)
+
+    def find_child(self, parent, element):
+        found_elements = self.find_children(parent, element)
+        if len(found_elements) == 0:
+            raise NoSuchElementException("Didn't find any elements for selector - %s" % str(element))
+        else:
+            return found_elements[0]
 
     def find_elements(self, element):
-        elements = self.__get_webelement(element, False)
+        elements = self.__get_webelements(element)
         if type(elements) == list:
             return elements
         else:
             return [elements]
+
+    def find_children(self, parent, element):
+        return self.__get_webelements(element, parent)
 
     def wait_for_visible(self, element, msg=None, timeout=None):
         if not timeout:
@@ -375,6 +437,9 @@ class Browser(object):
     def is_present(self, element):
         return len(self.find_elements(element)) > 0
 
+    def get_screenshot_as_png(self):
+        return self._driver.get_screenshot_as_png()
+
     def save_screenshot(self, saving_dir=None):
         if not saving_dir:
             saving_dir = tempfile.gettempdir()
@@ -384,7 +449,7 @@ class Browser(object):
         if self.logger:
             self.logger.info(u"Saving screenshot to '%s'", path_to_file)
 
-        self._driver.save_screenshot(path_to_file)
+        return self._driver.save_screenshot(path_to_file)
 
     def get_elements_count(self, element):
         return len(self.find_elements(element))
