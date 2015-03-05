@@ -1,8 +1,25 @@
+import re
 import sys
 import logging
 
 from random import choice
 from datetime import datetime
+
+
+def get_match(regexp, string, single_match=True):
+    found = re.findall(regexp, string)
+    if len(found) > 0:
+        return found[0] if single_match else found
+    else:
+        return None
+
+
+def is_windows():
+    return sys.platform.startswith('win')
+
+
+def unicode_str(string):
+    return u"%s" % string
 
 
 def get_timestamp():

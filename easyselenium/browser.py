@@ -16,6 +16,7 @@ from easyselenium.utils import get_random_value, get_timestamp, is_windows
 
 
 class Mouse(object):
+
     def __init__(self, browser, logger=None):
         self.browser = browser
         self.logger = logger
@@ -258,12 +259,12 @@ class Browser(object):
         return self.get_attribute(element, 'value')
 
     def get_location(self, element):
-        '''Return tuple like (x, y).'''
+        """Return tuple like (x, y)."""
         location = self.find_element(element).location
         return location['x'], location['y']
 
     def get_dimensions(self, element):
-        '''Return tuple like (width, height).'''
+        """Return tuple like (width, height)."""
         size = self.find_element(element).size
         return size['width'], size['height']
 
@@ -369,7 +370,8 @@ class Browser(object):
     def find_child(self, parent, element):
         found_elements = self.find_children(parent, element)
         if len(found_elements) == 0:
-            raise NoSuchElementException("Didn't find any elements for selector - %s" % str(element))
+            raise NoSuchElementException(
+                "Didn't find any elements for selector - %s" % str(element))
         else:
             return found_elements[0]
 
