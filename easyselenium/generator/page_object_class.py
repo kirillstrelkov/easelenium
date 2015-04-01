@@ -3,6 +3,7 @@ from selenium.webdriver.common.by import By
 
 from easyselenium.utils import unicode_str, get_match
 from easyselenium.file_utils import safe_create_path, save_file
+import os
 
 
 def get_by_as_code_str(by):
@@ -69,10 +70,11 @@ class {name}(object):
     # File path: {file_path}
     # Image path: {img_path}
 {fields_as_code}
+
 '''
 
-    def __init__(self, name, url, fields, 
-                 area=None, file_path=None, 
+    def __init__(self, name, url, fields,
+                 area=None, file_path=None,
                  img_path=None, img_as_png=None):
         self.name = name
         self.url = url
@@ -82,7 +84,15 @@ class {name}(object):
         self.img_as_png = img_as_png
         self.img_path = img_path
 
-    def save(self):
+    def save(self, new_folder=None):
+        if new_folder:
+            py_filename = os.path.basename(self.file_path)
+            img_filename = os.path.basename(self.img_path)
+            self.file_path = os.path.abspath(os.path.join(new_folder,
+                                                          py_filename))
+            self.img_path = os.path.abspath(os.path.join(new_folder,
+                                                         self.IMAGE_FOLDER,
+                                                         img_filename))
         safe_create_path(self.file_path)
         safe_create_path(self.img_path)
         save_file(self.file_path, self._get_file_content())
@@ -116,7 +126,7 @@ class {name}(object):
         # Image path: {img_path}
         name_regexp = ur'class (\w+)\(object\):'
         url_regexp = ur'Url: (.+)'
-        area_regexp = ur'Area: (\w+)'
+        area_regexp = ur'Area: \(?([\w, ]+)\)?'
         img_path_regexp = ur'Image path: (.+)'
         file_path_regexp = ur'File path: (.+)'
         fields_regexp = ur'\s+(\w+) = (.+) # location: (.+) dimensions: (.+)'
