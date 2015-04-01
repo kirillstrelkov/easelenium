@@ -8,11 +8,13 @@ from easyselenium.utils import Logger
 class BaseTest(TestCase):
     LOGGER = Logger()
     TC_NAME_WIDTH = 100
+    BROWSER_NAME = 'ff'
 
     @classmethod
     def setUpClass(cls):
         super(BaseTest, cls).setUpClass()
-        cls.browser = Browser(logger=cls.LOGGER)
+        cls.browser = Browser(browser_name=cls.BROWSER_NAME,
+                              logger=cls.LOGGER)
 
         if not cls.browser.is_gc() and not cls.browser.is_op():
             cls.browser._driver.maximize_window()

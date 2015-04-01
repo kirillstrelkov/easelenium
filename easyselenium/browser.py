@@ -103,6 +103,13 @@ class Browser(object):
         self._driver = self.__create_driver(browser_name)
         self.mouse = Mouse(self, self.logger)
 
+    @classmethod
+    def get_supported_browsers(cls):
+        return cls.__BROWSERS
+
+    def get_browser_initials(self):
+        return self.__browser_name
+
     def __create_driver(self, name):
         folder_with_drivers = os.path.expanduser('~')
         if name == self.IE:
@@ -433,7 +440,6 @@ class Browser(object):
             return elements and len(elements) > 0 and \
                 elements[0].is_displayed()
         except WebDriverException as e:
-            print e
             return False
 
     def is_present(self, element):
@@ -451,7 +457,8 @@ class Browser(object):
         if self.logger:
             self.logger.info(u"Saving screenshot to '%s'", path_to_file)
 
-        return self._driver.save_screenshot(path_to_file)
+        self._driver.save_screenshot(path_to_file)
+        return path_to_file
 
     def get_elements_count(self, element):
         return len(self.find_elements(element))
