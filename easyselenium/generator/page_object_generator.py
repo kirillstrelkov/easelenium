@@ -8,6 +8,8 @@ from easyselenium.file_utils import check_if_path_exists
 from easyselenium.generator.page_object_class import PageObjectClassField, \
     PageObjectClass
 from selenium.webdriver.remote.webelement import WebElement
+from wx import Point, Rect
+from time import sleep
 
 
 class PageObjectGenerator(object):
@@ -38,26 +40,37 @@ return getPathTo(arguments[0]);'''
         # TODO implement correct logging
         print u" ".join([unicode_str(msg) for msg in msgs])
 
-    def _filter_elements(self, elements):
+    def _filter_elements(self, elements, area=None):
         bad_element_tags = ['option', 'script']
 
-        def is_correct_element(element):
-            return (not e.tag_name in bad_element_tags and
+        def is_correct_element(element, area):
+            if area:
+                if type(area) not in (tuple, list) or len(area) != 4:
+                    raise Exception(u"Bad area data '%s'" % str(area))
+                area = Rect(*area)
+                x, y = self.browser.get_location(element)
+                w, h = self.browser.get_dimensions(element)
+                element_center = Point(x + w / 2, y + h / 2)
+                is_element_inside = area.Contains(element_center)
+            else:
+                is_element_inside = True
+            return (is_element_inside and
                     self.browser.is_visible(element) and
-                    len(self.browser.find_children(e, (By.TAG_NAME, '*'))) == 0)
+                    not element.tag_name in bad_element_tags)
 
-        elements = [e for e in elements if is_correct_element(e)]
+        elements = [e for e in elements if is_correct_element(e, area)]
         return elements
 
     def get_elements_from_url(self, url):
-        elements = []
         if self.browser.get_current_url() != url:
             self.browser.get(url)
+            sleep(3)  # sleep for 3 sec
 
-        web_elements = self.browser.find_elements((By.TAG_NAME, 'body'))
-        for web_element in web_elements:
-            elements += self.browser.find_children(
-                web_element, (By.TAG_NAME, '*'))
+        # NOTE: CSS 3 selectors are used
+        elements = self.browser.find_elements(
+            (By.CSS_SELECTOR,
+             ':only-child, a, select, button, input, span')
+        )
 
         return elements
 
@@ -79,7 +92,7 @@ return getPathTo(arguments[0]);'''
         check_if_path_exists(folder_path)
 
         elements = self.get_elements_from_url(url)
-        elements = self._filter_elements(elements)
+        elements = self._filter_elements(elements, area)
 
         fields = self._get_po_class_fields_from_elements(elements)
         img_as_png = self.browser.get_screenshot_as_png()
