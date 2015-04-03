@@ -10,6 +10,8 @@ from easyselenium.generator.page_object_class import PageObjectClassField, \
 from selenium.webdriver.remote.webelement import WebElement
 from wx import Point, Rect
 from time import sleep
+from easyselenium.ui.root_folder import RootFolder
+from easyselenium.ui.utils import get_py_file_name_from_class_name
 
 
 class PageObjectGenerator(object):
@@ -37,7 +39,7 @@ return getPathTo(arguments[0]);'''
         self.browser = browser
 
     def __log(self, *msgs):
-        # TODO implement correct logging
+        # TODO: implement correct logging
         print u" ".join([unicode_str(msg) for msg in msgs])
 
     def _filter_elements(self, elements, area=None):
@@ -61,7 +63,7 @@ return getPathTo(arguments[0]);'''
         elements = [e for e in elements if is_correct_element(e, area)]
         return elements
 
-    def get_elements_from_url(self, url):
+    def _get_elements_from_url(self, url):
         if self.browser.get_current_url() != url:
             self.browser.get(url)
             sleep(3)  # sleep for 3 sec
@@ -87,21 +89,28 @@ return getPathTo(arguments[0]);'''
             name = u'BAD_NAME'
         return name
 
-    def _get_po_class_for_url(self, url, name, folder_path, area=None):
-        # TODO check if 'name' is correct
+    def get_po_class_for_url(self, url, class_name, folder_path, area=None):
+        po_folder = os.path.join(folder_path,
+                                 RootFolder.PO_FOLDER)
+        img_folder = os.path.join(folder_path,
+                                  RootFolder.PO_FOLDER,
+                                  PageObjectClass.IMAGE_FOLDER)
         check_if_path_exists(folder_path)
 
-        elements = self.get_elements_from_url(url)
+        elements = self._get_elements_from_url(url)
         elements = self._filter_elements(elements, area)
 
         fields = self._get_po_class_fields_from_elements(elements)
         img_as_png = self.browser.get_screenshot_as_png()
 
-        file_path = os.path.join(folder_path, name + '.py')
-        img_path = os.path.join(
-            folder_path, PageObjectClass.IMAGE_FOLDER, name + '.png')
+        filename = get_py_file_name_from_class_name(class_name)
+        file_path = os.path.join(po_folder, filename)
+        img_path = os.path.join(img_folder,
+                                os.path.splitext(filename)[0] + '.png')
 
-        return PageObjectClass(name, url, fields, area, file_path, img_path, img_as_png)
+        return PageObjectClass(class_name, url, fields,
+                               area, file_path, img_path,
+                               img_as_png)
 
     def _get_po_class_fields_from_elements(self, elements):
         class_fields = []

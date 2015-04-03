@@ -283,7 +283,6 @@ class Browser(object):
         self.wait_for_visible(element)
 
         element = self.find_element(element)
-        # TODO
         return Select(element).first_selected_option.get_attribute('value')
 
     def get_selected_text_of_dropdown(self, element):
@@ -351,7 +350,7 @@ class Browser(object):
         values = []
         element = self.find_element(element)
         for option in Select(element).options:
-            values.append(option.get_attribute('value'))  # TODO)
+            values.append(option.get_attribute('value'))
 
         return values
 
