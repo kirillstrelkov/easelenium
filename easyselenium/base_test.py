@@ -16,9 +16,6 @@ class BaseTest(TestCase):
         cls.browser = Browser(browser_name=cls.BROWSER_NAME,
                               logger=cls.LOGGER)
 
-        if not cls.browser.is_gc() and not cls.browser.is_op():
-            cls.browser._driver.maximize_window()
-
     @classmethod
     def tearDownClass(cls):
         super(BaseTest, cls).tearDownClass()

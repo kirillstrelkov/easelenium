@@ -112,13 +112,15 @@ class Browser(object):
 
     def __create_driver(self, name):
         folder_with_drivers = os.path.expanduser('~')
+        driver = None
+
         if name == self.IE:
             path_to_iedriver = os.path.join(
                 folder_with_drivers,
                 'IEDriverServer.exe'
             )
             if os.path.exists(path_to_iedriver):
-                return webdriver.Ie(executable_path=path_to_iedriver)
+                driver = webdriver.Ie(executable_path=path_to_iedriver)
             else:
                 raise Exception("IEDriver.exe wasn't found in " +
                                 path_to_iedriver)
@@ -128,7 +130,7 @@ class Browser(object):
                 'chromedriver.exe' if is_windows() else 'chromedriver'
             )
             if os.path.exists(path_to_chromedriver):
-                return webdriver.Chrome(executable_path=path_to_chromedriver)
+                driver = webdriver.Chrome(executable_path=path_to_chromedriver)
             else:
                 raise Exception("Chromedriver wasn't found in " +
                                 path_to_chromedriver)
@@ -140,19 +142,24 @@ class Browser(object):
             if os.path.exists(path_to_selenium_server):
                 capabilities = DesiredCapabilities.OPERA.copy()
                 capabilities['engine'] = 2
-                return webdriver.Opera(desired_capabilities=capabilities,
+                driver = webdriver.Opera(desired_capabilities=capabilities,
                                        executable_path=path_to_selenium_server)
             else:
                 raise Exception("Selenium server jar file wasn't found in " +
                                 path_to_selenium_server)
         elif name == self.FF:
-            return webdriver.Firefox()
+            driver = webdriver.Firefox()
         else:
             raise ValueError(
                 "Unsupported browser '%s', "
                 "supported browsers: ['%s']" % (name,
                                                 "', '".join(self.__BROWSERS))
             )
+
+        if driver and not self.is_gc() and not self.is_op():
+            driver.maximize_window()
+
+        return driver
 
     def __get_webelements(self, element, parent=None):
         if isinstance(element, WebElement):
@@ -241,7 +248,7 @@ class Browser(object):
         if isinstance(parent, WebElement):
             return parent
         else:
-            return self.find_child(element, (By.XPATH, u'./..'))
+            return self.find_ancestor(element, (By.XPATH, u'./..'))
 
     def get_text(self, element):
         self.wait_for_visible(element)
@@ -371,10 +378,10 @@ class Browser(object):
         return self._driver.execute_script(js_script, *args)
 
     def find_element(self, element):
-        return self.find_child(None, element)
+        return self.find_ancestor(None, element)
 
-    def find_child(self, parent, element):
-        found_elements = self.find_children(parent, element)
+    def find_ancestor(self, parent, element):
+        found_elements = self.find_ancestors(parent, element)
         if len(found_elements) == 0:
             raise NoSuchElementException(
                 "Didn't find any elements for selector - %s" % str(element))
@@ -388,7 +395,7 @@ class Browser(object):
         else:
             return [elements]
 
-    def find_children(self, parent, element):
+    def find_ancestors(self, parent, element):
         return self.__get_webelements(element, parent)
 
     def wait_for_visible(self, element, msg=None, timeout=None):
