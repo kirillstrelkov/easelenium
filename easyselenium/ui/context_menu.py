@@ -48,7 +48,7 @@ class ContextMenu(Menu):
         for text, func in data:
             if type(func) in (list, tuple):
                 submenu = Menu()
-                for _text, _func in func:
+                for _text, _ in func:
                     _id = self.__text_and_item_data[_text].id
                     sitem = MenuItem(submenu, _id, _text)
                     submenu.AppendItem(sitem)

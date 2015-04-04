@@ -1,4 +1,4 @@
-from wx import Panel, BoxSizer, VERTICAL, ALL, EXPAND, Frame, App, GridBagSizer, \
+from wx import Panel, BoxSizer, VERTICAL, ALL, EXPAND, Frame, App, \
     StaticText, TextCtrl, Button, HORIZONTAL, EVT_BUTTON, DirDialog, ID_OK
 
 from easyselenium.ui.editor.editor_ui import EditorTab

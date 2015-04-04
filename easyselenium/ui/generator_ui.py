@@ -1,20 +1,20 @@
-from easyselenium.browser import Browser
 import os
 import re
 import shutil
-from tempfile import mkdtemp
-from wx import Panel, FlexGridSizer, StaticText, TextCtrl, Button, EXPAND, ALL, \
-    CheckBox, EVT_BUTTON, BoxSizer, VERTICAL, EVT_CLOSE, ComboBox, CB_READONLY, \
-    MessageDialog, OK, DirDialog, ID_OK, HORIZONTAL, SizerFlags, GridBagSizer, \
-    EVT_MOTION
 
+from tempfile import mkdtemp
+from wx import Panel, StaticText, TextCtrl, Button, EXPAND, ALL, \
+    EVT_BUTTON, EVT_CLOSE, ComboBox, CB_READONLY, \
+    GridBagSizer, EVT_MOTION
+
+from selenium.webdriver.common.by import By
+
+from easyselenium.browser import Browser
 from easyselenium.generator.page_object_generator import PageObjectGenerator
 from easyselenium.ui.utils import SelectableImagePanel, show_dialog, \
     show_dialog_path_doesnt_exist
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
-from selenium.webdriver.common.by import By
-from nose.util import src
 
 
 class GeneratorTab(Panel):
@@ -165,7 +165,7 @@ class GeneratorTab(Panel):
             url = self.txt_url.GetValue()
             if not StringUtils.is_area_correct(area_as_text):
                 show_dialog(self, u'Bad selected area: %s' % area_as_text,
-                            u'Bad selected area', OK)
+                            u'Bad selected area')
             elif not StringUtils.is_url_correct(url):
                 show_dialog(self, u'Bad url: %s' % url, u'Bad url')
             else:

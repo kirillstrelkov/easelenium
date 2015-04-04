@@ -2,16 +2,12 @@ import os
 import re
 import string
 import traceback
-from wx import Frame, App, ScrolledWindow, Color, VERTICAL, StaticText, TextCtrl, \
-    BoxSizer, HORIZONTAL, StaticBitmap, EXPAND, ALL, Image, BITMAP_TYPE_ANY, \
-    BitmapFromImage, EVT_LEFT_UP, EVT_LEFT_DOWN, EVT_MOTION, MemoryDC, \
-    BufferedDC, Pen, BLACK, DOT, TRANSPARENT_BRUSH, NullBitmap, Rect, \
-    EmptyBitmap, BLACK_PEN, WHITE_PEN, GREY_PEN, MessageDialog, OK, CANCEL, \
-    CENTER, Notebook, Panel, GridBagSizer, Button, EVT_BUTTON, TE_MULTILINE
-from wx.grid import Grid, EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK, \
-    GridStringTable
 
-from easyselenium.generator.page_object_class import get_by_as_code_str
+from wx import MessageDialog, OK, CENTER, Notebook, ScrolledWindow, BoxSizer, \
+    VERTICAL, StaticBitmap, ALL, EXPAND, Image, BITMAP_TYPE_ANY, BitmapFromImage, \
+    Rect, MemoryDC, BufferedDC, BLACK_PEN, TRANSPARENT_BRUSH, GREY_PEN, \
+    NullBitmap, EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL
+
 from easyselenium.parser.parsed_class import ParsedClass
 
 
