@@ -177,6 +177,7 @@ class GeneratorTab(Panel):
                                                           class_name,
                                                           folder_path,
                                                           area)
+                # TODO: raise modal if file exists
                 po_class.save(folder)
                 # TODO: implement UI with logging and stop button
 

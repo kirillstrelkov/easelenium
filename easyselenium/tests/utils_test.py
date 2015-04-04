@@ -24,3 +24,9 @@ class UtilsTest(TestCase):
         
         class_name = get_py_file_name_from_class_name('MyTESt')
         self.assertEqual(class_name, 'my_test.py')
+        
+        class_name = get_py_file_name_from_class_name('MyTest1')
+        self.assertEqual(class_name, 'my_test1.py')
+        
+        class_name = get_py_file_name_from_class_name('MyTest2')
+        self.assertEqual(class_name, 'my_test2.py')

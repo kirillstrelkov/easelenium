@@ -129,29 +129,19 @@ return getPathTo(arguments[0]);'''
                                area, file_path, img_path,
                                img_as_png)
 
-    def _get_po_class_fields_from_elements(self, elements):
-        class_fields = []
-        for element in elements:
-            by_and_selector = self._get_selector(element)
-            if by_and_selector:
-                by, selector = by_and_selector
-                name = self._get_name_for_field(by_and_selector)
-                location = self.browser.get_location(element)
-                dimensions = self.browser.get_dimensions(element)
-                po_class_field = PageObjectClassField(name,
-                                                      by,
-                                                      selector,
-                                                      location,
-                                                      dimensions)
-                if po_class_field not in class_fields:
-                    class_fields.append(po_class_field)
-        return class_fields
-
     def __get_pageobject_field(self, element, location_offset):
         by_and_selector = self._get_selector(element)
         if by_and_selector:
             by, selector = by_and_selector
+
             name = self._get_name_for_field(by_and_selector)
+            is_frame = self.browser.find_element(element).tag_name in ['frame', 'iframe']
+            if is_frame:
+                name = 'FRAME_' + name
+            name_starts_with_number = re.match('^\d+.+$', name)
+            if name_starts_with_number:
+                name = u'N' + name
+
             location = self.browser.get_location(element)
             if location_offset:
                 # fix location because it is inside frame
@@ -230,7 +220,8 @@ return getPathTo(arguments[0]);'''
 
     def _get_link_text_selector(self, element):
         text = self.browser.get_text(element)
-        if len(self.browser.find_elements((By.LINK_TEXT, text))) == 1:
+        if (len(self.browser.find_elements((By.LINK_TEXT, text))) == 1 and
+            len(text) > 1):
             return By.LINK_TEXT, text
         else:
             return None

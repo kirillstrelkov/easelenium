@@ -1,6 +1,5 @@
 import os
 import re
-import string
 import traceback
 
 from wx import MessageDialog, OK, CENTER, Notebook, ScrolledWindow, BoxSizer, \
@@ -16,8 +15,7 @@ def get_class_name_from_file(path):
     return ''.join([w.capitalize() for w in filename.split(u'_')])
 
 def get_py_file_name_from_class_name(class_name):
-    words = re.findall('[%s]*[%s]+' % (string.ascii_uppercase,
-                                      string.ascii_lowercase),
+    words = re.findall('[A-Z]*[a-z\d]+',
                        class_name)
     return '_'.join(words).lower() + '.py'
 

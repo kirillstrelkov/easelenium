@@ -91,6 +91,7 @@ class ParsedClass(object):
 
 class ParsedBrowserClass(ParsedClass):
     __LOCATOR_NAME = 'element'
+    __GOOD_METHODS = ('switch_to_default_content')
 
     @classmethod
     def get_parsed_classes(cls, module_or_class_or_path=None):
@@ -98,6 +99,6 @@ class ParsedBrowserClass(ParsedClass):
         for _class in parsed_classes:
             _class.methods = dict(
                 [(n, v) for n, v in _class.methods.items()
-                 if cls.__LOCATOR_NAME in _class.get_args(n)]
+                 if cls.__LOCATOR_NAME in _class.get_args(n) or n in cls.__GOOD_METHODS]
             )
         return parsed_classes

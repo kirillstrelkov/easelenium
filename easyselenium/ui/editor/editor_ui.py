@@ -10,7 +10,7 @@ from easyselenium.generator.page_object_class import PageObjectClass
 from easyselenium.parser.parsed_class import ParsedBrowserClass
 from easyselenium.ui.editor.image_with_elements import ImageWithElements
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
-    FieldContextMenu
+    FieldContextMenu, TestFileUI
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.utils import show_dialog, \
     show_dialog_path_doesnt_exist, show_error_dialog
@@ -65,15 +65,20 @@ class EditorTab(Panel):
         tabs = self.table_and_test_file_tabs.tabs
         count = tabs.GetPageCount()
         if count > 1:
-            test_file_path = tabs.GetPage(tabs.GetSelection()).test_file_path
-            txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
-            parsed_browser_class = ParsedBrowserClass.get_parsed_classes()[0]
-            context_menu = FieldContextMenu(field,
-                                            parsed_browser_class,
-                                            test_file_path,
-                                            txt_ctrl_ui)
-            self.PopupMenu(context_menu)
-            context_menu.Destroy()
+            selected_tab = tabs.GetPage(tabs.GetSelection())
+            if type(selected_tab) == TestFileUI:
+                test_file_path = selected_tab.test_file_path
+                txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
+                parsed_browser_class = ParsedBrowserClass.get_parsed_classes()[0]
+                context_menu = FieldContextMenu(field,
+                                                parsed_browser_class,
+                                                test_file_path,
+                                                txt_ctrl_ui)
+                self.PopupMenu(context_menu)
+                context_menu.Destroy()
+            else:
+                show_dialog(self, u'Please select tab with test file.',
+                            u'Tab with test file was not selected')
         else:
             show_dialog(self, u'Please create/open test file.',
                         u'Test file was not created/opened')
@@ -87,7 +92,6 @@ class EditorTab(Panel):
         field = self.__get_current_field(evt)
         if field:
             self._show_content_menu(field)
-        pass
 
     def _on_mouse_move(self, evt):
         prev_selected_field = self.image_panel.selected_field

@@ -1,15 +1,14 @@
 import os
+
 from wx import Panel, GridBagSizer, Button, EVT_BUTTON, ALL, EXPAND, TextCtrl, \
-    TE_MULTILINE, OK, FileDialog, FD_SAVE, ID_OK, BoxSizer, VERTICAL, \
-    TE_READONLY, FONTFAMILY_TELETYPE, NORMAL, Font, NewId, ACCEL_CTRL, \
-    AcceleratorTable, EVT_TEXT, EVT_NAVIGATION_KEY, EVT_KEY_DOWN, WXK_TAB, \
+    TE_MULTILINE, FileDialog, FD_SAVE, ID_OK, BoxSizer, VERTICAL, \
+    TE_READONLY, FONTFAMILY_TELETYPE, NORMAL, Font, EVT_KEY_DOWN, WXK_TAB, \
     TextEntryDialog, FD_OPEN, HSCROLL
 from wx.grid import Grid, EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK, \
     GridStringTable
 
-from easyselenium.file_utils import save_file, read_file
+from easyselenium.file_utils import save_file
 from easyselenium.generator.page_object_class import get_by_as_code_str
-from easyselenium.parser.parsed_class import ParsedClass
 from easyselenium.ui.context_menu import ContextMenu
 from easyselenium.ui.utils import Tabs, show_dialog, \
     get_class_name_from_file, check_file_for_errors, show_error_dialog, \
@@ -42,7 +41,7 @@ class FieldContextMenu(ContextMenu):
             else:
                 data[submenu_text] = [(item_text, func)]
 
-        bad_functions = ('_to_string', 'switch_to_frame')
+        bad_functions = ('_to_string')
         for text, func in initial_data:
             if text in bad_functions or text.startswith('find'):
                 continue
@@ -92,7 +91,7 @@ class {class_name}(BaseTest):
 
 '''
     def __init__(self, parent, test_file_path,
-                 po_class, initial_text=None):
+                 po_class, load_file=False):
         Panel.__init__(self, parent)
 
         self.test_file_path = test_file_path
@@ -105,7 +104,9 @@ class {class_name}(BaseTest):
                                            style=TE_READONLY)
         sizer.Add(self.txt_test_file_path, 0, flag=ALL | EXPAND)
 
-        if not initial_text:
+        if load_file:
+            initial_text = u''
+        else:
             initial_text = self.TEST_FILE_TEMPLATE.format(
                 class_name=get_class_name_from_file(test_file_path),
                 url=po_class.url
@@ -114,6 +115,10 @@ class {class_name}(BaseTest):
                                     value=initial_text,
                                     style=TE_MULTILINE | HSCROLL)
         self.txt_content.Bind(EVT_KEY_DOWN, self.__on_text_change)
+        if load_file:
+            self.txt_content.LoadFile(test_file_path)
+
+
         font_size = self.txt_content.GetFont().GetPointSize()
         self.txt_content.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
         sizer.Add(self.txt_content, 1, flag=ALL | EXPAND)
@@ -189,6 +194,7 @@ class {class_name}(BaseTest):
 
     def append_method_call(self, field, method, args):
         self_txt = 'self'
+        element_txt = 'element'
         if self_txt in args:
             args.remove(self_txt)
 
@@ -203,8 +209,9 @@ class {class_name}(BaseTest):
         method_call_template = u"        self.browser.{method}({method_args})\n"
 
         # replacing element text with correct element
-        element_index = args.index('element')
-        args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
+        if element_txt in args:
+            element_index = args.index(element_txt)
+            args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
 
         formatted_method = method_call_template.format(method=method.__name__,
                                                        method_args=u', '.join(args))
@@ -259,7 +266,7 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.table.Bind(EVT_GRID_SELECT_CELL, self.__on_cell_select)
         self.table.Bind(EVT_GRID_CELL_RIGHT_CLICK, self.__on_cell_select)
 
-        sizer.Add(self.tabs, pos=(row, 0), span=(1, 3), flag=ALL | EXPAND)
+        sizer.Add(self.tabs, pos=(row, 0), span=(1, 5), flag=ALL | EXPAND)
 
         sizer.AddGrowableCol(1, 1)
         sizer.AddGrowableRow(1, 1)
@@ -281,18 +288,13 @@ class FieldsTableAndTestFilesTabs(Panel):
     def set_pageobject_class(self, po_class):
         self.__cur_po_class = po_class
         field_count = len(self.__cur_po_class.fields)
-        field_attrs = [u'name', u'by', u'location', u'dimensions']
+        field_attrs = [u'name', u'by', u'selector', u'location', u'dimensions']
         table = GridStringTable(field_count, len(field_attrs))
 
         # filling headers
         for field_attr in field_attrs:
-            is_by = field_attr == field_attrs[1]
-            if is_by:
-                value = u'Selector'
-            else:
-                value = field_attr.capitalize()
             table.SetColLabelValue(field_attrs.index(field_attr),
-                                   value)
+                                   field_attr.capitalize())
 
         # filling data
         for field in self.__cur_po_class.fields:
@@ -351,15 +353,12 @@ class FieldsTableAndTestFilesTabs(Panel):
                                 wildcard='*.py')
             if dialog.ShowModal() == ID_OK:
                 test_file = dialog.GetPath()
-                if style == FD_OPEN:
-                    initial_text = read_file(test_file)
-                else:
-                    initial_text = None
+                load_file = style == FD_OPEN
 
                 filename = os.path.basename(test_file)
                 if StringUtils.is_test_file_name_correct(test_file):
                     test_file_ui = TestFileUI(self.tabs, test_file,
-                                              self.__cur_po_class, initial_text)
+                                              self.__cur_po_class, load_file)
                     self.tabs.AddPage(test_file_ui, filename)
                     self.tabs.SetSelection(self.tabs.GetPageCount() - 1)
 

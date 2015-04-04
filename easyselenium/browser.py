@@ -275,7 +275,7 @@ class Browser(object):
     def get_location(self, element):
         """Return tuple like (x, y)."""
         location = self.find_element(element).location
-        return location['x'], location['y']
+        return int(location['x']), int(location['y'])
 
     def get_dimensions(self, element):
         """Return tuple like (width, height)."""
@@ -445,7 +445,7 @@ class Browser(object):
             elements = self.find_elements(element)
             return elements and len(elements) > 0 and \
                 elements[0].is_displayed()
-        except WebDriverException as e:
+        except WebDriverException:
             return False
 
     def is_present(self, element):
