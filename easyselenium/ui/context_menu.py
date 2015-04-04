@@ -1,0 +1,72 @@
+from wx import Menu, MenuItem, EVT_MENU, NewId
+
+from easyselenium.utils import unicode_str
+
+
+class MenuItemData(object):
+    def __init__(self, text, func):
+        self.text = text
+        self.func = func
+        self.id = NewId()
+
+    def __str__(self):
+        return u"MenuItemData(%s)" % unicode_str(self.__dict__)
+
+    def __repr__(self):
+        return str(self)
+
+
+class ContextMenu(Menu):
+    def __init__(self, data):
+        Menu.__init__(self)
+
+        self.__id_and_item_data = self.__get_ids_and_item_data(data)
+        self.__text_and_item_data = dict([(d.text, d) for d in self.__id_and_item_data.values()])
+
+        self.__create_menu(data)
+        self._bind_evt_menu(self.__on_menu_click)
+
+
+    def _bind_evt_menu(self, function):
+        self.Bind(EVT_MENU, function)
+        for menu_item in self.GetMenuItems():
+            submenu = menu_item.GetSubMenu()
+            if submenu:
+                submenu.Bind(EVT_MENU, function)
+
+    def __get_ids_and_item_data(self, data):
+        _ids_and_data = dict()
+        for text, func in data:
+            if type(func) in (list, tuple):
+                for _id, _item_data in self.__get_ids_and_item_data(func).items():
+                    _ids_and_data[_id] = _item_data
+            item_data = MenuItemData(text, func)
+            _ids_and_data[item_data.id] = item_data
+        return _ids_and_data
+
+    def __create_menu(self, data):
+        for text, func in data:
+            if type(func) in (list, tuple):
+                submenu = Menu()
+                for _text, _func in func:
+                    _id = self.__text_and_item_data[_text].id
+                    sitem = MenuItem(submenu, _id, _text)
+                    submenu.AppendItem(sitem)
+                self.AppendSubMenu(submenu, text)
+            else:
+                data = self.__text_and_item_data[text]
+                item = MenuItem(self, data.id, text)
+                self.AppendItem(item)
+
+    def _get_function(self, menu_item_id):
+        func = None
+        if menu_item_id in self.__id_and_item_data:
+            func = self.__id_and_item_data[menu_item_id].func
+        return func
+
+    def __on_menu_click(self, evt):
+        _id = evt.GetId()
+        func = self._get_function(_id)
+        if func:
+            func()
+
