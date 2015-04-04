@@ -22,50 +22,45 @@ class PageObjectGeneratorTest(BaseTest):
         BaseTest.setUp(self)
         self.browser.get('https://duckduckgo.com/')
 
-    def t1est_get_elements_from_page(self):
-        elements = self.generator.get_elements_from_url(
-            'https://duckduckgo.com/')
-        self.assertGreaterEqual(len(elements), 97)
-        elements = self.generator._filter_elements(elements)
-        self.assertGreaterEqual(len(elements), 10)
+    def test_get_po_fields_from_page(self):
+        fields = self.generator._get_all_po_fields('https://duckduckgo.com/', None)
+        self.assertGreaterEqual(len(fields), 7)
 
-    def t1est_get_po_class_from_url(self):
+    def test_get_po_class_from_url(self):
         folder = tempfile.gettempdir()
         name = 'DuckDuckGo'
-        po_class = self.generator._get_po_class_for_url(
+        po_class = self.generator.get_po_class_for_url(
             'https://duckduckgo.com/', name, folder
         )
         po_class.save()
         self.assertGreater(len(po_class.fields), 0)
         self.assertTrue(po_class.file_path.startswith(folder))
-        self.assertIn(name, po_class.file_path)
+        self.assertIn('duck_duck_go', po_class.file_path)
         self.assertTrue(po_class.img_path.startswith(folder))
-        self.assertIn(name, po_class.img_path)
+        self.assertIn('duck_duck_go', po_class.img_path)
 
-    def t1est_get_po_class_from_url_with_area(self):
+    def test_get_po_class_from_url_with_area(self):
         folder = tempfile.gettempdir()
         name = 'DuckDuckGo'
         area = (200, 80, 670, 295)
-        po_class = self.generator._get_po_class_for_url(
+        po_class = self.generator.get_po_class_for_url(
             'https://duckduckgo.com/', name, folder, area
         )
         po_class.save()
         self.assertGreater(len(po_class.fields), 0)
         self.assertLess(len(po_class.fields), 5)
         self.assertTrue(po_class.file_path.startswith(folder))
-        self.assertIn(name, po_class.file_path)
+        self.assertIn('duck_duck_go', po_class.file_path)
         self.assertTrue(po_class.img_path.startswith(folder))
-        self.assertIn(name, po_class.img_path)
+        self.assertIn('duck_duck_go', po_class.img_path)
 
-    def t1est_get_po_class_fields_from_elements(self):
-        elements = self.generator.get_elements_from_url(
-            'https://duckduckgo.com/'
+    def test_get_po_class_fields_from_elements(self):
+        fields = self.generator._get_all_po_fields(
+            'https://duckduckgo.com/',
+            None
         )
-        self.assertGreaterEqual(len(elements), 97)
-        elements = self.generator._filter_elements(elements)
-        self.assertGreaterEqual(len(elements), 10)
+        self.assertGreaterEqual(len(fields), 7)
 
-        fields = self.generator._get_po_class_fields_from_elements(elements)
         for field in fields:
             self.assertGreater(len(field.name), 0)
             self.assertGreater(len(field.selector), 0)
@@ -75,7 +70,7 @@ class PageObjectGeneratorTest(BaseTest):
             self.assertNotEqual(field.location, (0, 0))
             self.assertNotEqual(field.dimensions, (0, 0))
 
-    def t1est_get_id_selector_for_element(self):
+    def test_get_id_selector_for_element(self):
         by_and_selector = By.ID, u'search_form_input_homepage'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
@@ -85,7 +80,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertEqual(u'SEARCH_FORM_INPUT_HOMEPAGE',
                          self.generator._get_name_for_field(element))
 
-    def t1est_get_class_name_selector_for_element(self):
+    def test_get_class_name_selector_for_element(self):
         by_and_selector = By.CLASS_NAME, u'logo_homepage'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
@@ -95,7 +90,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertEqual(u'LOGO_HOMEPAGE_LINK',
                          self.generator._get_name_for_field(element))
 
-    def t1est_get_link_text_selector_for_element(self):
+    def test_get_link_text_selector_for_element(self):
         by_and_selector = By.LINK_TEXT, u'About DuckDuckGo'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
@@ -105,7 +100,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertEqual(u'LOGO_HOMEPAGE_LINK',
                          self.generator._get_name_for_field(element))
 
-    def t1est_get_xpath_selector_for_element(self):
+    def test_get_xpath_selector_for_element(self):
         by_and_selector = By.XPATH, u'id("search_form_input_homepage")'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
@@ -124,7 +119,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertEqual(u'ABOUT_DUCKDUCKGO',
                          self.generator._get_name_for_field(element))
 
-    def t1est_get_css_selector_for_element(self):
+    def test_get_css_selector_for_element(self):
         by_and_selector = By.CSS_SELECTOR, u'#logo_homepage_link'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
@@ -147,7 +142,7 @@ class PageObjectGeneratorTest(BaseTest):
         folder = tempfile.gettempdir()
         name = 'DuckDuckGo'
         area = (63, 363, 869, 481)
-        po_class = self.generator._get_po_class_for_url(
+        po_class = self.generator.get_po_class_for_url(
             u'https://duckduckgo.com/?q=selenium&ia=about',
             name,
             folder,
@@ -163,3 +158,18 @@ class PageObjectGeneratorTest(BaseTest):
         bys = [f.by for f in po_class.fields]
         self.assertIn('link text', bys)
         self.assertIn(u'Selenium - Web Browser Automation', selectors)
+
+    def test_get_po_class_for_url_with_frames(self):
+        folder = tempfile.gettempdir()
+        name = 'Quackit'
+        area = None
+        po_class = self.generator.get_po_class_for_url(
+            u'http://www.quackit.com/html/templates/frames/frames_example_6.html',
+            name, folder, area
+        )
+
+        selectors = [f.selector for f in po_class.fields]
+
+        self.assertGreaterEqual(len(selectors), 5)
+        self.assertIn(u'FRAMESET/FRAME[1]', selectors)
+        self.assertIn(u'FRAMESET/FRAME[2]', selectors)

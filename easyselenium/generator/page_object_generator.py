@@ -34,6 +34,9 @@ class PageObjectGenerator(object):
     }
 }
 return getPathTo(arguments[0]);'''
+    ELEMENTS_SELECTOR = (By.CSS_SELECTOR,
+                         '[onclick], [jsaction], a, select, button, input, span, frame, iframe')
+    FRAMES_SELECTOR = (By.CSS_SELECTOR, 'frame, iframe')
 
     def __init__(self, browser):
         self.browser = browser
@@ -41,40 +44,6 @@ return getPathTo(arguments[0]);'''
     def __log(self, *msgs):
         # TODO: implement correct logging
         print u" ".join([unicode_str(msg) for msg in msgs])
-
-    def _filter_elements(self, elements, area=None):
-        bad_element_tags = ['option', 'script']
-
-        def is_correct_element(element, area):
-            if area:
-                if type(area) not in (tuple, list) or len(area) != 4:
-                    raise Exception(u"Bad area data '%s'" % str(area))
-                area = Rect(*area)
-                x, y = self.browser.get_location(element)
-                w, h = self.browser.get_dimensions(element)
-                element_center = Point(x + w / 2, y + h / 2)
-                is_element_inside = area.Contains(element_center)
-            else:
-                is_element_inside = True
-            return (is_element_inside and
-                    self.browser.is_visible(element) and
-                    not element.tag_name in bad_element_tags)
-
-        elements = [e for e in elements if is_correct_element(e, area)]
-        return elements
-
-    def _get_elements_from_url(self, url):
-        if self.browser.get_current_url() != url:
-            self.browser.get(url)
-            sleep(3)  # sleep for 3 sec
-
-        # NOTE: CSS 3 selectors are used
-        elements = self.browser.find_elements(
-            (By.CSS_SELECTOR,
-             ':only-child, a, select, button, input, span')
-        )
-
-        return elements
 
     def _get_name_for_field(self, element_or_by_and_selector):
         max_length = 30
@@ -89,6 +58,57 @@ return getPathTo(arguments[0]);'''
             name = u'BAD_NAME'
         return name
 
+    def __is_correct_element(self, element, area, location_offset):
+        bad_element_tags = ['option', 'script']
+
+        if area:
+            if type(area) not in (tuple, list) or len(area) != 4:
+                raise Exception(u"Bad area data '%s'" % str(area))
+            area = Rect(*area)
+            x, y = self.browser.get_location(element)
+            if location_offset:
+                # fixing location because it is located inside frame
+                x += location_offset[0]
+                y += location_offset[1]
+            w, h = self.browser.get_dimensions(element)
+            element_center = Point(x + w / 2, y + h / 2)
+            is_element_inside = area.Contains(element_center)
+        else:
+            is_element_inside = True
+
+        return (self.browser.is_visible(element) and
+                not element.tag_name in bad_element_tags and
+                is_element_inside)
+
+    def __get_po_fields_from_page(self, area, location_offset=None):
+        fields = []
+
+        for e in self.browser.find_elements(self.ELEMENTS_SELECTOR):
+            if self.__is_correct_element(e, area, location_offset):
+                field = self.__get_pageobject_field(e, location_offset)
+                if field:
+                    fields.append(field)
+
+        return fields
+
+    def _get_all_po_fields(self, url, area):
+        if self.browser.get_current_url() != url:
+            self.browser.get(url)
+            sleep(3)
+
+        fields = []
+        self.browser.switch_to_default_content()
+        fields += self.__get_po_fields_from_page(area)
+
+        for frame in self.browser.find_elements(self.FRAMES_SELECTOR):
+            self.browser.switch_to_default_content()
+            location_offset = self.browser.get_location(frame)
+            self.browser.switch_to_frame(frame)
+
+            fields += self.__get_po_fields_from_page(area, location_offset)
+
+        return fields
+
     def get_po_class_for_url(self, url, class_name, folder_path, area=None):
         po_folder = os.path.join(folder_path,
                                  RootFolder.PO_FOLDER)
@@ -97,10 +117,7 @@ return getPathTo(arguments[0]);'''
                                   PageObjectClass.IMAGE_FOLDER)
         check_if_path_exists(folder_path)
 
-        elements = self._get_elements_from_url(url)
-        elements = self._filter_elements(elements, area)
-
-        fields = self._get_po_class_fields_from_elements(elements)
+        fields = self._get_all_po_fields(url, area)
         img_as_png = self.browser.get_screenshot_as_png()
 
         filename = get_py_file_name_from_class_name(class_name)
@@ -129,6 +146,21 @@ return getPathTo(arguments[0]);'''
                 if po_class_field not in class_fields:
                     class_fields.append(po_class_field)
         return class_fields
+
+    def __get_pageobject_field(self, element, location_offset):
+        by_and_selector = self._get_selector(element)
+        if by_and_selector:
+            by, selector = by_and_selector
+            name = self._get_name_for_field(by_and_selector)
+            location = self.browser.get_location(element)
+            if location_offset:
+                # fix location because it is inside frame
+                location = location[0] + location_offset[0], location[1] + location_offset[1]
+            dimensions = self.browser.get_dimensions(element)
+            return PageObjectClassField(name, by,
+                                        selector, location,
+                                        dimensions)
+        return None
 
     def _get_selector(self, element):
         for selector_func in (self._get_id_selector,
