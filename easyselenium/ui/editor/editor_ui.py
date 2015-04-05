@@ -10,10 +10,11 @@ from easyselenium.generator.page_object_class import PageObjectClass
 from easyselenium.parser.parsed_class import ParsedBrowserClass
 from easyselenium.ui.editor.image_with_elements import ImageWithElements
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
-    FieldContextMenu, TestFileUI
+    TestFileUI
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.utils import show_dialog, \
     show_dialog_path_doesnt_exist, show_error_dialog
+from easyselenium.ui.editor.field_context_menu import FieldContextMenu
 
 
 class EditorTab(Panel):

@@ -84,8 +84,9 @@ return getPathTo(arguments[0]);'''
     def __get_po_fields_from_page(self, area, location_offset=None):
         fields = []
         elements = self.browser.find_elements(self.ELEMENTS_SELECTOR)
+        i = 1
         for e in elements:
-            self.__log(u'%5d/%d Trying to get PageObjectField for element %s' % (elements.index(e) + 1,
+            self.__log(u'%5d/%d Trying to get PageObjectField for element %s' % (i,
                                                                                  len(elements),
                                                                                  self.browser._to_string(e)))
             if self.__is_correct_element(e, area, location_offset):
@@ -95,7 +96,7 @@ return getPathTo(arguments[0]);'''
                     fields.append(field)
             else:
                 self.__log(u'Skipped - element is not supported/visible or is outside of area')
-
+            i += 1
 
         self.__log(u'Number of fields:', len(fields))
         return fields

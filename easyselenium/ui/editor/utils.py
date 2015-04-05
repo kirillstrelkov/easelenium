@@ -3,72 +3,18 @@ import os
 from wx import Panel, GridBagSizer, Button, EVT_BUTTON, ALL, EXPAND, TextCtrl, \
     TE_MULTILINE, FileDialog, FD_SAVE, ID_OK, BoxSizer, VERTICAL, \
     TE_READONLY, FONTFAMILY_TELETYPE, NORMAL, Font, EVT_KEY_DOWN, WXK_TAB, \
-    TextEntryDialog, FD_OPEN, HSCROLL
+    TextEntryDialog, FD_OPEN, HSCROLL, Dialog, StaticText, DEFAULT_DIALOG_STYLE, \
+    RESIZE_BORDER, ID_CANCEL, ALIGN_RIGHT
 from wx.grid import Grid, EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK, \
     GridStringTable
 
 from easyselenium.file_utils import save_file
 from easyselenium.generator.page_object_class import get_by_as_code_str
-from easyselenium.ui.context_menu import ContextMenu
 from easyselenium.ui.utils import Tabs, show_dialog, \
     get_class_name_from_file, check_file_for_errors, show_error_dialog, \
     show_dialog_bad_name
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
-
-
-class FieldContextMenu(ContextMenu):
-    def __init__(self, field, parsed_class, test_file, txt_ctrl_ui):
-        self.__field = field
-        self.__parsed_class = parsed_class
-        self.__test_file = test_file
-        self.__txt_ctrl_ui = txt_ctrl_ui
-        data = self.__prepare_context_data(self.__parsed_class.methods)
-
-        ContextMenu.__init__(self, data)
-        self._bind_evt_menu(self.__on_menu_click)
-
-    def __prepare_context_data(self, initial_data):
-        if type(initial_data) == dict:
-            initial_data = initial_data.items()
-        # needs to be initially sorted so that submenu items will be sorted as well
-        initial_data = sorted(initial_data, key=lambda x: x[0])
-
-        data = {}
-        def append_to_data(submenu_text, item_text, func):
-            if submenu_text in data:
-                data[submenu_text] += [(item_text, func)]
-            else:
-                data[submenu_text] = [(item_text, func)]
-
-        bad_functions = ('_to_string')
-        for text, func in initial_data:
-            if text in bad_functions or text.startswith('find'):
-                continue
-
-            if 'dropdown' in text:
-                append_to_data('dropdowns', text, func)
-            elif text.startswith('get'):
-                append_to_data('getters', text, func)
-            elif text.startswith('wait'):
-                append_to_data('waits', text, func)
-            else:
-                data[text] = func
-
-        data = sorted(data.items(), key=lambda x: x[0])
-        return data
-
-    def __on_menu_click(self, evt):
-        if self.__test_file:
-            method = self._get_function(evt.GetId())
-            args = self.__parsed_class.get_args(method)
-            self.__txt_ctrl_ui.append_method_call(self.__field,
-                                                  method,
-                                                  args)
-        else:
-            show_dialog(self.GetParent(),
-                        u'Please select or create test file.',
-                        u'Test file was not selected')
 
 
 class TestFileUI(Panel):
@@ -204,18 +150,45 @@ class {class_name}(BaseTest):
         self.__fix_fields(po_class)
         self.__fix_imports(po_class)
 
-        # TODO: if text then show dialog to enter value of text like self.broswer.type
-        # TODO: name variable if getter was called
-        method_call_template = u"        self.browser.{method}({method_args})\n"
-
-        # replacing element text with correct element
         if element_txt in args:
             element_index = args.index(element_txt)
             args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
 
-        formatted_method = method_call_template.format(method=method.__name__,
-                                                       method_args=u', '.join(args))
-        self.append_content(formatted_method)
+        method_name = method.__name__
+
+        get_prefix = 'get_'
+        is_getter_method_and_no_args = method_name.startswith(get_prefix)
+        if is_getter_method_and_no_args:
+            var = method_name.replace(get_prefix, '')
+            method_call_template = u"        {var} = self.browser.{method}({method_args})\n"
+            method_kwargs = {'var': var}
+        else:
+            method_call_template = u"        self.browser.{method}({method_args})\n"
+            method_kwargs = {}
+
+        if len(args) > 1:
+            dialog = MultipleTextEntry(self, 'Please enter values', args[1:])
+            if dialog.ShowModal() == ID_OK:
+                errors = []
+                for name, value in dialog.values.items():
+                    try:
+                        eval(value)
+                    except Exception as e:
+                        errors.append(u"%s:\n%s\n\n" % (name, str(e)))
+                    args[args.index(name)] = value
+
+                if len(errors) == 0:
+                    method_kwargs.update({'method': method_name,
+                                          'method_args': u', '.join(args)})
+                    self.append_content(method_call_template.format(**method_kwargs))
+                else:
+                    show_dialog(self,
+                                u'Errors:\n' + u''.join(errors),
+                                u'Values are not Python expressions')
+        else:
+            method_kwargs.update({'method': method_name,
+                                  'method_args': u', '.join(args)})
+            self.append_content(method_call_template.format(**method_kwargs))
 
     def create_new_test_case(self, test_case_name):
         test_case = self.TEST_CASE_TEMPLATE.format(test_case_name=test_case_name)
@@ -385,3 +358,54 @@ class FieldsTableAndTestFilesTabs(Panel):
             if evt.GetEventType() == EVT_GRID_CELL_RIGHT_CLICK.typeId:
                 self.__editor_tab._show_content_menu(field)
         evt.Skip()
+
+
+class MultipleTextEntry(Dialog):
+    def __init__(self, parent, title, values):
+        Dialog.__init__(self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER)
+        self.values = None
+
+        sizer = GridBagSizer(5, 5)
+        row = 0
+        self.labels = []
+        self.txt_ctrls = []
+        for value in values:
+            label = StaticText(self, label=value)
+            self.labels.append(label)
+            sizer.Add(label, pos=(row, 0), flag=ALIGN_RIGHT)
+
+            txtctrl = TextCtrl(self)
+            self.txt_ctrls.append(txtctrl)
+            sizer.Add(txtctrl, pos=(row, 1), flag=ALL | EXPAND)
+            row += 1
+
+        self.btn_cancel = Button(self, label=u'Cancel')
+        self.btn_cancel.Bind(EVT_BUTTON, self.__on_btn)
+        sizer.Add(self.btn_cancel, pos=(row, 0), flag=ALL | EXPAND)
+
+        self.btn_ok = Button(self, label=u'OK')
+        self.btn_ok.Bind(EVT_BUTTON, self.__on_btn)
+        sizer.Add(self.btn_ok, pos=(row, 1), flag=ALL | EXPAND)
+
+        sizer.AddGrowableCol(1)
+        self.SetSizerAndFit(sizer)
+        self.SetSizeWH(400, self.GetSizeTuple()[1])
+
+    def __on_btn(self, evt):
+        obj = evt.GetEventObject()
+
+        if obj == self.btn_ok:
+            self.values = {}
+            for txt_ctrl in self.txt_ctrls:
+                label_ctrl = self.labels[self.txt_ctrls.index(txt_ctrl)]
+                label = label_ctrl.GetLabel()
+                value = txt_ctrl.GetValue()
+                self.values[label] = value
+
+            return_code = ID_OK
+        else:
+            self.values = None
+            return_code = ID_CANCEL
+
+        self.EndModal(return_code)
+

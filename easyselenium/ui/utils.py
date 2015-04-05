@@ -7,7 +7,8 @@ from wx import MessageDialog, OK, CENTER, Notebook, ScrolledWindow, BoxSizer, \
     VERTICAL, StaticBitmap, ALL, EXPAND, Image, BITMAP_TYPE_ANY, BitmapFromImage, \
     Rect, MemoryDC, BufferedDC, BLACK_PEN, TRANSPARENT_BRUSH, GREY_PEN, \
     NullBitmap, EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL, CallAfter, Dialog, \
-    TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL
+    TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL, DEFAULT_DIALOG_STYLE, \
+    RESIZE_BORDER
 
 from easyselenium.parser.parsed_class import ParsedClass
 
@@ -227,7 +228,7 @@ class SelectableImagePanel(ImagePanel):
 
 class DialogWithText(Dialog):
     def __init__(self, parent, title):
-        Dialog.__init__(self, parent)
+        Dialog.__init__(self, parent, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER)
         self.SetSizeWH(600, 400)
 
         sizer = BoxSizer(VERTICAL)

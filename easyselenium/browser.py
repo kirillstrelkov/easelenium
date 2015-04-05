@@ -286,13 +286,13 @@ class Browser(object):
         Dropdown list related methods
     """
 
-    def get_selected_value_of_dropdown(self, element):
+    def get_selected_value_from_dropdown(self, element):
         self.wait_for_visible(element)
 
         element = self.find_element(element)
         return Select(element).first_selected_option.get_attribute('value')
 
-    def get_selected_text_of_dropdown(self, element):
+    def get_selected_text_from_dropdown(self, element):
         self.wait_for_visible(element)
 
         element = self.find_element(element)

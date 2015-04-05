@@ -72,12 +72,12 @@ class BrowserTest(BaseTest):
 
         select_element = (By.CSS_SELECTOR, "select[name='select']")
 
-        old_option = self.browser.get_selected_text_of_dropdown(select_element)
+        old_option = self.browser.get_selected_text_from_dropdown(select_element)
         self.browser.select_random_option_from_dropdown(select_element,
                                                         old_option)
-        new_option = self.browser.get_selected_text_of_dropdown(select_element)
+        new_option = self.browser.get_selected_text_from_dropdown(select_element)
         new_option_value = self.browser\
-            .get_selected_value_of_dropdown(select_element)
+            .get_selected_value_from_dropdown(select_element)
 
         self.assertNotEqual(old_option, new_option)
         self.assertEqual(new_option.lower().replace(' ', ''), new_option_value)
@@ -88,7 +88,7 @@ class BrowserTest(BaseTest):
         self.browser.select_option_by_text_from_dropdown(select_element,
                                                          new_option)
         self.assertEqual(
-            self.browser.get_selected_text_of_dropdown(select_element),
+            self.browser.get_selected_text_from_dropdown(select_element),
             new_option
         )
 
@@ -96,7 +96,7 @@ class BrowserTest(BaseTest):
         self.browser.select_option_by_value_from_dropdown(select_element,
                                                           new_option)
         self.assertEqual(
-            self.browser.get_selected_value_of_dropdown(select_element),
+            self.browser.get_selected_value_from_dropdown(select_element),
             new_option
         )
 
@@ -104,7 +104,7 @@ class BrowserTest(BaseTest):
         self.browser.select_option_by_index_from_dropdown(
             select_element, index)
         self.assertEquals(
-            self.browser.get_selected_value_of_dropdown(select_element),
+            self.browser.get_selected_value_from_dropdown(select_element),
             'value%d' % (index + 1)
         )
 
@@ -112,7 +112,7 @@ class BrowserTest(BaseTest):
         self.browser.select_option_by_index_from_dropdown(
             select_element, index)
         self.assertEquals(
-            self.browser.get_selected_value_of_dropdown(select_element),
+            self.browser.get_selected_value_from_dropdown(select_element),
             'value%d' % (index + 1)
         )
 
