@@ -2,9 +2,9 @@ from wx import Panel, BoxSizer, VERTICAL, ALL, EXPAND, Frame, App, \
     StaticText, TextCtrl, Button, HORIZONTAL, EVT_BUTTON, DirDialog, ID_OK
 
 from easyselenium.ui.editor.editor_ui import EditorTab
-from easyselenium.ui.generator_ui import GeneratorTab
 from easyselenium.ui.utils import Tabs
 from easyselenium.ui.root_folder import RootFolder
+from easyselenium.ui.generator.generator_ui import GeneratorTab
 
 
 class MainFrame(Frame):

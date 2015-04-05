@@ -1,11 +1,13 @@
 import os
 import re
+import logging
 import traceback
 
 from wx import MessageDialog, OK, CENTER, Notebook, ScrolledWindow, BoxSizer, \
     VERTICAL, StaticBitmap, ALL, EXPAND, Image, BITMAP_TYPE_ANY, BitmapFromImage, \
     Rect, MemoryDC, BufferedDC, BLACK_PEN, TRANSPARENT_BRUSH, GREY_PEN, \
-    NullBitmap, EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL
+    NullBitmap, EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL, CallAfter, Dialog, \
+    TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL
 
 from easyselenium.parser.parsed_class import ParsedClass
 
@@ -14,9 +16,11 @@ def get_class_name_from_file(path):
     filename, _ = os.path.splitext(os.path.basename(path))
     return ''.join([w.capitalize() for w in filename.split(u'_')])
 
+
 def get_py_file_name_from_class_name(class_name):
-    words = re.findall('[A-Z]*[a-z\d]+',
+    words = re.findall('[A-Z]*[a-z0-9]*',
                        class_name)
+    words = [w for w in words if len(w) > 0]
     return '_'.join(words).lower() + '.py'
 
 
@@ -36,12 +40,15 @@ def check_file_for_errors(path, *additional_python_paths):
         formatted_exc = traceback.format_exc()
         return False, formatted_exc
 
+
 def show_error_dialog(parent, message, caption):
     # TODO: implement dialog correctly - error  message should be easy to read
     return show_dialog(parent, message, caption)
 
+
 def show_dialog(parent, message, caption, style=OK | CENTER):
     return MessageDialog(parent, message, caption, style).ShowModal()
+
 
 def show_dialog_path_doesnt_exist(parent, path):
     if path is None:
@@ -50,12 +57,23 @@ def show_dialog_path_doesnt_exist(parent, path):
     caption = u'Bad path'
     return show_dialog(parent, msg, caption)
 
+
 def show_dialog_bad_name(parent, name, *expected_names):
     msg = u"Bad name: '%s'" % name
     if len(expected_names) > 0:
         msg += '\nExpected names like:\n' + u'\n'.join(expected_names)
     caption = u'Bad name'
     return show_dialog(parent, msg, caption)
+
+
+class WxTextCtrlHandler(logging.Handler):
+    def __init__(self, ctrl):
+        logging.Handler.__init__(self)
+        self.ctrl = ctrl
+
+    def emit(self, record):
+        s = self.format(record) + '\n'
+        CallAfter(self.ctrl.AppendText, s)
 
 
 class Tabs(Notebook):
@@ -206,3 +224,15 @@ class SelectableImagePanel(ImagePanel):
             w, h = self.get_image_dimensions()
             return (0, 0, w, h)
 
+
+class DialogWithText(Dialog):
+    def __init__(self, parent, title):
+        Dialog.__init__(self, parent)
+        self.SetSizeWH(600, 400)
+
+        sizer = BoxSizer(VERTICAL)
+
+        self.txt_ctrl = TextCtrl(self, style=TE_MULTILINE | TE_READONLY | HSCROLL)
+        sizer.Add(self.txt_ctrl, flag=ALL | EXPAND)
+
+        self.SetTitle(title)

@@ -12,9 +12,11 @@ from selenium.webdriver.common.by import By
 from easyselenium.browser import Browser
 from easyselenium.generator.page_object_generator import PageObjectGenerator
 from easyselenium.ui.utils import SelectableImagePanel, show_dialog, \
-    show_dialog_path_doesnt_exist
+    show_dialog_path_doesnt_exist, WxTextCtrlHandler, DialogWithText
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
+from easyselenium.utils import Logger
+from threading import Thread
 
 
 class GeneratorTab(Panel):
@@ -38,7 +40,8 @@ class GeneratorTab(Panel):
         sizer.Add(label, pos=(row, col))
 
         col += 1
-        self.txt_url = TextCtrl(self, value=u'http://ois.ttu.ee/')  # TODO: remove url
+        # self.txt_url = TextCtrl(self, value=u'http://ois.ttu.ee/')  # TODO: remove url
+        self.txt_url = TextCtrl(self, value=u'https://www.duckduckgo.com/')  # TODO: remove url
         sizer.Add(self.txt_url, pos=(row, col), flag=ALL | EXPAND)
 
         col += 1
@@ -48,7 +51,7 @@ class GeneratorTab(Panel):
         col += 1
         self.cb_browser = ComboBox(self,
                                    style=CB_READONLY,
-                                   choices=Browser.get_supported_browsers()[:2])
+                                   choices=Browser.get_supported_browsers()[:2][::-1])
         self.cb_browser.Select(0)
         sizer.Add(self.cb_browser, pos=(row, col), flag=ALL | EXPAND)
 
@@ -169,17 +172,32 @@ class GeneratorTab(Panel):
             elif not StringUtils.is_url_correct(url):
                 show_dialog(self, u'Bad url: %s' % url, u'Bad url')
             else:
+                dialog = DialogWithText(self, 'Generating page object class...')
+                handler = WxTextCtrlHandler(dialog.txt_ctrl)
+                logger = Logger(False, handler=handler)
+
+                dialog.Show()
+
                 area = eval(area_as_text)
                 class_name = self.txt_class_name.GetValue()
-                generator = PageObjectGenerator(self.browser)
+                generator = PageObjectGenerator(self.browser, logger)
                 folder_path = self.__tmp_dir
-                po_class = generator.get_po_class_for_url(url,
-                                                          class_name,
-                                                          folder_path,
-                                                          area)
-                # TODO: raise modal if file exists
-                po_class.save(folder)
-                # TODO: implement UI with logging and stop button
+
+                def generate():
+                    po_class = generator.get_po_class_for_url(url,
+                                                              class_name,
+                                                              folder_path,
+                                                              area)
+                    # TODO: raise modal if file exists
+                    po_class.save(folder)
+                    logger.info(u"Saving class '%s'..." % po_class.name)
+                    logger.info(u'Saved file: %s' % po_class.file_path)
+                    logger.info(u'Saved file: %s' % po_class.img_path)
+                    logger.info(u'DONE')
+
+                thread = Thread(target=generate)
+                thread.setDaemon(True)
+                thread.start()
 
     def __open_url(self, evt):
         url = self.txt_url.GetValue()

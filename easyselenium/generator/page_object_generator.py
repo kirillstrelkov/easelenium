@@ -38,12 +38,13 @@ return getPathTo(arguments[0]);'''
                          '[onclick], [jsaction], a, select, button, input, span, frame, iframe')
     FRAMES_SELECTOR = (By.CSS_SELECTOR, 'frame, iframe')
 
-    def __init__(self, browser):
+    def __init__(self, browser, logger=None):
         self.browser = browser
+        self.logger = logger
 
     def __log(self, *msgs):
-        # TODO: implement correct logging
-        print u" ".join([unicode_str(msg) for msg in msgs])
+        if self.logger:
+            self.logger.info(u" ".join([unicode_str(msg) for msg in msgs]))
 
     def _get_name_for_field(self, element_or_by_and_selector):
         max_length = 30
@@ -82,13 +83,21 @@ return getPathTo(arguments[0]);'''
 
     def __get_po_fields_from_page(self, area, location_offset=None):
         fields = []
-
-        for e in self.browser.find_elements(self.ELEMENTS_SELECTOR):
+        elements = self.browser.find_elements(self.ELEMENTS_SELECTOR)
+        for e in elements:
+            self.__log(u'%5d/%d Trying to get PageObjectField for element %s' % (elements.index(e) + 1,
+                                                                                 len(elements),
+                                                                                 self.browser._to_string(e)))
             if self.__is_correct_element(e, area, location_offset):
                 field = self.__get_pageobject_field(e, location_offset)
                 if field:
+                    self.__log(u' ' * 10, u'PageObjectField:', field)
                     fields.append(field)
+            else:
+                self.__log(u'Skipped - element is not supported/visible or is outside of area')
 
+
+        self.__log(u'Number of fields:', len(fields))
         return fields
 
     def _get_all_po_fields(self, url, area):
@@ -98,15 +107,18 @@ return getPathTo(arguments[0]);'''
 
         fields = []
         self.browser.switch_to_default_content()
+        self.__log(u'Getting fields for main content')
         fields += self.__get_po_fields_from_page(area)
 
         for frame in self.browser.find_elements(self.FRAMES_SELECTOR):
             self.browser.switch_to_default_content()
             location_offset = self.browser.get_location(frame)
+            self.__log(u'Getting fields for frame', self.browser._to_string(frame))
             self.browser.switch_to_frame(frame)
 
             fields += self.__get_po_fields_from_page(area, location_offset)
 
+        self.__log(u'Total number of fields:', len(fields))
         return fields
 
     def get_po_class_for_url(self, url, class_name, folder_path, area=None):
@@ -117,6 +129,7 @@ return getPathTo(arguments[0]);'''
                                   PageObjectClass.IMAGE_FOLDER)
         check_if_path_exists(folder_path)
 
+        self.__log(u'Generating PageObjectClass for url %s with area %s' % (url, str(area)))
         fields = self._get_all_po_fields(url, area)
         img_as_png = self.browser.get_screenshot_as_png()
 
@@ -159,9 +172,12 @@ return getPathTo(arguments[0]);'''
                               self._get_css_selector,
                               self._get_xpath_selector):
             if self.browser.is_visible(element):
-                by_and_selector = selector_func(element)
-                if by_and_selector:
-                    return by_and_selector
+                try:
+                    by_and_selector = selector_func(element)
+                    if by_and_selector:
+                        return by_and_selector
+                except Exception:
+                    pass
 
         return None
 
