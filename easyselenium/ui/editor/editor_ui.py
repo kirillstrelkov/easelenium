@@ -7,7 +7,8 @@ from wx import GridBagSizer, Panel, StaticText, ComboBox, CB_READONLY, ALL, \
 
 from easyselenium.file_utils import read_file
 from easyselenium.generator.page_object_class import PageObjectClass
-from easyselenium.parser.parsed_class import ParsedBrowserClass
+from easyselenium.parser.parsed_class import ParsedBrowserClass, \
+    ParsedTestCaseClass
 from easyselenium.ui.editor.image_with_elements import ImageWithElements
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
     TestFileUI
@@ -62,6 +63,12 @@ class EditorTab(Panel):
         sizer.AddGrowableRow(row, 1)
         sizer.AddGrowableCol(1, 1)
 
+    def __get_parsed_classes(self, field):
+        classes = ParsedTestCaseClass.get_parsed_classes()
+        if field:
+            classes += ParsedBrowserClass.get_parsed_classes()
+        return classes
+
     def _show_content_menu(self, field):
         tabs = self.table_and_test_file_tabs.tabs
         count = tabs.GetPageCount()
@@ -70,9 +77,9 @@ class EditorTab(Panel):
             if type(selected_tab) == TestFileUI:
                 test_file_path = selected_tab.test_file_path
                 txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
-                parsed_browser_class = ParsedBrowserClass.get_parsed_classes()[0]
+                parsed_classes = self.__get_parsed_classes(field)
                 context_menu = FieldContextMenu(field,
-                                                parsed_browser_class,
+                                                parsed_classes,
                                                 test_file_path,
                                                 txt_ctrl_ui)
                 self.PopupMenu(context_menu)
@@ -91,8 +98,7 @@ class EditorTab(Panel):
 
     def __on_right_click(self, evt):
         field = self.__get_current_field(evt)
-        if field:
-            self._show_content_menu(field)
+        self._show_content_menu(field)
 
     def _on_mouse_move(self, evt):
         prev_selected_field = self.image_panel.selected_field

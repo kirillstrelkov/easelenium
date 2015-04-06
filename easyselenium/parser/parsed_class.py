@@ -1,8 +1,12 @@
-from easyselenium.browser import Browser
+import os
 import imp
 import inspect
-import os
+
 from pprint import pformat
+
+from unittest.case import TestCase
+
+from easyselenium.browser import Browser
 
 
 class ParsedClass(object):
@@ -22,16 +26,12 @@ class ParsedClass(object):
             method = self.get_value(name_or_method)
         return inspect.getsource(method)
 
-    def get_args(self, name_or_method):
+    def get_arg_spec(self, name_or_method):
         if inspect.ismethod(name_or_method):
             method = name_or_method
         else:
             method = self.get_value(name_or_method)
-        arg_spec = inspect.getargspec(method)
-        if arg_spec:
-            return arg_spec.args
-        else:
-            return []
+        return inspect.getargspec(method)
 
     def get_module(self):
         return inspect.getmodule(self.class_obj)
@@ -99,6 +99,20 @@ class ParsedBrowserClass(ParsedClass):
         for _class in parsed_classes:
             _class.methods = dict(
                 [(n, v) for n, v in _class.methods.items()
-                 if cls.__LOCATOR_NAME in _class.get_args(n) or n in cls.__GOOD_METHODS]
+                 if cls.__LOCATOR_NAME in _class.get_arg_spec(n).args or n in cls.__GOOD_METHODS]
+            )
+        return parsed_classes
+
+
+class ParsedTestCaseClass(ParsedClass):
+    __STARTS_WITH = 'assert'
+
+    @classmethod
+    def get_parsed_classes(cls, module_or_class_or_path=None):
+        parsed_classes = ParsedClass.get_parsed_classes(TestCase)
+        for _class in parsed_classes:
+            _class.methods = dict(
+                [(n, v) for n, v in _class.methods.items()
+                 if n.startswith(cls.__STARTS_WITH) and '_' not in n]
             )
         return parsed_classes

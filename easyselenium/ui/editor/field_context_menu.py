@@ -3,15 +3,29 @@ from easyselenium.ui.utils import show_dialog
 
 
 class FieldContextMenu(ContextMenu):
-    def __init__(self, field, parsed_class, test_file, txt_ctrl_ui):
+    def __init__(self, field, parsed_classes, test_file, txt_ctrl_ui):
         self.__field = field
-        self.__parsed_class = parsed_class
+        self.__parsed_classes = parsed_classes
         self.__test_file = test_file
         self.__txt_ctrl_ui = txt_ctrl_ui
-        data = self.__prepare_context_data(self.__parsed_class.methods)
+        data = self.__prepare_data_from_classes(parsed_classes)
 
         ContextMenu.__init__(self, data)
         self._bind_evt_menu(self.__on_menu_click)
+
+    def __prepare_data_from_classes(self, parsed_classes):
+        data = []
+        for pc in parsed_classes:
+            is_asserts = 'assertTrue' in pc.methods
+            if is_asserts:
+                data.append((u'Asserts', self.__prepare_context_data(pc.methods)))
+                if len(parsed_classes) > 1:
+                    data.append((ContextMenu.SEPARATOR_TEXT, None))
+            else:
+                browser_data = self.__prepare_context_data(pc.methods)
+                for name, method in browser_data:
+                    data.append((name, method))
+        return data
 
     def __prepare_context_data(self, initial_data):
         if type(initial_data) == dict:
@@ -26,9 +40,8 @@ class FieldContextMenu(ContextMenu):
             else:
                 data[submenu_text] = [(item_text, func)]
 
-        bad_functions = ('_to_string')
         for text, func in initial_data:
-            if text in bad_functions or text.startswith('find'):
+            if text.startswith('_') or text.startswith('find'):
                 continue
 
             if 'dropdown' in text:
@@ -46,10 +59,13 @@ class FieldContextMenu(ContextMenu):
     def __on_menu_click(self, evt):
         if self.__test_file:
             method = self._get_function(evt.GetId())
-            args = self.__parsed_class.get_args(method)
-            self.__txt_ctrl_ui.append_method_call(self.__field,
-                                                  method,
-                                                  args)
+            for pc in self.__parsed_classes:
+                if method in pc.methods.values():
+                    arg_spec = pc.get_arg_spec(method)
+                    self.__txt_ctrl_ui.append_method_call(self.__field,
+                                                          method,
+                                                          arg_spec)
+                    break
         else:
             show_dialog(self.GetParent(),
                         u'Please select or create test file.',

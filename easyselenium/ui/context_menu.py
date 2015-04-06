@@ -17,6 +17,7 @@ class MenuItemData(object):
 
 
 class ContextMenu(Menu):
+    SEPARATOR_TEXT = u'------'
     def __init__(self, data):
         Menu.__init__(self)
 
@@ -54,9 +55,12 @@ class ContextMenu(Menu):
                     submenu.AppendItem(sitem)
                 self.AppendSubMenu(submenu, text)
             else:
-                data = self.__text_and_item_data[text]
-                item = MenuItem(self, data.id, text)
-                self.AppendItem(item)
+                if text == self.SEPARATOR_TEXT:
+                    self.AppendSeparator()
+                else:
+                    data = self.__text_and_item_data[text]
+                    item = MenuItem(self, data.id, text)
+                    self.AppendItem(item)
 
     def _get_function(self, menu_item_id):
         func = None

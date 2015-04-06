@@ -15,6 +15,7 @@ from easyselenium.ui.utils import Tabs, show_dialog, \
     show_dialog_bad_name
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
+from easyselenium.parser.parsed_class import ParsedBrowserClass
 
 
 class TestFileUI(Panel):
@@ -138,36 +139,54 @@ class {class_name}(BaseTest):
             pos = text.index(class_def_end) + len(class_def_end) + 1
             self.__append_line_to_pos(field_line, pos)
 
-    def append_method_call(self, field, method, args):
+    def append_method_call(self, field, method, arg_spec):
+        # removing arguments with default value
+        args = arg_spec.args
+        if arg_spec.defaults:
+            args = args[:-len(arg_spec.defaults)]
+
+        # removing 'self' argument
         self_txt = 'self'
-        element_txt = 'element'
         if self_txt in args:
             args.remove(self_txt)
 
         po_class = self.grandparent.get_current_pageobject_class()
         lowered_class_name = po_class.name.lower()
 
-        self.__fix_fields(po_class)
-        self.__fix_imports(po_class)
-
+        # replacing 'element' with correctly formatted string - self.obj.field
+        element_txt = 'element'
         if element_txt in args:
             element_index = args.index(element_txt)
             args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
 
+        self.__fix_fields(po_class)
+        self.__fix_imports(po_class)
+
         method_name = method.__name__
+        is_assert_method = method_name.startswith('assert')
+
+        if is_assert_method:
+            caller = 'self'
+        else:
+            caller = 'self.browser'
 
         get_prefix = 'get_'
         is_getter_method_and_no_args = method_name.startswith(get_prefix)
         if is_getter_method_and_no_args:
             var = method_name.replace(get_prefix, '')
-            method_call_template = u"        {var} = self.browser.{method}({method_args})\n"
+            method_call_template = u"        {var} = {caller}.{method}({method_args})\n"
             method_kwargs = {'var': var}
         else:
-            method_call_template = u"        self.browser.{method}({method_args})\n"
+            method_call_template = u"        {caller}.{method}({method_args})\n"
             method_kwargs = {}
 
-        if len(args) > 1:
-            dialog = MultipleTextEntry(self, 'Please enter values', args[1:])
+        is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
+        if (len(args) > 1 and is_browser_method or
+            len(args) > 0 and is_assert_method):
+            if is_assert_method:
+                dialog = MultipleTextEntry(self, 'Please enter values', args)
+            else:
+                dialog = MultipleTextEntry(self, 'Please enter values', args[1:])
             if dialog.ShowModal() == ID_OK:
                 errors = []
                 for name, value in dialog.values.items():
@@ -178,7 +197,8 @@ class {class_name}(BaseTest):
                     args[args.index(name)] = value
 
                 if len(errors) == 0:
-                    method_kwargs.update({'method': method_name,
+                    method_kwargs.update({'caller': caller,
+                                          'method': method_name,
                                           'method_args': u', '.join(args)})
                     self.append_content(method_call_template.format(**method_kwargs))
                 else:
@@ -186,7 +206,8 @@ class {class_name}(BaseTest):
                                 u'Errors:\n' + u''.join(errors),
                                 u'Values are not Python expressions')
         else:
-            method_kwargs.update({'method': method_name,
+            method_kwargs.update({'caller': caller,
+                                  'method': method_name,
                                   'method_args': u', '.join(args)})
             self.append_content(method_call_template.format(**method_kwargs))
 
