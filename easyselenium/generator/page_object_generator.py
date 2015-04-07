@@ -16,26 +16,46 @@ from easyselenium.ui.utils import get_py_file_name_from_class_name
 
 class PageObjectGenerator(object):
     # js code ref. -
-    # http://stackoverflow.com/questions/2631820/im-storing-click-coordinates-in-my-db-and-then-reloading-them-later-and-showing/2631931
-    GET_XPATH_USING_JS = '''function getPathTo(element) {
-    if (element.id!=='')
-        return 'id("'+element.id+'")';
-    if (element===document.body)
-        return element.tagName;
+    # https://code.google.com/p/fbug/source/browse/branches/firebug1.7/content/firebug/lib.js?r=8828
+    GET_XPATH_USING_JS = '''
+function getElementXPath(element)
+{
+    if (element && element.id)
+        return '//*[@id="' + element.id + '"]';
+    else
+        return getElementTreeXPath(element);
+};
 
-    var ix= 0;
-    var siblings= element.parentNode.childNodes;
-    for (var i= 0; i<siblings.length; i++) {
-        var sibling= siblings[i];
-        if (sibling===element)
-            return getPathTo(element.parentNode)+'/'+element.tagName+'['+(ix+1)+']';
-        if (sibling.nodeType===1 && sibling.tagName===element.tagName)
-            ix++;
+function getElementTreeXPath(element)
+{
+    var paths = [];
+
+    // Use nodeName (instead of localName) so namespace prefix is included (if any).
+    for (; element && element.nodeType == 1; element = element.parentNode)
+    {
+        var index = 0;
+        for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
+        {
+            // Ignore document type declaration.
+            if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE)
+                continue;
+
+            if (sibling.nodeName == element.nodeName)
+                ++index;
+        }
+
+        var tagName = element.nodeName.toLowerCase();
+        var pathIndex = (index ? "[" + (index+1) + "]" : "");
+        paths.splice(0, 0, tagName + pathIndex);
     }
-}
-return getPathTo(arguments[0]);'''
+
+    return paths.length ? "/" + paths.join("/") : null;
+};
+return getElementXPath(arguments[0]);'''
     ELEMENTS_SELECTOR = (By.CSS_SELECTOR,
-                         '[onclick], [jsaction], a, select, button, input, span, frame, iframe')
+                         '[onclick], [jsaction], a, select, button, input, '
+                         'span, p, h1, h2, h3, h4, h5, h6, '
+                         'frame, iframe')
     FRAMES_SELECTOR = (By.CSS_SELECTOR, 'frame, iframe')
 
     def __init__(self, browser, logger=None):
@@ -85,6 +105,7 @@ return getPathTo(arguments[0]);'''
         fields = []
         elements = self.browser.find_elements(self.ELEMENTS_SELECTOR)
         i = 1
+        log_prefix = u' ' * 10
         for e in elements:
             self.__log(u'%5d/%d Trying to get PageObjectField for element %s' % (i,
                                                                                  len(elements),
@@ -92,10 +113,12 @@ return getPathTo(arguments[0]);'''
             if self.__is_correct_element(e, area, location_offset):
                 field = self.__get_pageobject_field(e, location_offset)
                 if field:
-                    self.__log(u' ' * 10, u'PageObjectField:', field)
+                    self.__log(log_prefix, u'PageObjectField:', field)
                     fields.append(field)
+                else:
+                    self.__log(log_prefix, u'Failed to unique selector')
             else:
-                self.__log(u'Skipped - element is not supported/visible or is outside of area')
+                self.__log(log_prefix, u'Skipped - element is not supported/visible or is outside of area')
             i += 1
 
         self.__log(u'Number of fields:', len(fields))

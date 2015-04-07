@@ -11,6 +11,8 @@ from wx import MessageDialog, OK, CENTER, Notebook, ScrolledWindow, BoxSizer, \
     RESIZE_BORDER
 
 from easyselenium.parser.parsed_class import ParsedClass
+import tempfile
+from easyselenium.file_utils import save_file
 
 
 def get_class_name_from_file(path):
@@ -25,6 +27,14 @@ def get_py_file_name_from_class_name(class_name):
     return '_'.join(words).lower() + '.py'
 
 
+def check_py_code_for_errors(code, *additional_python_paths):
+    tmp_file = tempfile.mktemp()
+    save_file(tmp_file, code)
+    formatted_exception = check_file_for_errors(tmp_file, *additional_python_paths)
+    os.remove(tmp_file)
+    return formatted_exception
+
+
 def check_file_for_errors(path, *additional_python_paths):
     syspath = list(os.sys.path)
 
@@ -35,11 +45,11 @@ def check_file_for_errors(path, *additional_python_paths):
     try:
         ParsedClass.get_parsed_classes(path)
         os.sys.path = syspath
-        return True, None
+        return None
     except Exception:
         os.sys.path = syspath
         formatted_exc = traceback.format_exc()
-        return False, formatted_exc
+        return formatted_exc
 
 
 def show_error_dialog(parent, message, caption):
@@ -67,16 +77,6 @@ def show_dialog_bad_name(parent, name, *expected_names):
     return show_dialog(parent, msg, caption)
 
 
-class WxTextCtrlHandler(logging.Handler):
-    def __init__(self, ctrl):
-        logging.Handler.__init__(self)
-        self.ctrl = ctrl
-
-    def emit(self, record):
-        s = self.format(record) + '\n'
-        CallAfter(self.ctrl.AppendText, s)
-
-
 class Tabs(Notebook):
     def __init__(self, parent, tabs_and_title=None):
         Notebook.__init__(self, parent)
@@ -84,13 +84,15 @@ class Tabs(Notebook):
             for tab, title in tabs_and_title:
                 self.AddPage(tab(self), title)
 
-    def get_selected_tab_text(self):
-        index = self.GetSelection()
+    def get_tabs_text(self, index=None):
+        if index is None:
+            index = self.GetSelection()
         text = self.GetPageText(index)
         return text
 
-    def set_selected_tab_text(self, text):
-        index = self.GetSelection()
+    def set_tabs_text(self, text, index=None):
+        if index is None:
+            index = self.GetSelection()
         self.SetPageText(index, text)
 
 
@@ -224,6 +226,16 @@ class SelectableImagePanel(ImagePanel):
         else:
             w, h = self.get_image_dimensions()
             return (0, 0, w, h)
+
+
+class WxTextCtrlHandler(logging.Handler):
+    def __init__(self, ctrl):
+        logging.Handler.__init__(self)
+        self.ctrl = ctrl
+
+    def emit(self, record):
+        s = self.format(record) + '\n'
+        CallAfter(self.ctrl.AppendText, s)
 
 
 class DialogWithText(Dialog):

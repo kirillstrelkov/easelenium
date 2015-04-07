@@ -3,12 +3,12 @@ import traceback
 
 from wx import GridBagSizer, Panel, StaticText, ComboBox, CB_READONLY, ALL, \
     EXPAND, EVT_COMBOBOX, Button, EVT_BUTTON, SplitterWindow, EVT_MOTION, \
-    EVT_RIGHT_DOWN, FileDialog, ID_OK
+    EVT_RIGHT_DOWN, FileDialog, ID_OK, SP_LIVE_UPDATE, SP_3D
 
 from easyselenium.file_utils import read_file
 from easyselenium.generator.page_object_class import PageObjectClass
 from easyselenium.parser.parsed_class import ParsedBrowserClass, \
-    ParsedTestCaseClass
+    ParsedTestCaseClass, ParsedMouseClass
 from easyselenium.ui.editor.image_with_elements import ImageWithElements
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
     TestFileUI
@@ -49,7 +49,7 @@ class EditorTab(Panel):
 
         # Next row
         row += 1
-        splitter = SplitterWindow(self)
+        splitter = SplitterWindow(self, style=SP_3D | SP_LIVE_UPDATE)
 
         self.image_panel = ImageWithElements(splitter)
         self.image_panel.static_bitmap.Bind(EVT_MOTION, self._on_mouse_move)
@@ -66,6 +66,7 @@ class EditorTab(Panel):
     def __get_parsed_classes(self, field):
         classes = ParsedTestCaseClass.get_parsed_classes()
         if field:
+            classes += ParsedMouseClass.get_parsed_classes()
             classes += ParsedBrowserClass.get_parsed_classes()
         return classes
 
@@ -75,7 +76,7 @@ class EditorTab(Panel):
         if count > 1:
             selected_tab = tabs.GetPage(tabs.GetSelection())
             if type(selected_tab) == TestFileUI:
-                test_file_path = selected_tab.test_file_path
+                test_file_path = selected_tab.get_file_path()
                 txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
                 parsed_classes = self.__get_parsed_classes(field)
                 context_menu = FieldContextMenu(field,
@@ -148,9 +149,10 @@ class EditorTab(Panel):
                 self.image_panel.po_class = self.__cur_po_class
                 self.image_panel.load_image(self.__cur_po_class.img_path, area)
 
-                self.table_and_test_file_tabs.set_pageobject_class(self.__cur_po_class)
-
                 self.cb_class_path.SetValue(self.__cur_po_class.file_path)
+
+                self.table_and_test_file_tabs.set_pageobject_class(self.__cur_po_class)
+                self.table_and_test_file_tabs.load_po_class(self.__cur_po_class)
             except Exception:
                 self.__cur_po_class = None
                 show_error_dialog(self, traceback.format_exc(),

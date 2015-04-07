@@ -6,10 +6,12 @@ from pprint import pformat
 
 from unittest.case import TestCase
 
-from easyselenium.browser import Browser
+from easyselenium.browser import Browser, Mouse
 
 
 class ParsedClass(object):
+    PROTECTED_PREFIX = '_'
+    PRIVATE_PREFIX = '__'
     def __init__(self, name, class_obj, fields, methods):
         self.name = name
         self.class_obj = class_obj
@@ -70,7 +72,9 @@ class ParsedClass(object):
             raise NotImplementedError
 
         def filter_private_members(members):
-            return [m for m in members if '__' not in m[0]]
+            return [m for m in members
+                    if cls.PROTECTED_PREFIX not in m[0] or \
+                    cls.PRIVATE_PREFIX not in m[0]]
 
         parsed_classes = []
         for class_name, _class in classes:
@@ -113,6 +117,20 @@ class ParsedTestCaseClass(ParsedClass):
         for _class in parsed_classes:
             _class.methods = dict(
                 [(n, v) for n, v in _class.methods.items()
-                 if n.startswith(cls.__STARTS_WITH) and '_' not in n]
+                 if n.startswith(cls.__STARTS_WITH) and cls.PROTECTED_PREFIX not in n]
+            )
+        return parsed_classes
+
+
+class ParsedMouseClass(ParsedClass):
+    __LOCATOR_NAME = 'element'
+
+    @classmethod
+    def get_parsed_classes(cls, module_or_class_or_path=None):
+        parsed_classes = ParsedClass.get_parsed_classes(Mouse)
+        for _class in parsed_classes:
+            _class.methods = dict(
+                [(n, v) for n, v in _class.methods.items()
+                 if cls.__LOCATOR_NAME in _class.get_arg_spec(n).args]
             )
         return parsed_classes

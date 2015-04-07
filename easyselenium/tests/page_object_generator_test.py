@@ -101,7 +101,7 @@ class PageObjectGeneratorTest(BaseTest):
                          self.generator._get_name_for_field(element))
 
     def test_get_xpath_selector_for_element(self):
-        by_and_selector = By.XPATH, u'id("search_form_input_homepage")'
+        by_and_selector = By.XPATH, u'//*[@id="search_form_input_homepage"]'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
                          self.generator._get_xpath_selector(element))
@@ -110,7 +110,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertEqual(u'SEARCH_FORM_INPUT_HOMEPAGE',
                          self.generator._get_name_for_field(element))
 
-        by_and_selector = By.XPATH, u'id("content_homepage")/DIV[1]/DIV[1]'
+        by_and_selector = By.XPATH, u'/html/body/div/div[2]/div/div/div'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
                          self.generator._get_xpath_selector(element))
@@ -171,5 +171,5 @@ class PageObjectGeneratorTest(BaseTest):
         selectors = [f.selector for f in po_class.fields]
 
         self.assertGreaterEqual(len(selectors), 5)
-        self.assertIn(u'FRAMESET/FRAME[1]', selectors)
-        self.assertIn(u'FRAMESET/FRAME[2]', selectors)
+        self.assertIn(u'/html/frameset/frame', selectors)
+        self.assertIn(u'/html/frameset/frame[2]', selectors)

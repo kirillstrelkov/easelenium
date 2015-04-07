@@ -12,15 +12,101 @@ from easyselenium.file_utils import save_file
 from easyselenium.generator.page_object_class import get_by_as_code_str
 from easyselenium.ui.utils import Tabs, show_dialog, \
     get_class_name_from_file, check_file_for_errors, show_error_dialog, \
-    show_dialog_bad_name
+    show_dialog_bad_name, check_py_code_for_errors
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
-from easyselenium.parser.parsed_class import ParsedBrowserClass
+from easyselenium.parser.parsed_class import ParsedBrowserClass, \
+    ParsedMouseClass
 
 
-class TestFileUI(Panel):
-    # TODO: implement more generic class - PyFileUI
+class PyFileUI(Panel):
+    CHANGED_PREFIX = u'*'
+    def __init__(self, parent, file_path, load_file=False):
+        Panel.__init__(self, parent)
+        self.__file_path = file_path
+
+        sizer = BoxSizer(VERTICAL)
+        self.txt_test_file_path = TextCtrl(self,
+                                           value=self.__file_path,
+                                           style=TE_READONLY)
+        sizer.Add(self.txt_test_file_path, 0, flag=ALL | EXPAND)
+
+        self.txt_content = TextCtrl(self,
+                                    style=TE_MULTILINE | HSCROLL)
+        self.txt_content.Bind(EVT_KEY_DOWN, self.__on_text_change)
+        if load_file:
+            self.txt_content.LoadFile(self.__file_path)
+        font_size = self.txt_content.GetFont().GetPointSize()
+        self.txt_content.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
+        sizer.Add(self.txt_content, 1, flag=ALL | EXPAND)
+
+        self.SetSizer(sizer)
+
+    def get_file_path(self):
+        return self.__file_path
+
+    def __get_selected_tab_text(self):
+        parent = self.GetParent()
+        return parent.get_tabs_text()
+
+    def __set_selected_tab_text(self, text):
+        parent = self.GetParent()
+        parent.set_tabs_text(text)
+
+    def load_file(self, path):
+        self.__file_path = path
+        self.txt_test_file_path.SetValue(self.__file_path)
+        self.txt_content.LoadFile(self.__file_path)
+
+    def save_file(self):
+        root_folder = self.GetTopLevelParent().get_root_folder()
+        text = self.__get_selected_tab_text()
+        if text.startswith(self.CHANGED_PREFIX):
+            self.__set_selected_tab_text(text[1:])
+            save_file(self.__file_path, self.txt_content.GetValue())
+            formatted_exc = check_file_for_errors(self.__file_path,
+                                                  root_folder)
+            if formatted_exc:
+                show_error_dialog(self, formatted_exc, u'File contains errors')
+
+    def _set_file_was_changed(self):
+        text = self.__get_selected_tab_text()
+        if not text.startswith(self.CHANGED_PREFIX):
+            self.__set_selected_tab_text(self.CHANGED_PREFIX + text)
+
+    def __on_text_change(self, evt):
+        key = evt.GetUnicodeKey()
+        ctrl_s_pressed = key == 83 and evt.ControlDown()
+        if key == WXK_TAB:
+            indent = u'    '
+            self.txt_content.WriteText(indent)
+        elif ctrl_s_pressed:
+            self.save_file()
+        else:
+            self._set_file_was_changed()
+            evt.Skip()
+
+    def append_text(self, text):
+        content = self.txt_content.GetValue()
+        pass_with_tab = u'    pass'
+        if pass_with_tab in content:
+            content = content.replace(pass_with_tab, u'').rstrip() + u'\n'
+            self.txt_content.SetValue(content)
+
+        self.txt_content.AppendText(text)
+        self._set_file_was_changed()
+
+    def insert_text(self, line, pos):
+        self.txt_content.SetInsertionPoint(pos)
+        self.txt_content.WriteText(line.rstrip() + u'\n')
+        self.txt_content.SetInsertionPointEnd()
+        self._set_file_was_changed()
+
+
+class TestFileUI(PyFileUI):
     TEST_FILE_TEMPLATE = u'''# coding=utf8
+from time import sleep
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -33,81 +119,24 @@ class {class_name}(BaseTest):
         self.browser.get(u'{url}')
 
 '''
-    TEST_CASE_TEMPLATE = u'''    def {test_case_name}(self):
+    TEST_CASE_TEMPLATE = u'''
+    def {test_case_name}(self):
         pass
 
 '''
     def __init__(self, parent, test_file_path,
                  po_class, load_file=False):
-        Panel.__init__(self, parent)
+        PyFileUI.__init__(self, parent, test_file_path, load_file)
 
-        self.test_file_path = test_file_path
         self.__po_class = po_class
         self.grandparent = self.GetGrandParent()
 
-        sizer = BoxSizer(VERTICAL)
-        self.txt_test_file_path = TextCtrl(self,
-                                           value=self.test_file_path,
-                                           style=TE_READONLY)
-        sizer.Add(self.txt_test_file_path, 0, flag=ALL | EXPAND)
-
-        if load_file:
-            initial_text = u''
-        else:
+        if not load_file:
             initial_text = self.TEST_FILE_TEMPLATE.format(
                 class_name=get_class_name_from_file(test_file_path),
                 url=po_class.url
             )
-        self.txt_content = TextCtrl(self,
-                                    value=initial_text,
-                                    style=TE_MULTILINE | HSCROLL)
-        self.txt_content.Bind(EVT_KEY_DOWN, self.__on_text_change)
-        if load_file:
-            self.txt_content.LoadFile(test_file_path)
-
-
-        font_size = self.txt_content.GetFont().GetPointSize()
-        self.txt_content.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
-        sizer.Add(self.txt_content, 1, flag=ALL | EXPAND)
-        self.SetSizer(sizer)
-
-    def __get_selected_tab_text(self):
-        parent = self.GetParent()
-        return parent.get_selected_tab_text()
-
-    def __set_selected_tab_text(self, text):
-        parent = self.GetParent()
-        parent.set_selected_tab_text(text)
-
-    def save_file(self):
-        root_folder = self.GetTopLevelParent().get_root_folder()
-        text = self.__get_selected_tab_text()
-        if text.endswith(u'*'):
-            self.__set_selected_tab_text(text[:-1])
-            save_file(self.test_file_path, self.txt_content.GetValue())
-            correct, formatted_exc = check_file_for_errors(self.test_file_path,
-                                                           root_folder)
-            if not correct:
-                show_error_dialog(self, formatted_exc, u'File contains errors')
-
-    def _set_file_was_changed(self):
-        text = self.__get_selected_tab_text()
-        if not text.endswith(u'*'):
-            self.__set_selected_tab_text(text + u'*')
-
-    def append_content(self, text):
-        content = self.txt_content.GetValue()
-        pass_with_tab = u'    pass'
-        if pass_with_tab in content:
-            content = content.replace(pass_with_tab, u'').rstrip() + u'\n'
-            self.txt_content.SetValue(content)
-
-        self.txt_content.AppendText(text)
-
-    def __append_line_to_pos(self, line, pos):
-        self.txt_content.SetInsertionPoint(pos)
-        self.txt_content.WriteText(line.rstrip() + u'\n')
-        self.txt_content.SetInsertionPointEnd()
+            self.txt_content.SetValue(initial_text)
 
     def __fix_imports(self, po_class):
         root_folder = os.path.normpath(self.GetTopLevelParent().get_root_folder())
@@ -125,7 +154,7 @@ class {class_name}(BaseTest):
         if import_line not in text:
             base_test_import = u'import BaseTest'
             pos = text.index(base_test_import) + len(base_test_import) + 1
-            self.__append_line_to_pos(import_line, pos)
+            self.insert_text(import_line, pos)
 
     def __fix_fields(self, po_class):
         class_name = po_class.name
@@ -137,7 +166,7 @@ class {class_name}(BaseTest):
         if field_line not in text:
             class_def_end = u'(BaseTest):'
             pos = text.index(class_def_end) + len(class_def_end) + 1
-            self.__append_line_to_pos(field_line, pos)
+            self.insert_text(field_line, pos)
 
     def append_method_call(self, field, method, arg_spec):
         # removing arguments with default value
@@ -164,11 +193,15 @@ class {class_name}(BaseTest):
 
         method_name = method.__name__
         is_assert_method = method_name.startswith('assert')
+        is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
+        is_mouse_method = method_name in ParsedMouseClass.get_parsed_classes()[0].methods
 
-        if is_assert_method:
-            caller = 'self'
-        else:
+        if is_browser_method:
             caller = 'self.browser'
+        elif is_mouse_method:
+            caller = 'self.browser.mouse'
+        else:
+            caller = 'self'
 
         get_prefix = 'get_'
         is_getter_method_and_no_args = method_name.startswith(get_prefix)
@@ -180,55 +213,47 @@ class {class_name}(BaseTest):
             method_call_template = u"        {caller}.{method}({method_args})\n"
             method_kwargs = {}
 
-        is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
-        if (len(args) > 1 and is_browser_method or
+        if (len(args) > 1 and (is_browser_method or is_mouse_method) or
             len(args) > 0 and is_assert_method):
             if is_assert_method:
                 dialog = MultipleTextEntry(self, 'Please enter values', args)
             else:
                 dialog = MultipleTextEntry(self, 'Please enter values', args[1:])
             if dialog.ShowModal() == ID_OK:
-                errors = []
                 for name, value in dialog.values.items():
-                    try:
-                        eval(value)
-                    except Exception as e:
-                        errors.append(u"%s:\n%s\n\n" % (name, str(e)))
                     args[args.index(name)] = value
+                method_kwargs.update({'caller': caller,
+                                      'method': method_name,
+                                      'method_args': u', '.join(args)})
+                code_line = method_call_template.format(**method_kwargs)
+                code = self.txt_content.GetValue() + u'\n' + code_line
+                root_folder = self.GetTopLevelParent().get_root_folder()
+                formatted_exception = check_py_code_for_errors(code, root_folder)
 
-                if len(errors) == 0:
+                if formatted_exception:
+                    show_dialog(self,
+                                formatted_exception,
+                                u'Values are not Python expressions')
+                else:
                     method_kwargs.update({'caller': caller,
                                           'method': method_name,
                                           'method_args': u', '.join(args)})
-                    self.append_content(method_call_template.format(**method_kwargs))
-                else:
-                    show_dialog(self,
-                                u'Errors:\n' + u''.join(errors),
-                                u'Values are not Python expressions')
+                    self.append_text(method_call_template.format(**method_kwargs))
         else:
             method_kwargs.update({'caller': caller,
                                   'method': method_name,
                                   'method_args': u', '.join(args)})
-            self.append_content(method_call_template.format(**method_kwargs))
+            self.append_text(method_call_template.format(**method_kwargs))
 
     def create_new_test_case(self, test_case_name):
         test_case = self.TEST_CASE_TEMPLATE.format(test_case_name=test_case_name)
-        self.append_content(test_case)
+        self.append_text(test_case)
 
-    def __on_text_change(self, evt):
-        key = evt.GetUnicodeKey()
-        ctrl_s_pressed = key == 83 and evt.ControlDown()
-        if key == WXK_TAB:
-            indent = u'    '
-            self.txt_content.WriteText(indent)
-        elif ctrl_s_pressed:
-            self.save_file()
-        else:
-            self._set_file_was_changed()
-            evt.Skip()
 
 
 class FieldsTableAndTestFilesTabs(Panel):
+    TAB_INDEX_FOR_TABLE = 0
+    TAB_INDEX_FOR_PO_CLASS_FILE = 1
     def __init__(self, parent, editor_tab):
         Panel.__init__(self, parent)
 
@@ -246,13 +271,13 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.btn_create_test_file.Bind(EVT_BUTTON, self.__on_create_test_file)
         sizer.Add(self.btn_create_test_file, pos=(row, 1))
 
-        self.btn_save_test_file = Button(self, label=u'Save current test file')
-        self.btn_save_test_file.Bind(EVT_BUTTON, self.__on_save_test_file)
-        sizer.Add(self.btn_save_test_file, pos=(row, 2))
-
-        self.btn_create_test = Button(self, label=u'Create new test case in current test file')
+        self.btn_create_test = Button(self, label=u'Create new test case')
         self.btn_create_test.Bind(EVT_BUTTON, self.__on_create_test)
-        sizer.Add(self.btn_create_test, pos=(row, 3))
+        sizer.Add(self.btn_create_test, pos=(row, 2))
+
+        self.btn_save_test_file = Button(self, label=u'Save current file')
+        self.btn_save_test_file.Bind(EVT_BUTTON, self.__on_save_test_file)
+        sizer.Add(self.btn_save_test_file, pos=(row, 3))
 
         row += 1
         self.tabs = Tabs(self, [(Grid, "Fields' table")])
@@ -260,11 +285,30 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.table.Bind(EVT_GRID_SELECT_CELL, self.__on_cell_select)
         self.table.Bind(EVT_GRID_CELL_RIGHT_CLICK, self.__on_cell_select)
 
-        sizer.Add(self.tabs, pos=(row, 0), span=(1, 5), flag=ALL | EXPAND)
+        sizer.Add(self.tabs, pos=(row, 0), span=(1, 4), flag=ALL | EXPAND)
 
         sizer.AddGrowableCol(1, 1)
         sizer.AddGrowableRow(1, 1)
         self.SetSizer(sizer)
+
+    def load_po_class(self, po_class):
+        self.__cur_po_class = po_class
+        file_name = os.path.basename(self.__cur_po_class.file_path)
+
+        more_than_1_tab = self.tabs.GetPageCount() > 1
+        if more_than_1_tab:
+            py_file_ui = self.tabs.GetPage(self.TAB_INDEX_FOR_PO_CLASS_FILE)
+            py_file_ui.load_file(self.__cur_po_class.file_path)
+        else:
+            py_file_ui = PyFileUI(self.tabs, self.__cur_po_class.file_path, True)
+            self.tabs.AddPage(py_file_ui, os.path.basename(self.__cur_po_class.file_path))
+
+        if (not more_than_1_tab and
+            self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE):
+            self.tabs.SetSelection(self.TAB_INDEX_FOR_PO_CLASS_FILE)
+
+        self.tabs.set_tabs_text(file_name,
+                                self.TAB_INDEX_FOR_PO_CLASS_FILE)
 
     def get_current_po_class(self):
         return self.__cur_po_class
@@ -273,8 +317,8 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.table.ClearGrid()
 
     def select_item_in_table(self, index):
-        self.table.SelectRow(index)
         self.table.Scroll(0, index)
+        self.table.SelectRow(index)
 
     def get_current_pageobject_class(self):
         return self.__cur_po_class
@@ -413,8 +457,8 @@ class MultipleTextEntry(Dialog):
         self.SetSizeWH(400, self.GetSizeTuple()[1])
 
     def __on_btn(self, evt):
+        errors = []
         obj = evt.GetEventObject()
-
         if obj == self.btn_ok:
             self.values = {}
             for txt_ctrl in self.txt_ctrls:
@@ -422,11 +466,16 @@ class MultipleTextEntry(Dialog):
                 label = label_ctrl.GetLabel()
                 value = txt_ctrl.GetValue()
                 self.values[label] = value
+                if len(value) == 0:
+                    errors.append(u"Variable '%s' has empty value '%s'" % (label, value))
 
             return_code = ID_OK
         else:
             self.values = None
             return_code = ID_CANCEL
 
-        self.EndModal(return_code)
+        if len(errors) > 0:
+            show_dialog(self, u'\n'.join(errors), 'Bad entered data')
+        else:
+            self.EndModal(return_code)
 

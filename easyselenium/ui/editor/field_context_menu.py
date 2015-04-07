@@ -17,8 +17,10 @@ class FieldContextMenu(ContextMenu):
         data = []
         for pc in parsed_classes:
             is_asserts = 'assertTrue' in pc.methods
-            if is_asserts:
-                data.append((u'Asserts', self.__prepare_context_data(pc.methods)))
+            is_mouse = 'hover' in pc.methods
+            if is_asserts or is_mouse:
+                name = u'Mouse' if is_mouse else u'Asserts'
+                data.append((name, self.__prepare_context_data(pc.methods)))
                 if len(parsed_classes) > 1:
                     data.append((ContextMenu.SEPARATOR_TEXT, None))
             else:

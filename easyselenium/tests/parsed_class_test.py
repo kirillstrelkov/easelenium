@@ -5,7 +5,7 @@ from unittest.case import TestCase
 
 from easyselenium import browser
 from easyselenium.parser.parsed_class import ParsedClass, ParsedBrowserClass, \
-    ParsedTestCaseClass
+    ParsedTestCaseClass, ParsedMouseClass
 
 
 class ParsedClassTest(TestCase):
@@ -137,3 +137,15 @@ class ParsedTestCaseClassTest(TestCase):
                        'tearDownClass']
         for m in bad_methods:
             self.assertNotIn(m, parsed_class.methods)
+
+
+class ParsedMouseClassTest(TestCase):
+    def test_parsed_browser_class_contains_only_methods_with_element(self):
+        parsed_class = ParsedMouseClass.get_parsed_classes()[0]
+
+        self.assertIn('hover', parsed_class.methods)
+        self.assertIn('hover_by_offset', parsed_class.methods)
+        self.assertIn('left_click', parsed_class.methods)
+        self.assertIn('left_click_by_offset', parsed_class.methods)
+        self.assertIn('right_click', parsed_class.methods)
+        self.assertIn('right_click_by_offset', parsed_class.methods)
