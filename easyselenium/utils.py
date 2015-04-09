@@ -38,8 +38,8 @@ def get_random_value(_list, *val_to_skip):
 
 class Logger(object):
 
-    def __init__(self, log_to_console=True, file_path=None, handler=None):
-        self.__logger = logging.getLogger('easyselenium.browser')
+    def __init__(self, name=None, log_to_console=True, file_path=None, handler=None):
+        self.__logger = logging.getLogger(name)
         self.__logger.setLevel(logging.INFO)
 
         if log_to_console:

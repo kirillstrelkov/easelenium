@@ -6,7 +6,7 @@ from easyselenium.base_test import BaseTest
 
 
 class BrowserTest(BaseTest):
-    LOGGER = False
+    logger = False
 
     def test_switch_to_frame(self):
         frame_left = (By.XPATH, "//frame[@name='menu']")

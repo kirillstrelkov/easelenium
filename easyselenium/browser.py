@@ -213,6 +213,11 @@ class Browser(object):
     def is_op(self):
         return self.__browser_name == Browser.OP
 
+
+    def __safe_log(self, *args):
+        if self.logger:
+            self.logger.info(*args)
+
     """
         WebElement's wrapped functions
     """
@@ -226,10 +231,9 @@ class Browser(object):
             if u'Element must be user-editable in order to clear it.' != e.msg:
                 raise e
 
-        if self.logger:
-            self.logger.info(u"Typing '%s' at '%s'",
-                             text,
-                             self._to_string(element))
+        self.__safe_log(u"Typing '%s' at '%s'",
+                        text,
+                        self._to_string(element))
 
         element.send_keys(text)
 
@@ -253,6 +257,10 @@ class Browser(object):
     def get_text(self, element):
         self.wait_for_visible(element)
         element = self.find_element(element)
+
+        if self.logger:
+            self.logger.info(u"Clicking at '%s'", self._to_string(element))
+
         return element.text
 
     def get_attribute(self, element, attr):

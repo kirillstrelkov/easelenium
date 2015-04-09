@@ -10,8 +10,8 @@ from easyselenium.base_test import BaseTest
 
 
 class PageObjectGeneratorTest(BaseTest):
-    LOGGER = False
     BROWSER_NAME = 'gc'
+    logger = False
 
     @classmethod
     def setUpClass(cls):

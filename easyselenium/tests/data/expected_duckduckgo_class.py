@@ -1,8 +1,10 @@
 # coding=utf8
 from selenium.webdriver.common.by import By
 
+from easyselenium.base_page_object import BasePageObject
 
-class DuckDuckGo(object):
+
+class DuckDuckGo(BasePageObject):
     # Please do NOT remove auto-generated comments
     # Url: https://duckduckgo.com/
     # Area: None

@@ -62,8 +62,10 @@ class PageObjectClass(object):
     TEMPLATE = u'''# coding=utf8
 from selenium.webdriver.common.by import By
 
+from easyselenium.base_page_object import BasePageObject
 
-class {name}(object):
+
+class {name}(BasePageObject):
     # Please do NOT remove auto-generated comments
     # Url: {url}
     # Area: {area}
@@ -100,7 +102,10 @@ class {name}(object):
 
     def _get_file_content(self):
         kwargs = self.__dict__.copy()
-        kwargs[u'fields_as_code'] = self._get_fields_as_code()
+        fields_as_code = self._get_fields_as_code()
+        if len(fields_as_code.strip()) == 0:
+            fields_as_code = u'    pass\n'
+        kwargs[u'fields_as_code'] = fields_as_code
         return self.TEMPLATE.format(**kwargs)
 
     def _get_fields_as_code(self):
@@ -124,7 +129,7 @@ class {name}(object):
         # Url: {url}
         # Area: {area}
         # Image path: {img_path}
-        name_regexp = ur'class (\w+)\(object\):'
+        name_regexp = ur'class (\w+)\(BasePageObject\):'
         url_regexp = ur'Url: (.+)'
         area_regexp = ur'Area: \(?([\w, ]+)\)?'
         img_path_regexp = ur'Image path: (.+)'

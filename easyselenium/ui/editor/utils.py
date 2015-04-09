@@ -105,8 +105,6 @@ class PyFileUI(Panel):
 
 class TestFileUI(PyFileUI):
     TEST_FILE_TEMPLATE = u'''# coding=utf8
-from time import sleep
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -114,6 +112,10 @@ from easyselenium.base_test import BaseTest
 
 
 class {class_name}(BaseTest):
+
+    @classmethod
+    def setUpClass(cls):
+        super({class_name}, cls).setUpClass()
 
     def setUp(self):
         self.browser.get(u'{url}')
@@ -156,15 +158,15 @@ class {class_name}(BaseTest):
             pos = text.index(base_test_import) + len(base_test_import) + 1
             self.insert_text(import_line, pos)
 
-    def __fix_fields(self, po_class):
+    def __fix_class_initialization(self, po_class):
         class_name = po_class.name
         field_name = class_name.lower()
-        field_line = u'    {field_name} = {class_name}()'.format(field_name=field_name,
-                                                               class_name=class_name)
+        field_line = u'        cls.{field_name} = {class_name}(cls.browser, cls.logger)'.format(field_name=field_name,
+                                                                                                class_name=class_name)
 
         text = self.txt_content.GetValue()
         if field_line not in text:
-            class_def_end = u'(BaseTest):'
+            class_def_end = u'cls).setUpClass()'
             pos = text.index(class_def_end) + len(class_def_end) + 1
             self.insert_text(field_line, pos)
 
@@ -188,7 +190,7 @@ class {class_name}(BaseTest):
             element_index = args.index(element_txt)
             args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
 
-        self.__fix_fields(po_class)
+        self.__fix_class_initialization(po_class)
         self.__fix_imports(po_class)
 
         method_name = method.__name__

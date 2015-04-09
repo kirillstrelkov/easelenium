@@ -174,7 +174,7 @@ class GeneratorTab(Panel):
             else:
                 dialog = DialogWithText(self, 'Generating page object class...')
                 handler = WxTextCtrlHandler(dialog.txt_ctrl)
-                logger = Logger(False, handler=handler)
+                logger = Logger(log_to_console=False, handler=handler)
 
                 dialog.Show()
 

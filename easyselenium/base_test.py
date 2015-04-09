@@ -6,15 +6,15 @@ from easyselenium.utils import Logger
 
 
 class BaseTest(TestCase):
-    LOGGER = Logger()
     TC_NAME_WIDTH = 100
     BROWSER_NAME = 'ff'
+    logger = Logger(name='easyselenim.base_test.BaseTest')
 
     @classmethod
     def setUpClass(cls):
         super(BaseTest, cls).setUpClass()
         cls.browser = Browser(browser_name=cls.BROWSER_NAME,
-                              logger=cls.LOGGER)
+                              logger=cls.logger)
 
     @classmethod
     def tearDownClass(cls):
