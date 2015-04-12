@@ -18,8 +18,14 @@ class FieldContextMenu(ContextMenu):
         for pc in parsed_classes:
             is_asserts = 'assertTrue' in pc.methods
             is_mouse = 'hover' in pc.methods
-            if is_asserts or is_mouse:
-                name = u'Mouse' if is_mouse else u'Asserts'
+            is_browser = 'click' in pc.methods
+            if is_asserts or is_mouse or not is_browser:
+                if is_mouse:
+                    name = u'Mouse'
+                elif is_asserts:
+                    name = u'Asserts'
+                else:
+                    name = pc.name
                 data.append((name, self.__prepare_context_data(pc.methods)))
                 if len(parsed_classes) > 1:
                     data.append((ContextMenu.SEPARATOR_TEXT, None))
@@ -60,14 +66,19 @@ class FieldContextMenu(ContextMenu):
 
     def __on_menu_click(self, evt):
         if self.__test_file:
-            method = self._get_function(evt.GetId())
-            for pc in self.__parsed_classes:
-                if method in pc.methods.values():
-                    arg_spec = pc.get_arg_spec(method)
-                    self.__txt_ctrl_ui.append_method_call(self.__field,
-                                                          method,
-                                                          arg_spec)
-                    break
+            if self.__txt_ctrl_ui.has_one_or_more_methods_or_test_cases():
+                method = self._get_function(evt.GetId())
+                for pc in self.__parsed_classes:
+                    if method in pc.methods.values():
+                        arg_spec = pc.get_arg_spec(method)
+                        self.__txt_ctrl_ui.append_method_call(self.__field,
+                                                              method,
+                                                              arg_spec)
+                        break
+            else:
+                show_dialog(self.GetParent(),
+                            u'Please create method or test case.',
+                            u"Class doesn't have any methods or test cases")
         else:
             show_dialog(self.GetParent(),
                         u'Please select or create test file.',

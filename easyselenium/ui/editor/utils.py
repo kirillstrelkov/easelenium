@@ -1,4 +1,5 @@
 import os
+import re
 
 from wx import Panel, GridBagSizer, Button, EVT_BUTTON, ALL, EXPAND, TextCtrl, \
     TE_MULTILINE, FileDialog, FD_SAVE, ID_OK, BoxSizer, VERTICAL, \
@@ -14,15 +15,22 @@ from easyselenium.ui.utils import Tabs, show_dialog, \
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
 from easyselenium.ui.generator.page_object_class import get_by_as_code_str
-from easyselenium.ui.parser.parsed_class import ParsedMouseClass,\
-    ParsedBrowserClass
+from easyselenium.ui.parser.parsed_class import ParsedMouseClass, \
+    ParsedBrowserClass, ParsedPageObjectClass
 from easyselenium.ui.file_utils import save_file
 
 
 class PyFileUI(Panel):
     CHANGED_PREFIX = u'*'
+    METHOD_TEMPLATE = u'''
+    def {method_name}(self):
+        pass
+
+'''
     def __init__(self, parent, file_path, load_file=False):
         Panel.__init__(self, parent)
+        self.grandparent = self.GetGrandParent()
+
         self.__file_path = file_path
 
         sizer = BoxSizer(VERTICAL)
@@ -102,6 +110,94 @@ class PyFileUI(Panel):
         self.txt_content.SetInsertionPointEnd()
         self._set_file_was_changed()
 
+    def create_method(self, method_name):
+        test_case = self.METHOD_TEMPLATE.format(method_name=method_name)
+        self.append_text(test_case)
+
+    def has_one_or_more_methods_or_test_cases(self):
+        return len(re.findall('def .+self.+:', self.txt_content.GetValue())) > 0
+
+    def append_method_call(self, field, method, arg_spec):
+        is_po_class_file_selected = type(self) == PyFileUI
+        # removing arguments with default value
+        args = arg_spec.args
+        if arg_spec.defaults:
+            args = args[:-len(arg_spec.defaults)]
+
+        # removing 'self' argument
+        self_txt = 'self'
+        if self_txt in args:
+            args.remove(self_txt)
+
+        po_class = self.grandparent.get_current_pageobject_class()
+        lowered_class_name = po_class.name.lower()
+
+        method_name = method.__name__
+        is_assert_method = method_name.startswith('assert')
+        is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
+        is_mouse_method = method_name in ParsedMouseClass.get_parsed_classes()[0].methods
+        is_page_object_method = method_name in ParsedPageObjectClass.get_parsed_classes(po_class.file_path)[0].methods
+
+        # replacing 'element' with correctly formatted string - self.obj.field
+        element_txt = 'element'
+        if element_txt in args:
+            element_index = args.index(element_txt)
+            if is_po_class_file_selected:
+                args[element_index] = u"self.%s" % field.name
+            else:
+                args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
+
+        if is_browser_method:
+            caller = 'self.browser'
+        elif is_mouse_method:
+            caller = 'self.browser.mouse'
+        elif is_page_object_method and not is_po_class_file_selected:
+            caller = 'self.' + lowered_class_name
+        else:
+            caller = 'self'
+
+        get_prefix = 'get_'
+        is_getter_method_and_no_args = method_name.startswith(get_prefix)
+        if is_getter_method_and_no_args:
+            var = method_name.replace(get_prefix, '')
+            method_call_template = u"        {var} = {caller}.{method}({method_args})" + LINESEP
+            method_kwargs = {'var': var}
+        else:
+            method_call_template = u"        {caller}.{method}({method_args})" + LINESEP
+            method_kwargs = {}
+
+        if (len(args) > 1 and (is_browser_method or is_mouse_method) or
+            len(args) > 0 and (is_assert_method or is_page_object_method)):
+            if is_assert_method or is_page_object_method:
+                dialog = MultipleTextEntry(self, 'Please enter values', args)
+            else:
+                dialog = MultipleTextEntry(self, 'Please enter values', args[1:])
+            if dialog.ShowModal() == ID_OK:
+                for name, value in dialog.values.items():
+                    args[args.index(name)] = value
+                method_kwargs.update({'caller': caller,
+                                      'method': method_name,
+                                      'method_args': u', '.join(args)})
+                code_line = method_call_template.format(**method_kwargs)
+                code = self.txt_content.GetValue() + LINESEP + code_line
+                root_folder = self.GetTopLevelParent().get_root_folder()
+                formatted_exception = check_py_code_for_errors(code, root_folder)
+
+                if formatted_exception:
+                    show_dialog(self,
+                                formatted_exception,
+                                u'Values are not Python expressions')
+                else:
+                    method_kwargs.update({'caller': caller,
+                                          'method': method_name,
+                                          'method_args': u', '.join(args)})
+                    self.append_text(method_call_template.format(**method_kwargs))
+        else:
+            method_kwargs.update({'caller': caller,
+                                  'method': method_name,
+                                  'method_args': u', '.join(args)})
+            self.append_text(method_call_template.format(**method_kwargs))
+
 
 class TestFileUI(PyFileUI):
     TEST_FILE_TEMPLATE = u'''# coding=utf8
@@ -121,17 +217,11 @@ class {class_name}(BaseTest):
         self.browser.get(u'{url}')
 
 '''
-    TEST_CASE_TEMPLATE = u'''
-    def {test_case_name}(self):
-        pass
-
-'''
     def __init__(self, parent, test_file_path,
                  po_class, load_file=False):
         PyFileUI.__init__(self, parent, test_file_path, load_file)
 
         self.__po_class = po_class
-        self.grandparent = self.GetGrandParent()
 
         if not load_file:
             initial_text = self.TEST_FILE_TEMPLATE.format(
@@ -171,86 +261,15 @@ class {class_name}(BaseTest):
             self.insert_text(field_line, pos)
 
     def append_method_call(self, field, method, arg_spec):
-        # removing arguments with default value
-        args = arg_spec.args
-        if arg_spec.defaults:
-            args = args[:-len(arg_spec.defaults)]
-
-        # removing 'self' argument
-        self_txt = 'self'
-        if self_txt in args:
-            args.remove(self_txt)
-
         po_class = self.grandparent.get_current_pageobject_class()
-        lowered_class_name = po_class.name.lower()
-
-        # replacing 'element' with correctly formatted string - self.obj.field
-        element_txt = 'element'
-        if element_txt in args:
-            element_index = args.index(element_txt)
-            args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
 
         self.__fix_class_initialization(po_class)
         self.__fix_imports(po_class)
 
-        method_name = method.__name__
-        is_assert_method = method_name.startswith('assert')
-        is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
-        is_mouse_method = method_name in ParsedMouseClass.get_parsed_classes()[0].methods
-
-        if is_browser_method:
-            caller = 'self.browser'
-        elif is_mouse_method:
-            caller = 'self.browser.mouse'
-        else:
-            caller = 'self'
-
-        get_prefix = 'get_'
-        is_getter_method_and_no_args = method_name.startswith(get_prefix)
-        if is_getter_method_and_no_args:
-            var = method_name.replace(get_prefix, '')
-            method_call_template = u"        {var} = {caller}.{method}({method_args})" + LINESEP
-            method_kwargs = {'var': var}
-        else:
-            method_call_template = u"        {caller}.{method}({method_args})" + LINESEP
-            method_kwargs = {}
-
-        if (len(args) > 1 and (is_browser_method or is_mouse_method) or
-            len(args) > 0 and is_assert_method):
-            if is_assert_method:
-                dialog = MultipleTextEntry(self, 'Please enter values', args)
-            else:
-                dialog = MultipleTextEntry(self, 'Please enter values', args[1:])
-            if dialog.ShowModal() == ID_OK:
-                for name, value in dialog.values.items():
-                    args[args.index(name)] = value
-                method_kwargs.update({'caller': caller,
-                                      'method': method_name,
-                                      'method_args': u', '.join(args)})
-                code_line = method_call_template.format(**method_kwargs)
-                code = self.txt_content.GetValue() + LINESEP + code_line
-                root_folder = self.GetTopLevelParent().get_root_folder()
-                formatted_exception = check_py_code_for_errors(code, root_folder)
-
-                if formatted_exception:
-                    show_dialog(self,
-                                formatted_exception,
-                                u'Values are not Python expressions')
-                else:
-                    method_kwargs.update({'caller': caller,
-                                          'method': method_name,
-                                          'method_args': u', '.join(args)})
-                    self.append_text(method_call_template.format(**method_kwargs))
-        else:
-            method_kwargs.update({'caller': caller,
-                                  'method': method_name,
-                                  'method_args': u', '.join(args)})
-            self.append_text(method_call_template.format(**method_kwargs))
+        PyFileUI.append_method_call(self, field, method, arg_spec)
 
     def create_new_test_case(self, test_case_name):
-        test_case = self.TEST_CASE_TEMPLATE.format(test_case_name=test_case_name)
-        self.append_text(test_case)
-
+        self.create_method(test_case_name)
 
 
 class FieldsTableAndTestFilesTabs(Panel):
@@ -274,7 +293,7 @@ class FieldsTableAndTestFilesTabs(Panel):
         sizer.Add(self.btn_create_test_file, pos=(row, 1))
 
         self.btn_create_test = Button(self, label=u'Create new test case')
-        self.btn_create_test.Bind(EVT_BUTTON, self.__on_create_test)
+        self.btn_create_test.Bind(EVT_BUTTON, self.__create_method_or_test)
         sizer.Add(self.btn_create_test, pos=(row, 2))
 
         self.btn_save_test_file = Button(self, label=u'Save current file')
@@ -356,21 +375,46 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.table.SetTable(table)
         self.table.AutoSizeColumns()
 
-    def __on_create_test(self, evt):
+    def __create_method_or_test(self, evt):
         count = self.tabs.GetPageCount()
         if count > 1:
             page = self.tabs.GetPage(self.tabs.GetSelection())
-            modal = TextEntryDialog(self, u'Enter test case name', u'Create new test case')
-            if modal.ShowModal() == ID_OK:
-                test_case_name = modal.GetValue()
-                if StringUtils.is_test_case_name_correct(test_case_name):
-                    page.create_new_test_case(test_case_name)
-                else:
-                    show_dialog_bad_name(self, test_case_name, 'test_search')
+            if type(page) == PyFileUI:
+                self.__create_method(page)
+            elif type(page) == TestFileUI:
+                self.__create_test(page)
+            else:
+                show_dialog(self,
+                            u'Selected tab is not supported' +
+                            LINESEP +
+                            u'Please selected test file or page object class',
+                            'Bad selected tab')
         else:
             show_dialog(self,
                         u'Test file was not created.' + LINESEP + 'Please create a test file.',
                         u'Test file was not created')
+
+    def __create_method(self, page):
+        modal = TextEntryDialog(self,
+                                u'Enter method name',
+                                u'Create method')
+        if modal.ShowModal() == ID_OK:
+            method_name = modal.GetValue()
+            if StringUtils.is_method_name_correct(method_name):
+                page.create_method(method_name)
+            else:
+                show_dialog_bad_name(self, method_name, 'search', 'login', 'fill_data')
+
+    def __create_test(self, page):
+        modal = TextEntryDialog(self,
+                                u'Enter test case name',
+                                u'Create new test case')
+        if modal.ShowModal() == ID_OK:
+            test_case_name = modal.GetValue()
+            if StringUtils.is_test_case_name_correct(test_case_name):
+                page.create_new_test_case(test_case_name)
+            else:
+                show_dialog_bad_name(self, test_case_name, 'test_search')
 
     def __on_save_test_file(self, evt):
         count = self.tabs.GetPageCount()
@@ -378,7 +422,8 @@ class FieldsTableAndTestFilesTabs(Panel):
             page = self.tabs.GetPage(self.tabs.GetSelection())
             page.save_file()
         else:
-            show_dialog(self, u'Please create/open test file.',
+            show_dialog(self,
+                        u'Please create/open test file.',
                         u'Nothing to save')
 
     def __open_or_create_test_file(self, style):

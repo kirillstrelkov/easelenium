@@ -25,6 +25,16 @@ class StringUtilsTest(TestCase):
         self.assertFalse(StringUtils.is_test_case_name_correct('asd'))
         self.assertFalse(StringUtils.is_test_case_name_correct('453453sfs'))
 
+    def test_is_method_name_correct(self):
+        self.assertTrue(StringUtils.is_method_name_correct('method_1'))
+        self.assertTrue(StringUtils.is_method_name_correct('new_method'))
+        self.assertTrue(StringUtils.is_method_name_correct('search'))
+        self.assertTrue(StringUtils.is_method_name_correct('asd'))
+
+        self.assertFalse(StringUtils.is_method_name_correct('test.py'))
+        self.assertFalse(StringUtils.is_method_name_correct('_test_asd'))
+        self.assertFalse(StringUtils.is_method_name_correct('453453sfs'))
+
     def test_is_area_correct(self):
         self.assertTrue(StringUtils.is_area_correct('(0,0,0,0)'))
         self.assertTrue(StringUtils.is_area_correct('(0, 0, 0, 0)'))

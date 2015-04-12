@@ -4,8 +4,8 @@ import inspect
 from unittest.case import TestCase
 
 from easyselenium import browser
-from easyselenium.ui.parser.parsed_class import ParsedClass, ParsedBrowserClass,\
-    ParsedTestCaseClass, ParsedMouseClass
+from easyselenium.ui.parser.parsed_class import ParsedClass, ParsedBrowserClass, \
+    ParsedTestCaseClass, ParsedMouseClass, ParsedPageObjectClass
 
 
 class ParsedClassTest(TestCase):
@@ -149,3 +149,11 @@ class ParsedMouseClassTest(TestCase):
         self.assertIn('left_click_by_offset', parsed_class.methods)
         self.assertIn('right_click', parsed_class.methods)
         self.assertIn('right_click_by_offset', parsed_class.methods)
+
+
+class ParsedPageObjectClassTest(TestCase):
+    def test_parsed_page_object_class_contains_methods(self):
+        path = os.path.join(os.path.dirname(__file__), 'data', 'duckduckgo_class_with_method.py')
+        parsed_class = ParsedPageObjectClass.get_parsed_classes(path)[0]
+
+        self.assertIn('search', parsed_class.methods)

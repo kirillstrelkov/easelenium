@@ -134,3 +134,21 @@ class ParsedMouseClass(ParsedClass):
                  if cls.__LOCATOR_NAME in _class.get_arg_spec(n).args]
             )
         return parsed_classes
+
+
+class ParsedPageObjectClass(ParsedClass):
+    @classmethod
+    def get_parsed_classes(cls, module_or_class_or_path):
+        parsed_classes = ParsedClass.get_parsed_classes(module_or_class_or_path)
+        super_class = ParsedClass.get_parsed_classes(TestCase)[0]
+
+        def filter_class_data(class1, class2, methods_or_fields):
+            return dict([(n, v) for n, v in getattr(class1, methods_or_fields).items()
+                         if n not in getattr(class2, methods_or_fields)])
+
+
+        for _class in parsed_classes:
+            _class.methods = filter_class_data(_class, super_class, 'methods')
+            _class.fields = filter_class_data(_class, super_class, 'fields')
+
+        return parsed_classes

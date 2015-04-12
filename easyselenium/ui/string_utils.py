@@ -5,6 +5,7 @@ import re
 class RegExps(object):
     TEST_FILE_NAME = r'^[a-z_\d]+_test.py$'
     TEST_CASE_NAME = r'^test_[a-z_\d]+$'
+    METHOD_NAME = r'^[a-z][a-z_\d]+$'
     AREA = r'\( *\d+ *, *\d+ *, *\d+ *, *\d+ *\)'
     URL = r'https?://.+'
 
@@ -22,6 +23,10 @@ class StringUtils(object):
     @classmethod
     def is_test_case_name_correct(cls, test_case_name):
         return cls.does_text_match_regexp(test_case_name, RegExps.TEST_CASE_NAME)
+
+    @classmethod
+    def is_method_name_correct(cls, test_case_name):
+        return cls.does_text_match_regexp(test_case_name, RegExps.METHOD_NAME)
 
     @classmethod
     def is_url_correct(cls, url):

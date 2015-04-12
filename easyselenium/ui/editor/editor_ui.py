@@ -6,14 +6,14 @@ from wx import GridBagSizer, Panel, StaticText, ComboBox, CB_READONLY, ALL, \
     EVT_RIGHT_DOWN, FileDialog, ID_OK, SP_LIVE_UPDATE, SP_3D
 
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
-    TestFileUI
+    TestFileUI, PyFileUI
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.utils import show_dialog, \
     show_dialog_path_doesnt_exist, show_error_dialog
 from easyselenium.ui.editor.field_context_menu import FieldContextMenu
 from easyselenium.ui.image.image_with_elements import ImageWithElements
 from easyselenium.ui.parser.parsed_class import ParsedMouseClass, \
-    ParsedBrowserClass, ParsedTestCaseClass
+    ParsedBrowserClass, ParsedTestCaseClass, ParsedPageObjectClass
 from easyselenium.ui.generator.page_object_class import PageObjectClass
 from easyselenium.ui.file_utils import read_file
 
@@ -64,7 +64,10 @@ class EditorTab(Panel):
         sizer.AddGrowableCol(1, 1)
 
     def __get_parsed_classes(self, field):
-        classes = ParsedTestCaseClass.get_parsed_classes()
+        classes = ParsedPageObjectClass.get_parsed_classes(self.__cur_po_class.file_path)
+        if len(classes) > 0 and len(classes[0].methods) == 0:
+            classes = []
+        classes += ParsedTestCaseClass.get_parsed_classes()
         if field:
             classes += ParsedMouseClass.get_parsed_classes()
             classes += ParsedBrowserClass.get_parsed_classes()
@@ -75,13 +78,13 @@ class EditorTab(Panel):
         count = tabs.GetPageCount()
         if count > 1:
             selected_tab = tabs.GetPage(tabs.GetSelection())
-            if type(selected_tab) == TestFileUI:
-                test_file_path = selected_tab.get_file_path()
+            if type(selected_tab) in (TestFileUI, PyFileUI):
+                file_path = selected_tab.get_file_path()
                 txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
                 parsed_classes = self.__get_parsed_classes(field)
                 context_menu = FieldContextMenu(field,
                                                 parsed_classes,
-                                                test_file_path,
+                                                file_path,
                                                 txt_ctrl_ui)
                 self.PopupMenu(context_menu)
                 context_menu.Destroy()
