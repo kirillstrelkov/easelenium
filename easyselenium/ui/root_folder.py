@@ -1,6 +1,6 @@
 import os
 
-from easyselenium.file_utils import save_file
+from easyselenium.ui.file_utils import save_file
 
 
 class RootFolder(object):

@@ -17,9 +17,8 @@ from easyselenium.utils import get_random_value, get_timestamp, is_windows
 
 class Mouse(object):
 
-    def __init__(self, browser, logger=None):
+    def __init__(self, browser):
         self.browser = browser
-        self.logger = logger
 
     def left_click(self, element):
         self.left_click_by_offset(element, 0, 0)
@@ -31,16 +30,18 @@ class Mouse(object):
         if type(element) == tuple:
             element = self.browser.find_element(element)
 
-        if self.logger:
-            self.logger.info(u"Click at '%s' by offset(%s,%s)",
-                             self.browser._to_string(element),
-                             xoffset,
-                             yoffset)
+        self.browser._safe_log(u"Click at '%s' by offset(%s,%s)",
+                               self.browser._to_string(element),
+                               xoffset,
+                               yoffset)
 
         actions.move_to_element(element)\
             .move_by_offset(xoffset, yoffset).click().perform()
 
     def hover(self, element):
+        self.browser._safe_log(u"Hover at '%s'",
+                               self.browser._to_string(element))
+
         self.hover_by_offset(element, 0, 0)
 
     def hover_by_offset(self, element, xoffset, yoffset):
@@ -49,11 +50,10 @@ class Mouse(object):
 
         element = self.browser.find_element(element)
 
-        if self.logger:
-            self.logger.info(u"Mouse over '%s' by offset(%s,%s)",
-                             self.browser._to_string(element),
-                             xoffset,
-                             yoffset)
+        self.browser._safe_log(u"Mouse over '%s' by offset(%s,%s)",
+                               self.browser._to_string(element),
+                               xoffset,
+                               yoffset)
 
         actions.move_to_element(element)\
             .move_by_offset(xoffset, yoffset).perform()
@@ -65,9 +65,8 @@ class Mouse(object):
         if type(element) == tuple:
             element = self.browser.find_element(element)
 
-        if self.logger:
-            self.logger.info(u"Right click at '%s'",
-                             self.browser._to_string(element))
+        self.browser._safe_log(u"Right click at '%s'",
+                               self.browser._to_string(element))
 
         actions.context_click(element).perform()
 
@@ -78,11 +77,10 @@ class Mouse(object):
         if type(element) == tuple:
             element = self.browser.find_element(element)
 
-        if self.logger:
-            self.logger.info(u"Right click at '%s' by offset(%s,%s)",
-                             self.browser._to_string(element),
-                             xoffset,
-                             yoffset)
+        self.browser._safe_log(u"Right click at '%s' by offset(%s,%s)",
+                               self.browser._to_string(element),
+                               xoffset,
+                               yoffset)
 
         actions.move_to_element(element)\
             .move_by_offset(xoffset, yoffset).context_click().perform()
@@ -101,7 +99,7 @@ class Browser(object):
         self.__timeout = timeout
         self.__browser_name = browser_name
         self._driver = self.__create_driver(browser_name)
-        self.mouse = Mouse(self, self.logger)
+        self.mouse = Mouse(self)
 
     @classmethod
     def get_supported_browsers(cls):
@@ -214,7 +212,7 @@ class Browser(object):
         return self.__browser_name == Browser.OP
 
 
-    def __safe_log(self, *args):
+    def _safe_log(self, *args):
         if self.logger:
             self.logger.info(*args)
 
@@ -231,7 +229,7 @@ class Browser(object):
             if u'Element must be user-editable in order to clear it.' != e.msg:
                 raise e
 
-        self.__safe_log(u"Typing '%s' at '%s'",
+        self._safe_log(u"Typing '%s' at '%s'",
                         text,
                         self._to_string(element))
 
@@ -241,8 +239,7 @@ class Browser(object):
         self.wait_for_visible(element)
         element = self.find_element(element)
 
-        if self.logger:
-            self.logger.info(u"Clicking at '%s'", self._to_string(element))
+        self._safe_log(u"Clicking at '%s'", self._to_string(element))
 
         element.click()
 
@@ -257,16 +254,24 @@ class Browser(object):
     def get_text(self, element):
         self.wait_for_visible(element)
         element = self.find_element(element)
+        text = element.text
 
-        if self.logger:
-            self.logger.info(u"Clicking at '%s'", self._to_string(element))
+        self._safe_log(u"Getting text from '%s' -> '%s'",
+                        self._to_string(element),
+                        text)
 
-        return element.text
+        return text
 
     def get_attribute(self, element, attr):
         self.wait_for_visible(element)
         element = self.find_elements(element)[0]
-        return element.get_attribute(attr)
+        attr = element.get_attribute(attr)
+
+        self._safe_log(u"Getting attribute from '%s' -> '%s'",
+                        self._to_string(element),
+                        attr)
+
+        return attr
 
     def get_tag_name(self, element):
         return self.find_element(element).tag_name
@@ -283,11 +288,21 @@ class Browser(object):
     def get_location(self, element):
         """Return tuple like (x, y)."""
         location = self.find_element(element).location
+
+        self._safe_log(u"Getting location from '%s' -> '%s'",
+                        self._to_string(element),
+                        str(location))
+
         return int(location['x']), int(location['y'])
 
     def get_dimensions(self, element):
         """Return tuple like (width, height)."""
         size = self.find_element(element).size
+
+        self._safe_log(u"Getting dimensions from '%s' -> '%s'",
+                        self._to_string(element),
+                        str(size))
+
         return size['width'], size['height']
 
     """
@@ -298,13 +313,26 @@ class Browser(object):
         self.wait_for_visible(element)
 
         element = self.find_element(element)
-        return Select(element).first_selected_option.get_attribute('value')
+        value = Select(element).first_selected_option.get_attribute('value')
+
+        self._safe_log(u"Getting selected value from '%s' -> '%s'",
+                        self._to_string(element),
+                        value)
+
+        return value
 
     def get_selected_text_from_dropdown(self, element):
         self.wait_for_visible(element)
 
         element = self.find_element(element)
-        return Select(element).first_selected_option.text
+
+        text = Select(element).first_selected_option.text
+
+        self._safe_log(u"Getting selected text from '%s' -> '%s'",
+                        self._to_string(element),
+                        text)
+
+        return text
 
     def select_option_by_value_from_dropdown(self, element, value):
         self.wait_for_visible(element)
@@ -312,9 +340,9 @@ class Browser(object):
         element = self.find_element(element)
         select = Select(element)
 
-        if self.logger:
-            self.logger.info(u"Selecting by value '%s' from dropdown list",
-                             value)
+        self._safe_log(u"Selecting by value '%s' from '%s'",
+                        value,
+                        self._to_string(element))
 
         select.select_by_value(value)
 
@@ -324,9 +352,9 @@ class Browser(object):
         element = self.find_element(element)
         select = Select(element)
 
-        if self.logger:
-            self.logger.info(
-                u"Selecting by text '%s' from dropdown list", text)
+        self._safe_log(u"Selecting by text '%s' from '%s'",
+                        text,
+                        self._to_string(element))
 
         select.select_by_visible_text(text)
 
@@ -335,9 +363,10 @@ class Browser(object):
 
         element = self.find_element(element)
         select = Select(element)
-        if self.logger:
-            self.logger.info(
-                u"Selecting by index'%s' from dropdown list", index)
+
+        self._safe_log(u"Selecting by index '%s' from '%s'",
+                        index,
+                        self._to_string(element))
 
         select.select_by_index(index)
 
@@ -357,6 +386,10 @@ class Browser(object):
         for option in Select(element).options:
             texts.append(option.text)
 
+        self._safe_log(u"Getting texts from '%s' -> '%s'",
+                        self._to_string(element),
+                        str(texts))
+
         return texts
 
     def get_values_from_dropdown(self, element):
@@ -366,6 +399,10 @@ class Browser(object):
         element = self.find_element(element)
         for option in Select(element).options:
             values.append(option.get_attribute('value'))
+
+        self._safe_log(u"Getting values from '%s' -> '%s'",
+                        self._to_string(element),
+                        str(values))
 
         return values
 
@@ -468,8 +505,8 @@ class Browser(object):
         path_to_file = os.path.abspath(os.path.join(saving_dir,
                                                     get_timestamp() + '.png'))
 
-        if self.logger:
-            self.logger.info(u"Saving screenshot to '%s'", path_to_file)
+        self._safe_log(u"Saving screenshot to '%s'",
+                        path_to_file)
 
         self._driver.save_screenshot(path_to_file)
         return path_to_file
@@ -480,9 +517,8 @@ class Browser(object):
     def switch_to_frame(self, element):
         element = self.find_element(element)
 
-        if self.logger:
-            self.logger.info(u"Switching to '%s' frame",
-                             self._to_string(element))
+        self._safe_log(u"Switching to '%s' frame",
+                        self._to_string(element))
 
         self._driver.switch_to_frame(element)
 
@@ -500,12 +536,11 @@ class Browser(object):
 
         self._driver.switch_to_window(new_handles[0])
 
-        if self.logger:
-            self.logger.info(u"Switching to '%s' window", self._driver.title)
+        self._safe_log(u"Switching to '%s' window",
+                        self._driver.title)
 
     def switch_to_default_content(self):
-        if self.logger:
-            self.logger.info(u"Switching to default content")
+        self._safe_log(u"Switching to default content")
 
         self._driver.switch_to_default_content()
 
@@ -530,13 +565,13 @@ class Browser(object):
         self._driver.delete_all_cookies()
 
     def alert_accept(self):
-        if self.logger:
-            self.logger.info(u"Clicking Accept/OK in alert box")
+        self._safe_log(u"Clicking Accept/OK in alert box")
+
         self._driver.switch_to_alert().accept()
 
     def alert_dismiss(self):
-        if self.logger:
-            self.logger.info(u"Clicking Dismiss/Cancel in alert box")
+        self._safe_log(u"Clicking Dismiss/Cancel in alert box")
+
         self._driver.switch_to_alert().dismiss()
 
     def refresh_page(self):

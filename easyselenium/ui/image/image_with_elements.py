@@ -1,6 +1,6 @@
 from wx import EVT_MOTION, StockCursor, CURSOR_HAND, CURSOR_ARROW, Point, Rect
 
-from easyselenium.ui.utils import SelectableImagePanel
+from easyselenium.ui.image.selectable_image import SelectableImagePanel
 
 
 class ImageWithElements(SelectableImagePanel):

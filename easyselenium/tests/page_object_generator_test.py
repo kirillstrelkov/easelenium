@@ -5,8 +5,8 @@ from wx import Rect, Point
 
 from selenium.webdriver.common.by import By
 
-from easyselenium.generator.page_object_generator import PageObjectGenerator
 from easyselenium.base_test import BaseTest
+from easyselenium.ui.generator.page_object_generator import PageObjectGenerator
 
 
 class PageObjectGeneratorTest(BaseTest):

@@ -2,7 +2,10 @@ import os
 import re
 import shutil
 
+from threading import Thread
+
 from tempfile import mkdtemp
+
 from wx import Panel, StaticText, TextCtrl, Button, EXPAND, ALL, \
     EVT_BUTTON, EVT_CLOSE, ComboBox, CB_READONLY, \
     GridBagSizer, EVT_MOTION
@@ -10,13 +13,13 @@ from wx import Panel, StaticText, TextCtrl, Button, EXPAND, ALL, \
 from selenium.webdriver.common.by import By
 
 from easyselenium.browser import Browser
-from easyselenium.generator.page_object_generator import PageObjectGenerator
-from easyselenium.ui.utils import SelectableImagePanel, show_dialog, \
-    show_dialog_path_doesnt_exist, WxTextCtrlHandler, DialogWithText
+from easyselenium.ui.utils import show_dialog, \
+    show_dialog_path_doesnt_exist, WxTextCtrlHandler, DialogWithText, LINESEP
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
 from easyselenium.utils import Logger
-from threading import Thread
+from easyselenium.ui.image.selectable_image import SelectableImagePanel
+from easyselenium.ui.generator.page_object_generator import PageObjectGenerator
 
 
 class GeneratorTab(Panel):
@@ -127,7 +130,7 @@ class GeneratorTab(Panel):
         class_name = self.txt_class_name.GetValue()
         area = self.txt_selected_area.GetValue()
         if not self.browser:
-            msg = u"Browser is not opened.\nPlease open url."
+            msg = u"Browser is not opened." + LINESEP + "Please open url."
             caption = u'Browser is not opened'
             show_dialog(self, msg, caption)
             return False

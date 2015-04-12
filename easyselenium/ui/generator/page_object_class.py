@@ -1,9 +1,11 @@
 # coding=utf8
+import os
+
 from selenium.webdriver.common.by import By
 
 from easyselenium.utils import unicode_str, get_match
-from easyselenium.file_utils import safe_create_path, save_file
-import os
+from easyselenium.ui.utils import LINESEP
+from easyselenium.ui.file_utils import safe_create_path, save_file
 
 
 def get_by_as_code_str(by):
@@ -104,7 +106,7 @@ class {name}(BasePageObject):
         kwargs = self.__dict__.copy()
         fields_as_code = self._get_fields_as_code()
         if len(fields_as_code.strip()) == 0:
-            fields_as_code = u'    pass\n'
+            fields_as_code = u'    pass' + LINESEP
         kwargs[u'fields_as_code'] = fields_as_code
         return self.TEMPLATE.format(**kwargs)
 
@@ -120,7 +122,7 @@ class {name}(BasePageObject):
                                                              field.dimensions)
             }))
 
-        return u'\n'.join(lines)
+        return LINESEP.join(lines)
 
     @classmethod
     def parse_string_to_po_class(cls, string):

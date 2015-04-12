@@ -8,15 +8,15 @@ from wx import Panel, GridBagSizer, Button, EVT_BUTTON, ALL, EXPAND, TextCtrl, \
 from wx.grid import Grid, EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK, \
     GridStringTable
 
-from easyselenium.file_utils import save_file
-from easyselenium.generator.page_object_class import get_by_as_code_str
 from easyselenium.ui.utils import Tabs, show_dialog, \
     get_class_name_from_file, check_file_for_errors, show_error_dialog, \
-    show_dialog_bad_name, check_py_code_for_errors
+    show_dialog_bad_name, check_py_code_for_errors, LINESEP
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
-from easyselenium.parser.parsed_class import ParsedBrowserClass, \
-    ParsedMouseClass
+from easyselenium.ui.generator.page_object_class import get_by_as_code_str
+from easyselenium.ui.parser.parsed_class import ParsedMouseClass,\
+    ParsedBrowserClass
+from easyselenium.ui.file_utils import save_file
 
 
 class PyFileUI(Panel):
@@ -90,7 +90,7 @@ class PyFileUI(Panel):
         content = self.txt_content.GetValue()
         pass_with_tab = u'    pass'
         if pass_with_tab in content:
-            content = content.replace(pass_with_tab, u'').rstrip() + u'\n'
+            content = content.replace(pass_with_tab, u'').rstrip() + LINESEP
             self.txt_content.SetValue(content)
 
         self.txt_content.AppendText(text)
@@ -98,7 +98,7 @@ class PyFileUI(Panel):
 
     def insert_text(self, line, pos):
         self.txt_content.SetInsertionPoint(pos)
-        self.txt_content.WriteText(line.rstrip() + u'\n')
+        self.txt_content.WriteText(line.rstrip() + LINESEP)
         self.txt_content.SetInsertionPointEnd()
         self._set_file_was_changed()
 
@@ -209,10 +209,10 @@ class {class_name}(BaseTest):
         is_getter_method_and_no_args = method_name.startswith(get_prefix)
         if is_getter_method_and_no_args:
             var = method_name.replace(get_prefix, '')
-            method_call_template = u"        {var} = {caller}.{method}({method_args})\n"
+            method_call_template = u"        {var} = {caller}.{method}({method_args})" + LINESEP
             method_kwargs = {'var': var}
         else:
-            method_call_template = u"        {caller}.{method}({method_args})\n"
+            method_call_template = u"        {caller}.{method}({method_args})" + LINESEP
             method_kwargs = {}
 
         if (len(args) > 1 and (is_browser_method or is_mouse_method) or
@@ -228,7 +228,7 @@ class {class_name}(BaseTest):
                                       'method': method_name,
                                       'method_args': u', '.join(args)})
                 code_line = method_call_template.format(**method_kwargs)
-                code = self.txt_content.GetValue() + u'\n' + code_line
+                code = self.txt_content.GetValue() + LINESEP + code_line
                 root_folder = self.GetTopLevelParent().get_root_folder()
                 formatted_exception = check_py_code_for_errors(code, root_folder)
 
@@ -295,6 +295,8 @@ class FieldsTableAndTestFilesTabs(Panel):
 
     def load_po_class(self, po_class):
         self.__cur_po_class = po_class
+        self.__set_pageobject_class(self.__cur_po_class)
+
         file_name = os.path.basename(self.__cur_po_class.file_path)
 
         more_than_1_tab = self.tabs.GetPageCount() > 1
@@ -325,7 +327,7 @@ class FieldsTableAndTestFilesTabs(Panel):
     def get_current_pageobject_class(self):
         return self.__cur_po_class
 
-    def set_pageobject_class(self, po_class):
+    def __set_pageobject_class(self, po_class):
         self.__cur_po_class = po_class
         field_count = len(self.__cur_po_class.fields)
         field_attrs = [u'name', u'by', u'selector', u'location', u'dimensions']
@@ -367,7 +369,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                     show_dialog_bad_name(self, test_case_name, 'test_search')
         else:
             show_dialog(self,
-                        u'Test file was not created.\nPlease create a test file.',
+                        u'Test file was not created.' + LINESEP + 'Please create a test file.',
                         u'Test file was not created')
 
     def __on_save_test_file(self, evt):
@@ -477,7 +479,7 @@ class MultipleTextEntry(Dialog):
             return_code = ID_CANCEL
 
         if len(errors) > 0:
-            show_dialog(self, u'\n'.join(errors), 'Bad entered data')
+            show_dialog(self, LINESEP.join(errors), 'Bad entered data')
         else:
             self.EndModal(return_code)
 

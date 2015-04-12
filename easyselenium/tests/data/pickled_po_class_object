@@ -1,7 +1,7 @@
 ccopy_reg
 _reconstructor
 p0
-(ceasyselenium.generator.page_object_class
+(ceasyselenium.ui.generator.page_object_class
 PageObjectClass
 p1
 c__builtin__
@@ -24,7 +24,7 @@ sS'fields'
 p11
 (lp12
 g0
-(ceasyselenium.generator.page_object_class
+(ceasyselenium.ui.generator.page_object_class
 PageObjectClassField
 p13
 g2

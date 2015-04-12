@@ -4,7 +4,7 @@ import inspect
 from unittest.case import TestCase
 
 from easyselenium import browser
-from easyselenium.parser.parsed_class import ParsedClass, ParsedBrowserClass, \
+from easyselenium.ui.parser.parsed_class import ParsedClass, ParsedBrowserClass,\
     ParsedTestCaseClass, ParsedMouseClass
 
 

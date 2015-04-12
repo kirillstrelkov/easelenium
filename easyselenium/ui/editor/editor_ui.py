@@ -5,17 +5,17 @@ from wx import GridBagSizer, Panel, StaticText, ComboBox, CB_READONLY, ALL, \
     EXPAND, EVT_COMBOBOX, Button, EVT_BUTTON, SplitterWindow, EVT_MOTION, \
     EVT_RIGHT_DOWN, FileDialog, ID_OK, SP_LIVE_UPDATE, SP_3D
 
-from easyselenium.file_utils import read_file
-from easyselenium.generator.page_object_class import PageObjectClass
-from easyselenium.parser.parsed_class import ParsedBrowserClass, \
-    ParsedTestCaseClass, ParsedMouseClass
-from easyselenium.ui.editor.image_with_elements import ImageWithElements
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
     TestFileUI
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.utils import show_dialog, \
     show_dialog_path_doesnt_exist, show_error_dialog
 from easyselenium.ui.editor.field_context_menu import FieldContextMenu
+from easyselenium.ui.image.image_with_elements import ImageWithElements
+from easyselenium.ui.parser.parsed_class import ParsedMouseClass, \
+    ParsedBrowserClass, ParsedTestCaseClass
+from easyselenium.ui.generator.page_object_class import PageObjectClass
+from easyselenium.ui.file_utils import read_file
 
 
 class EditorTab(Panel):
@@ -151,7 +151,6 @@ class EditorTab(Panel):
 
                 self.cb_class_path.SetValue(self.__cur_po_class.file_path)
 
-                self.table_and_test_file_tabs.set_pageobject_class(self.__cur_po_class)
                 self.table_and_test_file_tabs.load_po_class(self.__cur_po_class)
             except Exception:
                 self.__cur_po_class = None

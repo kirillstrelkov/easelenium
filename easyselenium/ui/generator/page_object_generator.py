@@ -2,16 +2,19 @@
 import os
 import re
 
-from selenium.webdriver.common.by import By
-from easyselenium.utils import unicode_str
-from easyselenium.file_utils import check_if_path_exists
-from easyselenium.generator.page_object_class import PageObjectClassField, \
-    PageObjectClass
-from selenium.webdriver.remote.webelement import WebElement
-from wx import Point, Rect
 from time import sleep
+
+from wx import Point, Rect
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+
+from easyselenium.utils import unicode_str
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.utils import get_py_file_name_from_class_name
+from easyselenium.ui.generator.page_object_class import PageObjectClass, \
+    PageObjectClassField
+from easyselenium.ui.file_utils import check_if_path_exists
 
 
 class PageObjectGenerator(object):
