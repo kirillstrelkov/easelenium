@@ -3,7 +3,8 @@ import traceback
 
 from wx import GridBagSizer, Panel, StaticText, ComboBox, CB_READONLY, ALL, \
     EXPAND, EVT_COMBOBOX, Button, EVT_BUTTON, SplitterWindow, EVT_MOTION, \
-    EVT_RIGHT_DOWN, FileDialog, ID_OK, SP_LIVE_UPDATE, SP_3D
+    EVT_RIGHT_DOWN, FileDialog, ID_OK, SP_LIVE_UPDATE, SP_3D, BoxSizer, \
+    HORIZONTAL
 
 from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
     TestFileUI, PyFileUI
@@ -31,21 +32,24 @@ class EditorTab(Panel):
         sizer = self.GetSizer()
 
         # Next row
-        row = 0
+        inner_sizer = BoxSizer(HORIZONTAL)
         label = StaticText(self, label=u'Class path:')
-        sizer.Add(label, pos=(row, 0))
+        inner_sizer.Add(label, flag=ALL)
 
         self.cb_class_path = ComboBox(self, style=CB_READONLY)
-        sizer.Add(self.cb_class_path, pos=(row, 1), flag=ALL | EXPAND)
         self.cb_class_path.Bind(EVT_COMBOBOX, self.__on_load_po_class)
+        inner_sizer.Add(self.cb_class_path, 1, flag=ALL | EXPAND)
 
         self.btn_reload = Button(self, label=u'Reload')
         self.btn_reload.Bind(EVT_BUTTON, self.__on_load_po_class)
-        sizer.Add(self.btn_reload, pos=(row, 2))
+        inner_sizer.Add(self.btn_reload, flag=ALL)
 
         self.btn_open_class = Button(self, label=u'Open class')
         self.btn_open_class.Bind(EVT_BUTTON, self.__open_class)
-        sizer.Add(self.btn_open_class, pos=(row, 3))
+        inner_sizer.Add(self.btn_open_class, flag=ALL)
+
+        row = 0
+        sizer.Add(inner_sizer, pos=(row, 0), flag=ALL | EXPAND)
 
         # Next row
         row += 1
@@ -58,10 +62,10 @@ class EditorTab(Panel):
         self.table_and_test_file_tabs = FieldsTableAndTestFilesTabs(splitter, self)
 
         splitter.SplitHorizontally(self.image_panel, self.table_and_test_file_tabs)
-        sizer.Add(splitter, pos=(row, 0), span=(1, 4), flag=ALL | EXPAND)
+        sizer.Add(splitter, pos=(row, 0), flag=ALL | EXPAND)
 
         sizer.AddGrowableRow(row, 1)
-        sizer.AddGrowableCol(1, 1)
+        sizer.AddGrowableCol(0, 1)
 
     def __get_parsed_classes(self, field):
         classes = ParsedPageObjectClass.get_parsed_classes(self.__cur_po_class.file_path)

@@ -5,7 +5,7 @@ from wx import Panel, GridBagSizer, Button, EVT_BUTTON, ALL, EXPAND, TextCtrl, \
     TE_MULTILINE, FileDialog, FD_SAVE, ID_OK, BoxSizer, VERTICAL, \
     TE_READONLY, FONTFAMILY_TELETYPE, NORMAL, Font, EVT_KEY_DOWN, WXK_TAB, \
     TextEntryDialog, FD_OPEN, HSCROLL, Dialog, StaticText, DEFAULT_DIALOG_STYLE, \
-    RESIZE_BORDER, ID_CANCEL, ALIGN_RIGHT
+    RESIZE_BORDER, ID_CANCEL, ALIGN_RIGHT, HORIZONTAL
 from wx.grid import Grid, EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK, \
     GridStringTable
 
@@ -246,7 +246,7 @@ class {class_name}(BaseTest):
         text = self.txt_content.GetValue()
         if import_line not in text:
             base_test_import = u'import BaseTest'
-            shift = 6 if is_windows() else len(LINESEP) # windows hack
+            shift = 6 if is_windows() else len(LINESEP)  # windows hack
             pos = text.index(base_test_import) + len(base_test_import) + shift
             self.insert_text(import_line, pos)
 
@@ -259,7 +259,7 @@ class {class_name}(BaseTest):
         text = self.txt_content.GetValue()
         if field_line not in text:
             class_def_end = u'cls).setUpClass()'
-            shift = 13 if is_windows() else len(LINESEP) # windows hack
+            shift = 13 if is_windows() else len(LINESEP)  # windows hack
             pos = text.index(class_def_end) + len(class_def_end) + shift
             self.insert_text(field_line, pos)
 
@@ -285,23 +285,28 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.__cur_po_class = None
 
         sizer = GridBagSizer(5, 5)
+        full_span = (1, 4)
 
         row = 0
+        inner_sizer = BoxSizer(HORIZONTAL)
         self.btn_open_test_file = Button(self, label=u'Open test file')
         self.btn_open_test_file.Bind(EVT_BUTTON, self.__on_open_test_file)
-        sizer.Add(self.btn_open_test_file, pos=(row, 0))
+        inner_sizer.Add(self.btn_open_test_file)
 
         self.btn_create_test_file = Button(self, label=u'Create test file')
         self.btn_create_test_file.Bind(EVT_BUTTON, self.__on_create_test_file)
-        sizer.Add(self.btn_create_test_file, pos=(row, 1))
-
-        self.btn_create_test = Button(self, label=u'Create new test case')
-        self.btn_create_test.Bind(EVT_BUTTON, self.__create_method_or_test)
-        sizer.Add(self.btn_create_test, pos=(row, 2))
+        inner_sizer.Add(self.btn_create_test_file)
 
         self.btn_save_test_file = Button(self, label=u'Save current file')
         self.btn_save_test_file.Bind(EVT_BUTTON, self.__on_save_test_file)
-        sizer.Add(self.btn_save_test_file, pos=(row, 3))
+        inner_sizer.Add(self.btn_save_test_file)
+
+        inner_sizer.AddStretchSpacer(1)
+
+        self.btn_create_test = Button(self, label=u'Create new method/test case')
+        self.btn_create_test.Bind(EVT_BUTTON, self.__create_method_or_test)
+        inner_sizer.Add(self.btn_create_test)
+        sizer.Add(inner_sizer, pos=(row, 0), span=full_span, flag=ALL | EXPAND)
 
         row += 1
         self.tabs = Tabs(self, [(Grid, "Fields' table")])
@@ -309,7 +314,7 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.table.Bind(EVT_GRID_SELECT_CELL, self.__on_cell_select)
         self.table.Bind(EVT_GRID_CELL_RIGHT_CLICK, self.__on_cell_select)
 
-        sizer.Add(self.tabs, pos=(row, 0), span=(1, 4), flag=ALL | EXPAND)
+        sizer.Add(self.tabs, pos=(row, 0), span=full_span, flag=ALL | EXPAND)
 
         sizer.AddGrowableCol(1, 1)
         sizer.AddGrowableRow(1, 1)
