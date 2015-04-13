@@ -18,6 +18,7 @@ from easyselenium.ui.generator.page_object_class import get_by_as_code_str
 from easyselenium.ui.parser.parsed_class import ParsedMouseClass, \
     ParsedBrowserClass, ParsedPageObjectClass
 from easyselenium.ui.file_utils import save_file
+from easyselenium.utils import is_windows
 
 
 class PyFileUI(Panel):
@@ -245,7 +246,8 @@ class {class_name}(BaseTest):
         text = self.txt_content.GetValue()
         if import_line not in text:
             base_test_import = u'import BaseTest'
-            pos = text.index(base_test_import) + len(base_test_import) + 1
+            shift = 6 if is_windows() else len(LINESEP) # windows hack
+            pos = text.index(base_test_import) + len(base_test_import) + shift
             self.insert_text(import_line, pos)
 
     def __fix_class_initialization(self, po_class):
@@ -257,7 +259,8 @@ class {class_name}(BaseTest):
         text = self.txt_content.GetValue()
         if field_line not in text:
             class_def_end = u'cls).setUpClass()'
-            pos = text.index(class_def_end) + len(class_def_end) + 1
+            shift = 13 if is_windows() else len(LINESEP) # windows hack
+            pos = text.index(class_def_end) + len(class_def_end) + shift
             self.insert_text(field_line, pos)
 
     def append_method_call(self, field, method, arg_spec):
