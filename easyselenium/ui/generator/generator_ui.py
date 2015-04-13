@@ -15,7 +15,8 @@ from selenium.webdriver.common.by import By
 from easyselenium.browser import Browser
 from easyselenium.ui.utils import show_dialog, \
     show_dialog_path_doesnt_exist, WxTextCtrlHandler, DialogWithText, LINESEP, \
-    show_dialog_bad_name
+    show_dialog_bad_name, get_py_file_name_from_class_name, \
+    show_dialog_path_does_exist
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
 from easyselenium.utils import Logger
@@ -167,9 +168,13 @@ class GeneratorTab(Panel):
                 folder = os.path.join(folder, RootFolder.PO_FOLDER)
 
             class_name = self.txt_class_name.GetValue()
+            file_path = os.path.join(folder,
+                                     get_py_file_name_from_class_name(class_name))
             area_as_text = self.txt_selected_area.GetValue()
             url = self.txt_url.GetValue()
-            if not StringUtils.is_class_name_correct(class_name):
+            if os.path.exists(file_path):
+                show_dialog_path_does_exist(self, file_path)
+            elif not StringUtils.is_class_name_correct(class_name):
                 show_dialog_bad_name(self, class_name, 'Header', 'ContextMenu')
             elif not StringUtils.is_area_correct(area_as_text):
                 show_dialog(self, u'Bad selected area: %s' % area_as_text,
@@ -193,7 +198,6 @@ class GeneratorTab(Panel):
                                                               class_name,
                                                               folder_path,
                                                               area)
-                    # TODO: raise modal if file exists
                     po_class.save(folder)
                     logger.info(u"Saving class '%s'..." % po_class.name)
                     logger.info(u'Saved file: %s' % po_class.file_path)

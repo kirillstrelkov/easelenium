@@ -62,6 +62,14 @@ def show_dialog(parent, message, caption, style=OK | CENTER):
     return MessageDialog(parent, message, caption, style).ShowModal()
 
 
+def show_dialog_path_does_exist(parent, path):
+    if path is None:
+        path = ''
+    msg = u"Path already exists: '%s'" % path
+    caption = u'Bad path'
+    return show_dialog(parent, msg, caption)
+
+
 def show_dialog_path_doesnt_exist(parent, path):
     if path is None:
         path = ''
@@ -128,4 +136,4 @@ class DialogWithText(Dialog):
 
     def __close(self, evt):
         self.EndModal(ID_OK)
-        self.Destroy()
+        self.Hide()
