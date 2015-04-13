@@ -3,6 +3,7 @@ import re
 
 
 class RegExps(object):
+    CLASS_NAME = r'^[A-Z][a-zA-Z0-9]*$'
     TEST_FILE_NAME = r'^[a-z_\d]+_test.py$'
     TEST_CASE_NAME = r'^test_[a-z_\d]+$'
     METHOD_NAME = r'^[a-z][a-z_\d]+$'
@@ -27,6 +28,10 @@ class StringUtils(object):
     @classmethod
     def is_method_name_correct(cls, test_case_name):
         return cls.does_text_match_regexp(test_case_name, RegExps.METHOD_NAME)
+
+    @classmethod
+    def is_class_name_correct(cls, class_name):
+        return cls.does_text_match_regexp(class_name, RegExps.CLASS_NAME)
 
     @classmethod
     def is_url_correct(cls, url):

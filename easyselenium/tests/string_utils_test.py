@@ -58,3 +58,15 @@ class StringUtilsTest(TestCase):
         self.assertFalse(StringUtils.is_url_correct(''))
         self.assertFalse(StringUtils.is_url_correct('google.com'))
         self.assertFalse(StringUtils.is_url_correct('www.google.com'))
+
+    def test_is_class_name_correct(self):
+        self.assertTrue(StringUtils.is_class_name_correct('AsDaAs'))
+        self.assertTrue(StringUtils.is_class_name_correct('AAASdsd'))
+        self.assertTrue(StringUtils.is_class_name_correct('Azczxc'))
+        self.assertTrue(StringUtils.is_class_name_correct('AWEasd8'))
+        self.assertTrue(StringUtils.is_class_name_correct('XCZXC32423'))
+        self.assertTrue(StringUtils.is_class_name_correct('X'))
+
+        self.assertFalse(StringUtils.is_class_name_correct(''))
+        self.assertFalse(StringUtils.is_class_name_correct('google'))
+        self.assertFalse(StringUtils.is_class_name_correct('google.com'))

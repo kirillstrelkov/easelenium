@@ -6,7 +6,8 @@ import traceback
 
 from wx import MessageDialog, OK, CENTER, Notebook, BoxSizer, \
     VERTICAL, ALL, EXPAND, CallAfter, Dialog, RESIZE_BORDER, \
-    TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL, DEFAULT_DIALOG_STYLE
+    TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL, DEFAULT_DIALOG_STYLE, Button, \
+    ID_OK, EVT_BUTTON
 
 from easyselenium.utils import unicode_str
 from easyselenium.ui.parser.parsed_class import ParsedClass
@@ -54,8 +55,7 @@ def check_file_for_errors(path, *additional_python_paths):
 
 
 def show_error_dialog(parent, message, caption):
-    # TODO: implement dialog correctly - error  message should be easy to read
-    return show_dialog(parent, message, caption)
+    return DialogWithText(parent, caption, message).ShowModal()
 
 
 def show_dialog(parent, message, caption, style=OK | CENTER):
@@ -108,13 +108,24 @@ class WxTextCtrlHandler(logging.Handler):
 
 
 class DialogWithText(Dialog):
-    def __init__(self, parent, title):
-        Dialog.__init__(self, parent, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER)
+    def __init__(self, parent, title, text=None):
+        Dialog.__init__(self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER)
+        self.SetTitle(title)
         self.SetSizeWH(600, 400)
 
         sizer = BoxSizer(VERTICAL)
 
         self.txt_ctrl = TextCtrl(self, style=TE_MULTILINE | TE_READONLY | HSCROLL)
-        sizer.Add(self.txt_ctrl, flag=ALL | EXPAND)
+        if text:
+            self.txt_ctrl.SetValue(text)
+        sizer.Add(self.txt_ctrl, 1, flag=ALL | EXPAND)
 
-        self.SetTitle(title)
+        self.btn_ok = Button(self, label=u'OK')
+        self.btn_ok.Bind(EVT_BUTTON, self.__close)
+        sizer.Add(self.btn_ok, flag=CENTER)
+
+        self.SetSizer(sizer)
+
+    def __close(self, evt):
+        self.EndModal(ID_OK)
+        self.Destroy()

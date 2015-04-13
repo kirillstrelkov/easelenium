@@ -14,7 +14,8 @@ from selenium.webdriver.common.by import By
 
 from easyselenium.browser import Browser
 from easyselenium.ui.utils import show_dialog, \
-    show_dialog_path_doesnt_exist, WxTextCtrlHandler, DialogWithText, LINESEP
+    show_dialog_path_doesnt_exist, WxTextCtrlHandler, DialogWithText, LINESEP, \
+    show_dialog_bad_name
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
 from easyselenium.utils import Logger
@@ -43,8 +44,7 @@ class GeneratorTab(Panel):
         sizer.Add(label, pos=(row, col))
 
         col += 1
-        # self.txt_url = TextCtrl(self, value=u'http://ois.ttu.ee/')  # TODO: remove url
-        self.txt_url = TextCtrl(self, value=u'https://www.duckduckgo.com/')  # TODO: remove url
+        self.txt_url = TextCtrl(self, value=u'https://www.google.com/')  # TODO: remove url
         sizer.Add(self.txt_url, pos=(row, col), flag=ALL | EXPAND)
 
         col += 1
@@ -161,15 +161,17 @@ class GeneratorTab(Panel):
             return None
 
     def generate(self, evt):
-        # TODO: add check for passed class name
         if self.__is_gen_data_correct():
             folder = self.__get_root_folder()
             if RootFolder.PO_FOLDER in os.listdir(folder):
                 folder = os.path.join(folder, RootFolder.PO_FOLDER)
 
+            class_name = self.txt_class_name.GetValue()
             area_as_text = self.txt_selected_area.GetValue()
             url = self.txt_url.GetValue()
-            if not StringUtils.is_area_correct(area_as_text):
+            if not StringUtils.is_class_name_correct(class_name):
+                show_dialog_bad_name(self, class_name, 'Header', 'ContextMenu')
+            elif not StringUtils.is_area_correct(area_as_text):
                 show_dialog(self, u'Bad selected area: %s' % area_as_text,
                             u'Bad selected area')
             elif not StringUtils.is_url_correct(url):
@@ -182,11 +184,11 @@ class GeneratorTab(Panel):
                 dialog.Show()
 
                 area = eval(area_as_text)
-                class_name = self.txt_class_name.GetValue()
                 generator = PageObjectGenerator(self.browser, logger)
                 folder_path = self.__tmp_dir
 
                 def generate():
+                    dialog.btn_ok.Disable()
                     po_class = generator.get_po_class_for_url(url,
                                                               class_name,
                                                               folder_path,
@@ -197,6 +199,7 @@ class GeneratorTab(Panel):
                     logger.info(u'Saved file: %s' % po_class.file_path)
                     logger.info(u'Saved file: %s' % po_class.img_path)
                     logger.info(u'DONE')
+                    dialog.btn_ok.Enable()
 
                 thread = Thread(target=generate)
                 thread.setDaemon(True)
