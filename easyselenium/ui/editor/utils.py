@@ -116,7 +116,7 @@ class PyFileUI(Panel):
         self.append_text(test_case)
 
     def has_one_or_more_methods_or_test_cases(self):
-        return len(re.findall('def .+self.+:', self.txt_content.GetValue())) > 0
+        return len(re.findall('def [a-z_]+\(self.+:', self.txt_content.GetValue())) > 0
 
     def append_method_call(self, field, method, arg_spec):
         is_po_class_file_selected = type(self) == PyFileUI
