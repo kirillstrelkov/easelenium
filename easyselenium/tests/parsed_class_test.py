@@ -61,6 +61,8 @@ class ParsedBrowserClassTest(TestCase):
         self.assertIn('find_elements', parsed_class.methods)
         self.assertIn('type', parsed_class.methods)
         self.assertIn('wait_for_visible', parsed_class.methods)
+        self.assertIn('get_title', parsed_class.methods)
+        self.assertIn('get_current_url', parsed_class.methods)
 
         self.assertIn('switch_to_frame', parsed_class.methods)
         self.assertIn('switch_to_default_content', parsed_class.methods)

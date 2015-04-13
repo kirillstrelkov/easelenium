@@ -95,7 +95,9 @@ class ParsedClass(object):
 
 class ParsedBrowserClass(ParsedClass):
     __LOCATOR_NAME = 'element'
-    __GOOD_METHODS = ('switch_to_default_content')
+    __GOOD_METHODS = ('switch_to_default_content',
+                      'get_title',
+                      'get_current_url')
 
     @classmethod
     def get_parsed_classes(cls, module_or_class_or_path=None):
