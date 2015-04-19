@@ -1,4 +1,5 @@
 from unittest.case import TestCase
+
 from easyselenium.ui.string_utils import StringUtils
 
 

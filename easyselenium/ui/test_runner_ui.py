@@ -1,25 +1,24 @@
+import os
+
+from subprocess import check_output
+
+from nose.core import run
+
 from wx import Panel, GridBagSizer, Button, ALL, CB_READONLY, ComboBox, EXPAND, \
-    TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, SP_LIVE_UPDATE, BoxSizer, \
-    HORIZONTAL, CallAfter, TextCtrl, VSCROLL, TE_MULTILINE, TE_READONLY, HSCROLL, \
-    VERTICAL, StaticText, EVT_BUTTON, FileDialog, ID_OK, FD_OPEN, DirDialog, \
-    DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, CHK_UNDETERMINED, \
+    TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, SP_LIVE_UPDATE, \
+    CallAfter, TextCtrl, VSCROLL, TE_MULTILINE, TE_READONLY, HSCROLL, \
+    StaticText, EVT_BUTTON, FileDialog, ID_OK, FD_OPEN, DirDialog, \
+    DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, \
     CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT
-from easyselenium.browser import Browser
+
 from wx.lib.agw.customtreectrl import CustomTreeCtrl, TR_AUTO_CHECK_CHILD, \
     TR_AUTO_CHECK_PARENT, EVT_TREE_ITEM_CHECKED, TR_AUTO_TOGGLE_CHILD
+
+from easyselenium.browser import Browser
 from easyselenium.ui.utils import show_dialog_path_doesnt_exist, \
     run_in_separate_thread, InfiniteProgressBarDialog, DialogWithText
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import get_list_of_files
-import os
-import nose
-from nose.loader import TestLoader
-from nose.core import run, main
-from nose.config import Config
-import subprocess
-from nose import core
-from easyselenium.utils import Logger
-from subprocess import check_output
 
 
 class RedirectText(object):

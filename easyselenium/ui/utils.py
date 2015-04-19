@@ -4,18 +4,19 @@ import logging
 import tempfile
 import traceback
 
+from time import sleep
+
+from threading import Thread, Event
+
 from wx import MessageDialog, OK, CENTER, Notebook, BoxSizer, \
     VERTICAL, ALL, EXPAND, CallAfter, Dialog, RESIZE_BORDER, \
     TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL, DEFAULT_DIALOG_STYLE, Button, \
     ID_OK, EVT_BUTTON, StaticText, Gauge, GA_SMOOTH, GA_HORIZONTAL, CAPTION, \
-    STAY_ON_TOP, EVT_CLOSE, CallLater
+    STAY_ON_TOP
 
 from easyselenium.utils import unicode_str
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import save_file
-import threading
-from time import sleep
-from threading import Thread, Event
 
 
 LINESEP = unicode_str(os.linesep)
