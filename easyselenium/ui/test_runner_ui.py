@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from subprocess import check_output
 
@@ -9,21 +10,23 @@ from wx import Panel, GridBagSizer, Button, ALL, CB_READONLY, ComboBox, EXPAND, 
     CallAfter, TextCtrl, VSCROLL, TE_MULTILINE, TE_READONLY, HSCROLL, \
     StaticText, EVT_BUTTON, FileDialog, ID_OK, FD_OPEN, DirDialog, \
     DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, \
-    CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT
+    CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT, Font, \
+    FONTFAMILY_TELETYPE, NORMAL
 
 from wx.lib.agw.customtreectrl import CustomTreeCtrl, TR_AUTO_CHECK_CHILD, \
     TR_AUTO_CHECK_PARENT, EVT_TREE_ITEM_CHECKED, TR_AUTO_TOGGLE_CHILD
 
 from easyselenium.browser import Browser
 from easyselenium.ui.utils import show_dialog_path_doesnt_exist, \
-    run_in_separate_thread, InfiniteProgressBarDialog, DialogWithText
+    run_in_separate_thread, InfiniteProgressBarDialog, DialogWithText, \
+    show_error_dialog
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import get_list_of_files
 
 
 class RedirectText(object):
-    def __init__(self, text_ctrl):
-        self.out = text_ctrl
+    def __init__(self, txt_ctrl):
+        self.out = txt_ctrl
 
     def write(self, string):
         CallAfter(self.out.WriteText, string)
@@ -122,8 +125,11 @@ class TestRunnerTab(Panel):
         self.tree_ctrl.SetForegroundColour(self.GetForegroundColour())
         self.tree_ctrl.Bind(EVT_TREE_ITEM_CHECKED, self.__on_tree_check)
 
-        self.text_ctrl = TextCtrl(window, style=TE_MULTILINE | TE_READONLY | HSCROLL | VSCROLL)
-        window.SplitVertically(self.tree_ctrl, self.text_ctrl)
+        self.txt_ctrl = TextCtrl(window, style=TE_MULTILINE | TE_READONLY | HSCROLL | VSCROLL)
+        font_size = self.txt_ctrl.GetFont().GetPointSize()
+        self.txt_ctrl.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
+
+        window.SplitVertically(self.tree_ctrl, self.txt_ctrl)
         sizer.Add(window, pos=(row, col), span=(1, 5), flag=ALL | EXPAND)
 
         sizer.AddGrowableCol(2, 1)
@@ -136,7 +142,6 @@ class TestRunnerTab(Panel):
 
     def __on_select_file(self, evt):
         folder = self.GetTopLevelParent().get_root_folder()
-        folder = '/tmp/'
         obj = evt.GetEventObject()
         if obj == self.btn_select_html:
             wildcard = u'*.html'
@@ -187,6 +192,10 @@ class TestRunnerTab(Panel):
         if parent:
             self.tree_ctrl.AutoCheckParent(item, all_children_are_checked(parent))
 
+    def __get_safe_root_folder(self):
+        folder = self.GetTopLevelParent().get_root_folder()
+        return folder if folder else '.'
+
     def __load_tests_to_tree(self, file_paths=None, dir_path=None):
         if file_paths:
             python_files = file_paths
@@ -198,26 +207,38 @@ class TestRunnerTab(Panel):
         python_files = [f for f in python_files
                         if 'test' in os.path.basename(f) and os.path.splitext(f)[-1] == '.py']
         if len(python_files) > 0:
-            checkbox_type = 1
-            self.tree_ctrl.DeleteAllItems()
-            root = self.tree_ctrl.AddRoot('All test cases', checkbox_type)
+            try:
+                root_folder = self.__get_safe_root_folder()
+                syspath = list(os.sys.path)
 
-            for python_file in python_files:
-                top_item = self.tree_ctrl.AppendItem(root, os.path.abspath(python_file), checkbox_type)
+                if root_folder not in os.sys.path:
+                    os.sys.path.append(root_folder)
 
-                parsed_classes = ParsedClass.get_parsed_classes(python_file)
-                for parsed_class in parsed_classes:
-                    item = self.tree_ctrl.AppendItem(top_item, parsed_class.name, checkbox_type)
+                checkbox_type = 1
+                self.tree_ctrl.DeleteAllItems()
+                root = self.tree_ctrl.AddRoot('All test cases', checkbox_type)
 
-                    test_methods = [k for k in parsed_class.methods.keys() if k.startswith('test_')]
-                    for tc_name in test_methods:
-                        self.tree_ctrl.AppendItem(item, tc_name, checkbox_type)
+                for python_file in python_files:
+                    top_item = self.tree_ctrl.AppendItem(root, os.path.abspath(python_file), checkbox_type)
 
-            self.tree_ctrl.ExpandAll()
+                    parsed_classes = ParsedClass.get_parsed_classes(python_file)
+                    for parsed_class in parsed_classes:
+                        item = self.tree_ctrl.AppendItem(top_item, parsed_class.name, checkbox_type)
+
+                        test_methods = [k for k in parsed_class.methods.keys() if k.startswith('test_')]
+                        for tc_name in test_methods:
+                            self.tree_ctrl.AppendItem(item, tc_name, checkbox_type)
+
+                self.tree_ctrl.ExpandAll()
+            except Exception:
+                show_error_dialog(self,
+                                  traceback.format_exc(),
+                                  'Cannot add test cases')
+            finally:
+                os.sys.path = syspath
 
     def __load_tests_from_directory(self, evt):
-        folder = self.GetTopLevelParent().get_root_folder()
-        folder = '/home/kirill/Dropbox/tmpworkspace/easyselenium/easyselenium/tests/'
+        folder = self.__get_safe_root_folder()
         if folder:
             dialog = DirDialog(self,
                                defaultPath=folder,
@@ -228,8 +249,7 @@ class TestRunnerTab(Panel):
             show_dialog_path_doesnt_exist(self, folder)
 
     def __load_tests_from_files(self, evt):
-        folder = self.GetTopLevelParent().get_root_folder()
-        folder = '/home/kirill/Dropbox/tmpworkspace/easyselenium/easyselenium/tests/'
+        folder = self.__get_safe_root_folder()
         if folder:
             dialog = FileDialog(self,
                                 defaultDir=folder,
@@ -250,8 +270,7 @@ class TestRunnerTab(Panel):
                         tests.append(u"%s:%s.%s" % (_file.GetText(),
                                                     _class.GetText(),
                                                     test_case.GetText()))
-        # TODO: fix should root folder should be added as path
-        args = ['--with-path=/home/kirill/Dropbox/tmpworkspace/easyselenium',
+        args = ['--with-path=%s' % self.__get_safe_root_folder(),
                 '--logging-level=INFO']
 
         use_html_report = (self.cb_html_output.IsChecked() and
@@ -277,7 +296,7 @@ class TestRunnerTab(Panel):
         return formatted_cmd
 
     def __run_tests(self, evt):
-        self.text_ctrl.Clear()
+        self.txt_ctrl.Clear()
 
         dialog = InfiniteProgressBarDialog(self,
                                            u'Running test cases',
@@ -286,7 +305,7 @@ class TestRunnerTab(Panel):
         def wrap_func():
             stdout = os.sys.stdout
             stderr = os.sys.stderr
-            redirected = RedirectText(self.text_ctrl)
+            redirected = RedirectText(self.txt_ctrl)
             os.sys.stdout = redirected
             os.sys.stderr = redirected
             try:
