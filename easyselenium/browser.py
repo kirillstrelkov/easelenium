@@ -91,14 +91,18 @@ class Browser(object):
     GC = 'gc'
     IE = 'ie'
     OP = 'op'
+    DEFAULT_BROWSER = FF
 
     __BROWSERS = [FF, GC, IE, OP]
 
-    def __init__(self, browser_name=FF, logger=None, timeout=5):
+    def __init__(self, browser_name=None, logger=None, timeout=5):
+        if browser_name:
+            self.__browser_name = browser_name
+        else:
+            self.__browser_name = self.DEFAULT_BROWSER
         self.logger = logger
         self.__timeout = timeout
-        self.__browser_name = browser_name
-        self._driver = self.__create_driver(browser_name)
+        self._driver = self.__create_driver(self.__browser_name)
         self.mouse = Mouse(self)
 
     @classmethod

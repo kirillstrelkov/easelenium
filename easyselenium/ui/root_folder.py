@@ -6,6 +6,7 @@ from easyselenium.ui.file_utils import save_file
 class RootFolder(object):
     PO_FOLDER = u'page_objects'
     TESTS_FOLDER = u'tests'
+    REPORTS = u'reports'
     INIT_PY = u'__init__.py'
 
     @classmethod
@@ -13,7 +14,7 @@ class RootFolder(object):
         if os.path.isdir(path):
             files_and_folders = os.listdir(path)
 
-            for folder in [cls.PO_FOLDER, cls.TESTS_FOLDER]:
+            for folder in [cls.PO_FOLDER, cls.TESTS_FOLDER, cls.REPORTS]:
                 if folder not in files_and_folders:
                     os.mkdir(os.path.join(path, folder))
 

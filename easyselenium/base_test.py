@@ -7,7 +7,7 @@ from easyselenium.utils import Logger
 
 class BaseTest(TestCase):
     TC_NAME_WIDTH = 100
-    BROWSER_NAME = 'ff'
+    BROWSER_NAME = None
     logger = Logger(name='easyselenim.base_test.BaseTest')
 
     @classmethod

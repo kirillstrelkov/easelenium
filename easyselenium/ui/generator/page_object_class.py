@@ -146,13 +146,14 @@ class {name}(BasePageObject):
         tmp_fields = get_match(fields_regexp, string, False)
         fields = []
 
-        for field_name, field_by_and_selector, field_location, field_dimensions in tmp_fields:
-            by, selector = eval(field_by_and_selector)
-            location = eval(field_location)
-            dimensions = eval(field_dimensions)
-            po_class_field = PageObjectClassField(
-                field_name, by, selector, location, dimensions)
-            fields.append(po_class_field)
+        if tmp_fields:
+            for field_name, field_by_and_selector, field_location, field_dimensions in tmp_fields:
+                by, selector = eval(field_by_and_selector)
+                location = eval(field_location)
+                dimensions = eval(field_dimensions)
+                po_class_field = PageObjectClassField(
+                    field_name, by, selector, location, dimensions)
+                fields.append(po_class_field)
 
         return PageObjectClass(name, url, fields, area, file_path, img_path)
 

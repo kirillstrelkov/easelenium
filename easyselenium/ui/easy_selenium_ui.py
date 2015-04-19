@@ -5,6 +5,7 @@ from easyselenium.ui.editor.editor_ui import EditorTab
 from easyselenium.ui.utils import Tabs
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.generator.generator_ui import GeneratorTab
+from easyselenium.ui.test_runner_ui import TestRunnerTab
 
 
 class MainFrame(Frame):
@@ -32,7 +33,7 @@ class MainFrame(Frame):
 
         tabs = Tabs(panel, [(GeneratorTab, "Generator"),
                             (EditorTab, "Editor"),
-                            (Panel, "Test runner")])
+                            (TestRunnerTab, "Test runner")])
         sizer.Add(tabs, 1, flag=ALL | EXPAND)
 
         panel.SetSizer(sizer)

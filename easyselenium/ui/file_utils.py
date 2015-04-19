@@ -45,3 +45,14 @@ def save_file(path, content, is_text=True):
 def read_file(path):
     with codecs.open(path, __READ_MODE, encoding=__ENCODING) as f:
         return f.read()
+
+
+def get_list_of_files(path, recursively=False):
+    files = []
+    for f in os.listdir(path):
+        file_path = os.path.join(path, f)
+        if os.path.isdir(file_path) and recursively:
+            files += get_list_of_files(file_path, recursively)
+        else:
+            files.append(file_path)
+    return files

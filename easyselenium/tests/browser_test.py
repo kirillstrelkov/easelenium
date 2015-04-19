@@ -1,12 +1,12 @@
 # coding=utf8
+from time import sleep
+
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 from easyselenium.base_test import BaseTest
 
 
 class BrowserTest(BaseTest):
-    logger = False
 
     def test_switch_to_frame(self):
         frame_left = (By.XPATH, "//frame[@name='menu']")
@@ -40,11 +40,13 @@ class BrowserTest(BaseTest):
     def test_mouse_left_right_clicks(self):
         self.browser.get('http://maps.skobbler.co.uk/')
 
-        map_element = (By.CSS_SELECTOR, '#map .leaflet-tile-pane')
+        if self.browser.is_ff():
+            map_element = (By.CSS_SELECTOR, '#map .leaflet-tile-pane')
+        else:
+            # fix for browsers with location tracking on
+            map_element = (By.CSS_SELECTOR, '#map')
+            sleep(1.5)
         context_menu = (By.ID, 'context-menu')
-
-        # removes'Share your location' browser's message
-        self.browser.type(map_element, Keys.ESCAPE)
 
         self.assertFalse(self.browser.is_visible(context_menu))
 
@@ -59,6 +61,7 @@ class BrowserTest(BaseTest):
 
     def test_mouse_hover(self):
         self.browser.get('http://maps.skobbler.co.uk/')
+        sleep(1.5)  # fix for browser with location tracking on
 
         favourites = (By.CSS_SELECTOR, "a[rel='favorites-menu']")
         favourites_tooptip = (By.ID, 'favorites-menu-tip')

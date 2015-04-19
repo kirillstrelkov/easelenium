@@ -7,14 +7,24 @@ import traceback
 from wx import MessageDialog, OK, CENTER, Notebook, BoxSizer, \
     VERTICAL, ALL, EXPAND, CallAfter, Dialog, RESIZE_BORDER, \
     TextCtrl, TE_MULTILINE, TE_READONLY, HSCROLL, DEFAULT_DIALOG_STYLE, Button, \
-    ID_OK, EVT_BUTTON
+    ID_OK, EVT_BUTTON, StaticText, Gauge, GA_SMOOTH, GA_HORIZONTAL, CAPTION, \
+    STAY_ON_TOP, EVT_CLOSE, CallLater
 
 from easyselenium.utils import unicode_str
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import save_file
+import threading
+from time import sleep
+from threading import Thread, Event
 
 
 LINESEP = unicode_str(os.linesep)
+
+
+def run_in_separate_thread(taget, name=None, args=(), kwargs=None):
+    thread = Thread(target=taget, name=name, args=args, kwargs=kwargs)
+    thread.start()
+    return thread
 
 
 def get_class_name_from_file(path):
@@ -137,3 +147,26 @@ class DialogWithText(Dialog):
     def __close(self, evt):
         self.EndModal(ID_OK)
         self.Hide()
+
+
+class InfiniteProgressBarDialog(Dialog):
+    def __init__(self, parent, title, text):
+        Dialog.__init__(self, parent, title=title, style=CAPTION | STAY_ON_TOP)
+        sizer = BoxSizer(VERTICAL)
+
+        self.label = StaticText(self, label=text)
+        sizer.Add(self.label, flag=ALL | EXPAND)
+
+        self.gauge = Gauge(self, style=GA_SMOOTH | GA_HORIZONTAL)
+        sizer.Add(self.gauge, flag=ALL | EXPAND)
+
+        self.close_event = Event()
+        def show_progress():
+            while(not self.close_event.is_set()):
+                sleep(0.05)
+                self.gauge.Pulse()
+            self.EndModal(ID_OK)
+
+        self.SetSizerAndFit(sizer)
+
+        run_in_separate_thread(show_progress)
