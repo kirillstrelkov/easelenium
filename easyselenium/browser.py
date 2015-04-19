@@ -503,11 +503,13 @@ class Browser(object):
     def get_screenshot_as_png(self):
         return self._driver.get_screenshot_as_png()
 
-    def save_screenshot(self, saving_dir=None):
+    def save_screenshot(self, saving_dir=None, filename=None):
         if not saving_dir:
             saving_dir = tempfile.gettempdir()
+        if not filename:
+            filename = get_timestamp() + '.png'
         path_to_file = os.path.abspath(os.path.join(saving_dir,
-                                                    get_timestamp() + '.png'))
+                                                    filename))
 
         self._safe_log(u"Saving screenshot to '%s'",
                         path_to_file)

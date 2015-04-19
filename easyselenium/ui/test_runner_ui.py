@@ -22,6 +22,8 @@ from easyselenium.ui.utils import show_dialog_path_doesnt_exist, \
     show_error_dialog
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import get_list_of_files
+from easyselenium.ui.root_folder import RootFolder
+from easyselenium.base_test import BaseTest
 
 
 class RedirectText(object):
@@ -141,7 +143,7 @@ class TestRunnerTab(Panel):
         DialogWithText(self, u'Help for nosetests', text).ShowModal()
 
     def __on_select_file(self, evt):
-        folder = self.GetTopLevelParent().get_root_folder()
+        folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
         obj = evt.GetEventObject()
         if obj == self.btn_select_html:
             wildcard = u'*.html'
@@ -192,8 +194,13 @@ class TestRunnerTab(Panel):
         if parent:
             self.tree_ctrl.AutoCheckParent(item, all_children_are_checked(parent))
 
-    def __get_safe_root_folder(self):
+    def __get_safe_path_from_root_folder(self, subfolder=None):
         folder = self.GetTopLevelParent().get_root_folder()
+        if subfolder and folder:
+            path_for_subfolder = os.path.join(folder, subfolder)
+            if os.path.exists(path_for_subfolder):
+                return path_for_subfolder
+
         return folder if folder else '.'
 
     def __load_tests_to_tree(self, file_paths=None, dir_path=None):
@@ -208,7 +215,7 @@ class TestRunnerTab(Panel):
                         if 'test' in os.path.basename(f) and os.path.splitext(f)[-1] == '.py']
         if len(python_files) > 0:
             try:
-                root_folder = self.__get_safe_root_folder()
+                root_folder = self.__get_safe_path_from_root_folder()
                 syspath = list(os.sys.path)
 
                 if root_folder not in os.sys.path:
@@ -238,7 +245,7 @@ class TestRunnerTab(Panel):
                 os.sys.path = syspath
 
     def __load_tests_from_directory(self, evt):
-        folder = self.__get_safe_root_folder()
+        folder = self.__get_safe_path_from_root_folder(RootFolder.TESTS_FOLDER)
         if folder:
             dialog = DirDialog(self,
                                defaultPath=folder,
@@ -249,7 +256,7 @@ class TestRunnerTab(Panel):
             show_dialog_path_doesnt_exist(self, folder)
 
     def __load_tests_from_files(self, evt):
-        folder = self.__get_safe_root_folder()
+        folder = self.__get_safe_path_from_root_folder(RootFolder.TESTS_FOLDER)
         if folder:
             dialog = FileDialog(self,
                                 defaultDir=folder,
@@ -270,7 +277,7 @@ class TestRunnerTab(Panel):
                         tests.append(u"%s:%s.%s" % (_file.GetText(),
                                                     _class.GetText(),
                                                     test_case.GetText()))
-        args = ['--with-path=%s' % self.__get_safe_root_folder(),
+        args = ['--with-path=%s' % self.__get_safe_path_from_root_folder(),
                 '--logging-level=INFO']
 
         use_html_report = (self.cb_html_output.IsChecked() and
@@ -296,6 +303,7 @@ class TestRunnerTab(Panel):
         return formatted_cmd
 
     def __run_tests(self, evt):
+        # TODO: do not run is root folder is not selected
         self.txt_ctrl.Clear()
 
         dialog = InfiniteProgressBarDialog(self,
@@ -314,6 +322,8 @@ class TestRunnerTab(Panel):
                 print u"Nose output:"
                 browser_name = self.cb_browser.GetValue()
                 Browser.DEFAULT_BROWSER = browser_name
+                report_folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
+                BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
                 run(argv=formatted_cmd.split()[1:])
             finally:
                 dialog.close_event.set()

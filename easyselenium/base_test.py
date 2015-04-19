@@ -2,12 +2,13 @@
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser
-from easyselenium.utils import Logger
+from easyselenium.utils import Logger, get_timestamp
 
 
 class BaseTest(TestCase):
     TC_NAME_WIDTH = 100
     BROWSER_NAME = None
+    FAILED_SCREENSHOT_FOLDER = None
     logger = Logger(name='easyselenim.base_test.BaseTest')
 
     @classmethod
@@ -31,5 +32,10 @@ class BaseTest(TestCase):
 
     def tearDown(self):
         TestCase.tearDown(self)
+        if self.failureException:
+            name = self.id()
+            filename = u"%s_%s.png" % (name, get_timestamp())
+            self.browser.save_screenshot(self.FAILED_SCREENSHOT_FOLDER,
+                                         filename)
         if self.browser.logger:
             self.browser.logger.info(u"-" * self.TC_NAME_WIDTH)
