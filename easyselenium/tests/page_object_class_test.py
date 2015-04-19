@@ -1,8 +1,7 @@
 # coding=utf8
 import os
 import pickle
-
-from codecs import open
+import codecs
 
 from unittest.case import TestCase
 
@@ -27,7 +26,7 @@ class PageObjectClassTest(TestCase):
         cls.expected_duckduckgo_class_path = os.path.join(
             cur_path, 'data', 'expected_duckduckgo_class.py'
         )
-        with open(cls.pickled_object_path) as f:
+        with codecs.open(cls.pickled_object_path) as f:
             cls.po_class_object = pickle.load(f)
         cls.maxDiff = None
 
