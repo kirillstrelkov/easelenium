@@ -146,6 +146,20 @@ return getElementXPath(arguments[0]);'''
             fields += self.__get_po_fields_from_page(area, location_offset)
 
         self.__log(u'Total number of fields:', len(fields))
+
+        names = []
+        for field in fields:
+            if field.name in names:
+                uniq_name = False
+                i = 0
+                while(not uniq_name):
+                    new_name = u'_'.join([field.name, str(i)])
+                    if new_name not in names:
+                        uniq_name = True
+                        field.name = new_name
+                    i += 1
+            names.append(field.name)
+
         return fields
 
     def get_po_class_for_url(self, url, class_name, folder_path, area=None):

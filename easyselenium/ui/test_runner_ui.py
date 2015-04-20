@@ -49,7 +49,7 @@ class TestRunnerTab(Panel):
         sizer.Add(self.cb_html_output, pos=(row, col), flag=ALL | EXPAND)
 
         col += 1
-        self.txt_html_report = TextCtrl(self)
+        self.txt_html_report = TextCtrl(self, style=TE_READONLY)
         self.txt_html_report.Disable()
         sizer.Add(self.txt_html_report, pos=(row, col), span=(1, 3), flag=ALL | EXPAND)
 
@@ -66,7 +66,7 @@ class TestRunnerTab(Panel):
         sizer.Add(self.cb_xml_output, pos=(row, col), flag=ALL | EXPAND)
 
         col += 1
-        self.txt_xml_report = TextCtrl(self)
+        self.txt_xml_report = TextCtrl(self, style=TE_READONLY)
         self.txt_xml_report.Disable()
         sizer.Add(self.txt_xml_report, pos=(row, col), span=(1, 3), flag=ALL | EXPAND)
 

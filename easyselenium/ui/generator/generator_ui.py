@@ -55,7 +55,7 @@ class GeneratorTab(Panel):
         col += 1
         self.cb_browser = ComboBox(self,
                                    style=CB_READONLY,
-                                   choices=Browser.get_supported_browsers()[:2][::-1])
+                                   choices=Browser.get_supported_browsers())
         self.cb_browser.Select(0)
         sizer.Add(self.cb_browser, pos=(row, col), flag=ALL | EXPAND)
 

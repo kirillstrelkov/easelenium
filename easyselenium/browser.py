@@ -253,7 +253,7 @@ class Browser(object):
         if isinstance(parent, WebElement):
             return parent
         else:
-            return self.find_ancestor(element, (By.XPATH, u'./..'))
+            return self.find_descendant(element, (By.XPATH, u'./..'))
 
     def get_text(self, element):
         self.wait_for_visible(element)
@@ -427,10 +427,10 @@ class Browser(object):
         return self._driver.execute_script(js_script, *args)
 
     def find_element(self, element):
-        return self.find_ancestor(None, element)
+        return self.find_descendant(None, element)
 
-    def find_ancestor(self, parent, element):
-        found_elements = self.find_ancestors(parent, element)
+    def find_descendant(self, parent, element):
+        found_elements = self.find_descendants(parent, element)
         if len(found_elements) == 0:
             raise NoSuchElementException(
                 "Didn't find any elements for selector - %s" % str(element))
@@ -444,7 +444,7 @@ class Browser(object):
         else:
             return [elements]
 
-    def find_ancestors(self, parent, element):
+    def find_descendants(self, parent, element):
         return self.__get_webelements(element, parent)
 
     def wait_for_visible(self, element, msg=None, timeout=None):

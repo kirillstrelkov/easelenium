@@ -1,6 +1,7 @@
 from wx import EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL, VERTICAL, Rect
 
 from easyselenium.ui.image.image_panel import ImagePanel
+from easyselenium.utils import is_windows
 
 
 class SelectableImagePanel(ImagePanel):
@@ -27,10 +28,11 @@ class SelectableImagePanel(ImagePanel):
             self._draw_selected_area(start_position, end_position)
 
     def _get_fixed_position(self, position):
+        fix_for_scrolling = 0 if is_windows() else self.MIN_SCROLL
         scroll_offset = (self.GetScrollPos(HORIZONTAL), self.GetScrollPos(VERTICAL))
         return (
-            position[0] + scroll_offset[0] * self.MIN_SCROLL,
-            position[1] + scroll_offset[1] * self.MIN_SCROLL
+            position[0] + scroll_offset[0] * fix_for_scrolling,
+            position[1] + scroll_offset[1] * fix_for_scrolling
         )
 
     def _draw_selected_area(self, start_pos, end_pos):

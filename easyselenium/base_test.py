@@ -1,4 +1,6 @@
 # coding=utf8
+import traceback
+
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser
@@ -31,11 +33,18 @@ class BaseTest(TestCase):
                                      name)
 
     def tearDown(self):
-        TestCase.tearDown(self)
         if self.failureException:
             name = self.id()
-            filename = u"%s_%s.png" % (name, get_timestamp())
-            self.browser.save_screenshot(self.FAILED_SCREENSHOT_FOLDER,
-                                         filename)
+            filename = u'_'.join([name,
+                                  self.browser.get_browser_initials(),
+                                  get_timestamp()])
+            try:
+                self.browser.save_screenshot(self.FAILED_SCREENSHOT_FOLDER,
+                                             filename + u'.png')
+            except Exception:
+                formatted_exc = traceback.format_exc()
+                print formatted_exc
+        TestCase.tearDown(self)
+
         if self.browser.logger:
             self.browser.logger.info(u"-" * self.TC_NAME_WIDTH)

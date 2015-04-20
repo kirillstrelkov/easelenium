@@ -55,8 +55,8 @@ class ParsedBrowserClassTest(TestCase):
         self.assertNotIn('webdriver_wait', parsed_class.methods)
         self.assertNotIn('execute_js', parsed_class.methods)
 
-        self.assertIn('find_ancestor', parsed_class.methods)
-        self.assertIn('find_ancestors', parsed_class.methods)
+        self.assertIn('find_descendant', parsed_class.methods)
+        self.assertIn('find_descendants', parsed_class.methods)
         self.assertIn('find_element', parsed_class.methods)
         self.assertIn('find_elements', parsed_class.methods)
         self.assertIn('type', parsed_class.methods)
