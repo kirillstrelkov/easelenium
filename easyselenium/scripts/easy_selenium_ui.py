@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from wx import Panel, BoxSizer, VERTICAL, ALL, EXPAND, Frame, App, \
     StaticText, TextCtrl, Button, HORIZONTAL, EVT_BUTTON, DirDialog, ID_OK
 

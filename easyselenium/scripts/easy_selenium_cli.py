@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from nose.core import main
 from nose.plugins.base import Plugin
 
