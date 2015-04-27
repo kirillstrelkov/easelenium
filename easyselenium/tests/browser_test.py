@@ -38,15 +38,10 @@ class BrowserTest(BaseTest):
                          self.browser.get_text(results))
 
     def test_mouse_left_right_clicks(self):
-        self.browser.get('http://maps.skobbler.co.uk/')
+        self.browser.get('http://openrouteservice.org/')
 
-        if self.browser.is_ff():
-            map_element = (By.CSS_SELECTOR, '#map .leaflet-tile-pane')
-        else:
-            # fix for browsers with location tracking on
-            map_element = (By.CSS_SELECTOR, '#map')
-            sleep(1.5)
-        context_menu = (By.ID, 'context-menu')
+        map_element = (By.CSS_SELECTOR, 'svg')
+        context_menu = (By.ID, 'menu')
 
         self.assertFalse(self.browser.is_visible(context_menu))
 
@@ -56,18 +51,17 @@ class BrowserTest(BaseTest):
         self.browser.mouse.left_click(map_element)
         self.browser.wait_for_not_visible(context_menu)
 
-        self.browser.mouse.right_click_by_offset(map_element, 200, 200)
+        self.browser.mouse.right_click_by_offset(map_element, -100, -100)
         self.browser.wait_for_visible(context_menu)
 
     def test_mouse_hover(self):
-        self.browser.get('http://maps.skobbler.co.uk/')
-        sleep(1.5)  # fix for browser with location tracking on
+        self.browser.get('http://map.project-osrm.org/')
 
-        favourites = (By.CSS_SELECTOR, "a[rel='favorites-menu']")
-        favourites_tooptip = (By.ID, 'favorites-menu-tip')
+        layers = (By.CSS_SELECTOR, "a.gui-layers")
+        layers_list = (By.CSS_SELECTOR, 'div.gui-layers-base')
 
-        self.browser.mouse.hover(favourites)
-        self.browser.wait_for_visible(favourites_tooptip)
+        self.browser.mouse.hover(layers)
+        self.browser.wait_for_visible(layers_list)
 
     def test_select(self):
         self.browser.get('https://developer.mozilla.org/en-US/docs/' +

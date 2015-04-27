@@ -33,7 +33,8 @@ class BaseTest(TestCase):
                                      name)
 
     def tearDown(self):
-        if self.failureException:
+        if (self._resultForDoCleanups.errors or
+            self._resultForDoCleanups.failures):
             name = self.id()
             filename = u'_'.join([name,
                                   self.browser.get_browser_initials(),
@@ -43,7 +44,7 @@ class BaseTest(TestCase):
                                              filename + u'.png')
             except Exception:
                 formatted_exc = traceback.format_exc()
-                print formatted_exc
+                self.browser.logger.info(formatted_exc)
         TestCase.tearDown(self)
 
         if self.browser.logger:
