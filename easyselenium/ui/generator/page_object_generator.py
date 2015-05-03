@@ -20,6 +20,8 @@ from easyselenium.ui.file_utils import check_if_path_exists
 class PageObjectGenerator(object):
     # js code ref. -
     # https://code.google.com/p/fbug/source/browse/branches/firebug1.7/content/firebug/lib.js?r=8828
+    # Next code was taken from Firebug project, credits to them
+    # Check license file - ../../licenses/firebug_license.txt
     GET_XPATH_USING_JS = '''
 function getElementXPath(element)
 {
