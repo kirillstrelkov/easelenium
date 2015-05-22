@@ -318,12 +318,15 @@ class TestRunnerTab(Panel):
             os.sys.stderr = redirected
             try:
                 formatted_cmd = self.__get_nose_command()
-                print u"Executing command:\n%s" % formatted_cmd
-                print u"Nose output:"
                 browser_name = self.cb_browser.GetValue()
                 Browser.DEFAULT_BROWSER = browser_name
                 report_folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
+                
+                easy_selenium_cmd = formatted_cmd.replace("nosetests", "easy_selenium_cli.py -b " + browser_name)
+                print u"Executing command:\n%s" % easy_selenium_cmd
+                print u"Nose output:"
+                
                 run(argv=formatted_cmd.split()[1:])
             finally:
                 dialog.close_event.set()
