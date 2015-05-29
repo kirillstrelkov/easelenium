@@ -31,12 +31,13 @@ Check [browser_test.py](/easyselenium/browser_test.py) for more examples.
 
 Installation
 ------------
-1. Install selenium if is not installed
+Installation flow:
+0. Install all required libraries and software
+1. Download latest code from GitHub as archive file
+2. Unzip it
+3. Open terminal or command line console
+4. Navigate to extracted folder
+5. Go to `easyselenium` folder and install with command:
 ```shell
-$ sudo pip install selenium
-```
-2. Download `easyselenium` and unpack
-3. Go to `easyselenium` folder and install with command:
-```shell
-$ sudo python setup install
+python setup.py install
 ```
