@@ -1,11 +1,35 @@
 easyselenium
 ============
-Simple selenium wrapper. Easies and expands selenium functionality.
+
+Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
+
+Features:
 * Supports Firefox, Chrome, IE and Opera.
 * Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
+* Supports Continuous Integration
 * Suits for novice users.
 
-Usage
+Framework can be used as standalone framwork by UI interaction and as a library.
+Supportive classes:
+* [browser.py](/easyselenium/browser.py)
+* [base_page_object.py](/easyselenium/base_page_object.py)
+* [base_test.py](/easyselenium/base_test.py)
+
+GUI [easy_selenium_ui.py](/easyselenium/scripts/easy_selenium_ui.py):
+* Generator
+* Editor
+* Test runner
+
+Dependencies
+------------
+1. Python 2.7
+2. wxPython
+3. Selenium WebDriver
+4. nose
+ 1. nose-htmloutput plug-in
+ 2. nose-pathmunge plug-in
+
+Simple usage
 -----
 Most of `Browser` functions support both `WebElement` object and tuple/list which represents html element. This tuple/list object should contain selector/locator as first element and value as a second element. Example: `input = (By.NAME, 'q')`
 
@@ -27,7 +51,11 @@ u'Selenium - Web Browser Automation'
 >>> browser.quit() # closing browser
 ```
 
-Check [browser_test.py](/easyselenium/browser_test.py) for more examples.
+Check [browser_test.py](/easyselenium/test/browser_test.py) for more examples.
+
+Continuous Integration
+----------------------
+Done via command line script [easyselenium_cli.py](/easyselenium/scripts/easy_selenium_cli.py)
 
 Installation
 ------------
@@ -40,3 +68,13 @@ Installation
 ```shell
 python setup.py install
 ```
+
+License
+-------
+MIT License [easyselenium_license.txt](/easyselenium/licenses/easyselenium_license.txt)
+
+More information
+----------------
+[Presentation](https://www.dropbox.com/s/4y877giru9qwx3b/present_Kirill_Strelkov.pdf?dl=0)
+
+[Thesis which contains description of the framework](https://www.dropbox.com/s/l65o69wvzjf1bue/Kirill_Strelkov_073639_BAK.pdf?dl=0)
