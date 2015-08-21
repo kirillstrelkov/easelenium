@@ -269,13 +269,14 @@ class Browser(object):
     def get_attribute(self, element, attr):
         self.wait_for_visible(element)
         element = self.find_elements(element)[0]
-        attr = element.get_attribute(attr)
+        value = element.get_attribute(attr)
 
-        self._safe_log(u"Getting attribute from '%s' -> '%s'",
+        self._safe_log(u"Getting attribute '%s' from '%s' -> '%s'",
+                        attr,
                         self._to_string(element),
-                        attr)
+                        value)
 
-        return attr
+        return value
 
     def get_tag_name(self, element):
         return self.find_element(element).tag_name
