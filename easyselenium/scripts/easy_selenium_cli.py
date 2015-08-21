@@ -3,9 +3,9 @@
 from nose.core import main
 from nose.plugins.base import Plugin
 
-# TODO: removed path editing
+import os
 import sys
-sys.path.append('/home/kirill/Dropbox/tmpworkspace/easyselenium')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from easyselenium.browser import Browser
 
 

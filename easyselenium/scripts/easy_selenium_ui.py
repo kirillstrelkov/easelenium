@@ -3,6 +3,10 @@
 from wx import Panel, BoxSizer, VERTICAL, ALL, EXPAND, Frame, App, \
     StaticText, TextCtrl, Button, HORIZONTAL, EVT_BUTTON, DirDialog, ID_OK
 
+import os
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
 from easyselenium.ui.editor.editor_ui import EditorTab
 from easyselenium.ui.utils import Tabs
 from easyselenium.ui.root_folder import RootFolder
