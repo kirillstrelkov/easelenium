@@ -201,6 +201,9 @@ class Browser(object):
             value = element.get_attribute('value')
             if value:
                 string += ", value: '%s'" % value
+            name = element.get_attribute('name')
+            if name and element.tag_name in ["frame", "iframe"]:
+                string += ", name: '%s'" % name
             return 'Element {%s}' % string
 
     def is_ff(self):
