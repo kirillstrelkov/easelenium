@@ -1,29 +1,27 @@
 import os
 import traceback
-
 from subprocess import check_output
-
-from nose.core import run
-
-from wx import Panel, GridBagSizer, Button, ALL, CB_READONLY, ComboBox, EXPAND, \
-    TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, SP_LIVE_UPDATE, \
+from wx import Panel, GridBagSizer, Button, CB_READONLY, ComboBox, TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, \
+    SP_LIVE_UPDATE, \
     CallAfter, TextCtrl, VSCROLL, TE_MULTILINE, TE_READONLY, HSCROLL, \
     StaticText, EVT_BUTTON, FileDialog, ID_OK, FD_OPEN, DirDialog, \
     DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, \
     CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT, Font, \
     FONTFAMILY_TELETYPE, NORMAL
-
 from wx.lib.agw.customtreectrl import CustomTreeCtrl, TR_AUTO_CHECK_CHILD, \
     TR_AUTO_CHECK_PARENT, EVT_TREE_ITEM_CHECKED, TR_AUTO_TOGGLE_CHILD
 
+from nose.core import run
+
 from easyselenium.browser import Browser
-from easyselenium.ui.utils import show_dialog_path_doesnt_exist, \
-    run_in_separate_thread, InfiniteProgressBarDialog, DialogWithText, \
-    show_error_dialog
+from easyselenium.ui.utils import run_in_separate_thread, FLAG_ALL_AND_EXPAND
+from easyselenium.ui.widgets.utils import show_dialog_path_doesnt_exist, show_error_dialog
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import get_list_of_files
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.base_test import BaseTest
+from easyselenium.ui.widgets.utils import DialogWithText
+from easyselenium.ui.widgets.utils import InfiniteProgressBarDialog
 
 
 class RedirectText(object):
@@ -46,83 +44,84 @@ class TestRunnerTab(Panel):
         col = 0
         self.cb_html_output = CheckBox(self, label=u'Report in HTML')
         self.cb_html_output.Bind(EVT_CHECKBOX, self.__on_check)
-        sizer.Add(self.cb_html_output, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.cb_html_output, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.txt_html_report = TextCtrl(self, style=TE_READONLY)
         self.txt_html_report.Disable()
-        sizer.Add(self.txt_html_report, pos=(row, col), span=(1, 3), flag=ALL | EXPAND)
+        sizer.Add(self.txt_html_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND)
 
         col += 3
         self.btn_select_html = Button(self, label=u'Select HTML file')
         self.btn_select_html.Disable()
         self.btn_select_html.Bind(EVT_BUTTON, self.__on_select_file)
-        sizer.Add(self.btn_select_html, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.btn_select_html, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
         self.cb_xml_output = CheckBox(self, label=u'Report in XML')
         self.cb_xml_output.Bind(EVT_CHECKBOX, self.__on_check)
-        sizer.Add(self.cb_xml_output, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.cb_xml_output, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.txt_xml_report = TextCtrl(self, style=TE_READONLY)
         self.txt_xml_report.Disable()
-        sizer.Add(self.txt_xml_report, pos=(row, col), span=(1, 3), flag=ALL | EXPAND)
+        sizer.Add(self.txt_xml_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND)
 
         col += 3
         self.btn_select_xml = Button(self, label=u'Select XML file')
         self.btn_select_xml.Disable()
         self.btn_select_xml.Bind(EVT_BUTTON, self.__on_select_file)
-        sizer.Add(self.btn_select_xml, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.btn_select_xml, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
         self.cb_options = CheckBox(self, label=u'Additional options')
         self.cb_options.Bind(EVT_CHECKBOX, self.__on_check)
-        sizer.Add(self.cb_options, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.cb_options, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.txt_options = TextCtrl(self)
         self.txt_options.Disable()
-        sizer.Add(self.txt_options, pos=(row, col), span=(1, 3), flag=ALL | EXPAND)
+        sizer.Add(self.txt_options, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND)
 
         col += 3
         self.btn_nose_help = Button(self, label=u'Show help')
         self.btn_nose_help.Bind(EVT_BUTTON, self.__on_show_help)
-        sizer.Add(self.btn_nose_help, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.btn_nose_help, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
         self.btn_load_tests_from_files = Button(self, label=u'Load tests from files')
         self.btn_load_tests_from_files.Bind(EVT_BUTTON, self.__load_tests_from_files)
-        sizer.Add(self.btn_load_tests_from_files, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.btn_load_tests_from_files, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.btn_load_tests_from_dir = Button(self, label=u'Load tests from directory')
         self.btn_load_tests_from_dir.Bind(EVT_BUTTON, self.__load_tests_from_directory)
-        sizer.Add(self.btn_load_tests_from_dir, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.btn_load_tests_from_dir, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         dummy_label = StaticText(self)
-        sizer.Add(dummy_label, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(dummy_label, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.cb_browser = ComboBox(self,
                                    style=CB_READONLY,
                                    choices=Browser.get_supported_browsers())
         self.cb_browser.Select(0)
-        sizer.Add(self.cb_browser, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.cb_browser, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.btn_run = Button(self, label=u'Run test cases')
         self.btn_run.Bind(EVT_BUTTON, self.__run_tests)
-        sizer.Add(self.btn_run, pos=(row, col), flag=ALL | EXPAND)
+        sizer.Add(self.btn_run, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
         window = SplitterWindow(self, style=SP_3D | SP_LIVE_UPDATE)
-        self.tree_ctrl = CustomTreeCtrl(window, style=TR_SINGLE | TR_HAS_BUTTONS | TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD)
+        self.tree_ctrl = CustomTreeCtrl(window,
+                                        style=TR_SINGLE | TR_HAS_BUTTONS | TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD)
         self.tree_ctrl.SetBackgroundColour(self.GetBackgroundColour())
         self.tree_ctrl.SetForegroundColour(self.GetForegroundColour())
         self.tree_ctrl.Bind(EVT_TREE_ITEM_CHECKED, self.__on_tree_check)
@@ -132,7 +131,7 @@ class TestRunnerTab(Panel):
         self.txt_ctrl.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
 
         window.SplitVertically(self.tree_ctrl, self.txt_ctrl)
-        sizer.Add(window, pos=(row, col), span=(1, 5), flag=ALL | EXPAND)
+        sizer.Add(window, pos=(row, col), span=(1, 5), flag=FLAG_ALL_AND_EXPAND)
 
         sizer.AddGrowableCol(2, 1)
         sizer.AddGrowableRow(row, 1)
@@ -162,10 +161,10 @@ class TestRunnerTab(Panel):
 
     def __on_check(self, evt):
         cb_obj = evt.GetEventObject()
-        checkboxes_and_txt_ctrls = {self.cb_html_output : self.txt_html_report,
+        checkboxes_and_txt_ctrls = {self.cb_html_output: self.txt_html_report,
                                     self.cb_options: self.txt_options,
                                     self.cb_xml_output: self.txt_xml_report}
-        checkboxes_and_btns = {self.cb_html_output : self.btn_select_html,
+        checkboxes_and_btns = {self.cb_html_output: self.btn_select_html,
                                self.cb_xml_output: self.btn_select_xml}
         txt_ctrl = checkboxes_and_txt_ctrls[cb_obj]
         btn = checkboxes_and_btns.get(cb_obj)
@@ -293,7 +292,7 @@ class TestRunnerTab(Panel):
             args.append('--with-xunit --xunit-file=%s' % report_path)
 
         use_options = (self.cb_options.IsChecked() and
-                          len(self.txt_options.GetValue()) > 0)
+                       len(self.txt_options.GetValue()) > 0)
         if use_options:
             report_path = self.txt_options.GetValue()
             args.append(report_path)
@@ -322,11 +321,11 @@ class TestRunnerTab(Panel):
                 Browser.DEFAULT_BROWSER = browser_name
                 report_folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
-                
+
                 easy_selenium_cmd = formatted_cmd.replace("nosetests", "easy_selenium_cli.py -b " + browser_name)
                 print u"Executing command:\n%s" % easy_selenium_cmd
                 print u"Nose output:"
-                
+
                 run(argv=formatted_cmd.split()[1:])
             finally:
                 dialog.close_event.set()
@@ -335,4 +334,3 @@ class TestRunnerTab(Panel):
 
         run_in_separate_thread(wrap_func)
         dialog.ShowModal()
-

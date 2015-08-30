@@ -1,20 +1,23 @@
 from wx import EVT_MOTION, StockCursor, CURSOR_HAND, CURSOR_ARROW, Point, Rect
 
-from easyselenium.ui.image.selectable_image import SelectableImagePanel
+from easyselenium.ui.widgets.image.selectable_image import SelectableImagePanel
 
 
 class ImageWithElements(SelectableImagePanel):
     def __init__(self, parent):
         SelectableImagePanel.__init__(self, parent)
-        self.static_bitmap.Bind(EVT_MOTION, self._on_mouse_move)
-        self.po_class = None
+        self.static_bitmap.Bind(EVT_MOTION, self.on_mouse_move)
+        self.__po_fields = None
         self.selected_field = None
 
-    def _on_mouse_move(self, evt):
-        field = self._get_field(evt.GetPosition())
+    def on_mouse_move(self, evt):
+        field = self.get_field(evt.GetPosition())
         if self.selected_field != field:
             self.draw_selected_field(field)
             self.selected_field = field
+
+    def set_po_fields(self, fields):
+        self.__po_fields = fields
 
     def draw_selected_field(self, field, focus=False):
         end_pos = None
@@ -42,11 +45,11 @@ class ImageWithElements(SelectableImagePanel):
             scroll_y = (y + h / 2 - size.GetHeight() / 2) / self.MIN_SCROLL
             self.Scroll(scroll_x, scroll_y)
 
-    def _get_field(self, position):
+    def get_field(self, position):
         position = self._get_fixed_position(position)
         position = Point(*position)
-        if self.po_class:
-            fields_sorted_by_dimensions = sorted(self.po_class.fields, key=lambda f: f.dimensions)
+        if self.__po_fields:
+            fields_sorted_by_dimensions = sorted(self.__po_fields, key=lambda f: f.dimensions)
             for field in fields_sorted_by_dimensions:
                 field_x, field_y = field.location
                 w, h = field.dimensions

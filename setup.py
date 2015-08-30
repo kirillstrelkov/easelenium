@@ -14,4 +14,4 @@ setup(name='easyselenium',
                 'easyselenium.ui.image',
                 'easyselenium.ui.parser'],
       scripts=['easyselenium/scripts/easy_selenium_cli.py',
-               'easyselenium/scripts/easy_selenium_ui.py'])
+               'easyselenium/scripts/easy_selenium_ui.py'], requires=['selenium', 'nose'])

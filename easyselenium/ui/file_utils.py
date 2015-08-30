@@ -7,6 +7,11 @@ __WRITE_MODE = 'wb'
 __READ_MODE = 'rb'
 
 
+def is_correct_python_file(filename):
+    name = os.path.basename(filename)
+    return name.endswith('.py') and not name.startswith('__')
+
+
 def check_if_path_exists(path):
     if not os.path.exists(path):
         raise Exception(u"Path not found '%s'" % path)

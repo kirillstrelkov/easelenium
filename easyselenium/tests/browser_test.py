@@ -1,5 +1,4 @@
 # coding=utf8
-from time import sleep
 
 from selenium.webdriver.common.by import By
 
@@ -41,7 +40,7 @@ class BrowserTest(BaseTest):
         self.browser.get('http://openrouteservice.org/')
 
         map_element = (By.CSS_SELECTOR, 'svg')
-        context_menu = (By.ID, 'menu')
+        context_menu = (By.ID, 'mapContextMenu')
 
         self.assertFalse(self.browser.is_visible(context_menu))
 
@@ -129,8 +128,8 @@ class BrowserTest(BaseTest):
             "The search engine that doesn't track you.", value.strip())
 
     def test_open_close_new_window(self):
-        self.browser.get('https://mdn.mozillademos.org/en-US/docs/Web/HTML/'
-                         'Element/a$samples/Example.3A_Creating_a_clickable_image')
+        self.browser.get('https://mdn.mozillademos.org/en-US/docs/Web/HTML/Element'
+                         '/a$samples/Creating_a_clickable_image')
 
         a_element = (By.CSS_SELECTOR, 'a[target="_blank"]')
 

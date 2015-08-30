@@ -2,20 +2,18 @@
 import os
 import pickle
 import codecs
-
 from unittest.case import TestCase
 
 from selenium.webdriver.common.by import By
 
 from easyselenium.utils import is_windows
-from easyselenium.ui.file_utils import safe_remove_path, check_if_path_exists,\
+from easyselenium.ui.file_utils import safe_remove_path, check_if_path_exists, \
     read_file
-from easyselenium.ui.generator.page_object_class import get_by_as_code_str,\
+from easyselenium.ui.generator.page_object_class import get_by_as_code_str, \
     get_by_from_code_str, PageObjectClass
 
 
 class PageObjectClassTest(TestCase):
-
     @classmethod
     def setUpClass(cls):
         super(PageObjectClassTest, cls).setUpClass()

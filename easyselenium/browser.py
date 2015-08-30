@@ -16,7 +16,6 @@ from easyselenium.utils import get_random_value, get_timestamp, is_windows
 
 
 class Mouse(object):
-
     def __init__(self, browser):
         self.browser = browser
 
@@ -35,7 +34,7 @@ class Mouse(object):
                                xoffset,
                                yoffset)
 
-        actions.move_to_element(element)\
+        actions.move_to_element(element) \
             .move_by_offset(xoffset, yoffset).click().perform()
 
     def hover(self, element):
@@ -55,7 +54,7 @@ class Mouse(object):
                                xoffset,
                                yoffset)
 
-        actions.move_to_element(element)\
+        actions.move_to_element(element) \
             .move_by_offset(xoffset, yoffset).perform()
 
     def right_click(self, element):
@@ -82,7 +81,7 @@ class Mouse(object):
                                xoffset,
                                yoffset)
 
-        actions.move_to_element(element)\
+        actions.move_to_element(element) \
             .move_by_offset(xoffset, yoffset).context_click().perform()
 
 
@@ -145,7 +144,7 @@ class Browser(object):
                 capabilities = DesiredCapabilities.OPERA.copy()
                 capabilities['engine'] = 2
                 driver = webdriver.Opera(desired_capabilities=capabilities,
-                                       executable_path=path_to_selenium_server)
+                                         executable_path=path_to_selenium_server)
             else:
                 raise Exception("Selenium server jar file wasn't found in " +
                                 path_to_selenium_server)
@@ -176,7 +175,7 @@ class Browser(object):
 
     def __get_by_and_locator(self, element):
         if (type(element) == list or type(element) == tuple) and \
-                len(element) == 2:
+                        len(element) == 2:
             by, locator = element
             return by, locator
         else:
@@ -218,7 +217,6 @@ class Browser(object):
     def is_op(self):
         return self.__browser_name == Browser.OP
 
-
     def _safe_log(self, *args):
         if self.logger:
             self.logger.info(*args)
@@ -237,8 +235,8 @@ class Browser(object):
                 raise e
 
         self._safe_log(u"Typing '%s' at '%s'",
-                        text,
-                        self._to_string(element))
+                       text,
+                       self._to_string(element))
 
         element.send_keys(text)
 
@@ -264,8 +262,8 @@ class Browser(object):
         text = element.text
 
         self._safe_log(u"Getting text from '%s' -> '%s'",
-                        self._to_string(element),
-                        text)
+                       self._to_string(element),
+                       text)
 
         return text
 
@@ -275,9 +273,9 @@ class Browser(object):
         value = element.get_attribute(attr)
 
         self._safe_log(u"Getting attribute '%s' from '%s' -> '%s'",
-                        attr,
-                        self._to_string(element),
-                        value)
+                       attr,
+                       self._to_string(element),
+                       value)
 
         return value
 
@@ -298,8 +296,8 @@ class Browser(object):
         location = self.find_element(element).location
 
         self._safe_log(u"Getting location from '%s' -> '%s'",
-                        self._to_string(element),
-                        str(location))
+                       self._to_string(element),
+                       str(location))
 
         return int(location['x']), int(location['y'])
 
@@ -308,8 +306,8 @@ class Browser(object):
         size = self.find_element(element).size
 
         self._safe_log(u"Getting dimensions from '%s' -> '%s'",
-                        self._to_string(element),
-                        str(size))
+                       self._to_string(element),
+                       str(size))
 
         return size['width'], size['height']
 
@@ -324,8 +322,8 @@ class Browser(object):
         value = Select(element).first_selected_option.get_attribute('value')
 
         self._safe_log(u"Getting selected value from '%s' -> '%s'",
-                        self._to_string(element),
-                        value)
+                       self._to_string(element),
+                       value)
 
         return value
 
@@ -337,8 +335,8 @@ class Browser(object):
         text = Select(element).first_selected_option.text
 
         self._safe_log(u"Getting selected text from '%s' -> '%s'",
-                        self._to_string(element),
-                        text)
+                       self._to_string(element),
+                       text)
 
         return text
 
@@ -349,8 +347,8 @@ class Browser(object):
         select = Select(element)
 
         self._safe_log(u"Selecting by value '%s' from '%s'",
-                        value,
-                        self._to_string(element))
+                       value,
+                       self._to_string(element))
 
         select.select_by_value(value)
 
@@ -361,8 +359,8 @@ class Browser(object):
         select = Select(element)
 
         self._safe_log(u"Selecting by text '%s' from '%s'",
-                        text,
-                        self._to_string(element))
+                       text,
+                       self._to_string(element))
 
         select.select_by_visible_text(text)
 
@@ -373,8 +371,8 @@ class Browser(object):
         select = Select(element)
 
         self._safe_log(u"Selecting by index '%s' from '%s'",
-                        index,
-                        self._to_string(element))
+                       index,
+                       self._to_string(element))
 
         select.select_by_index(index)
 
@@ -395,8 +393,8 @@ class Browser(object):
             texts.append(option.text)
 
         self._safe_log(u"Getting texts from '%s' -> '%s'",
-                        self._to_string(element),
-                        str(texts))
+                       self._to_string(element),
+                       str(texts))
 
         return texts
 
@@ -409,8 +407,8 @@ class Browser(object):
             values.append(option.get_attribute('value'))
 
         self._safe_log(u"Getting values from '%s' -> '%s'",
-                        self._to_string(element),
-                        str(values))
+                       self._to_string(element),
+                       str(values))
 
         return values
 
@@ -497,7 +495,7 @@ class Browser(object):
         try:
             elements = self.find_elements(element)
             return elements and len(elements) > 0 and \
-                elements[0].is_displayed()
+                   elements[0].is_displayed()
         except WebDriverException:
             return False
 
@@ -516,7 +514,7 @@ class Browser(object):
                                                     filename))
 
         self._safe_log(u"Saving screenshot to '%s'",
-                        path_to_file)
+                       path_to_file)
 
         self._driver.save_screenshot(path_to_file)
         return path_to_file
@@ -528,9 +526,9 @@ class Browser(object):
         element = self.find_element(element)
 
         self._safe_log(u"Switching to '%s' frame",
-                        self._to_string(element))
+                       self._to_string(element))
 
-        self._driver.switch_to_frame(element)
+        self._driver.switch_to.frame(element)
 
     def switch_to_new_window(self, function, *args):
         initial_handles = self._driver.window_handles
@@ -544,20 +542,20 @@ class Browser(object):
         for handle in initial_handles:
             new_handles.remove(handle)
 
-        self._driver.switch_to_window(new_handles[0])
+        self._driver.switch_to.window(new_handles[0])
 
         self._safe_log(u"Switching to '%s' window",
-                        self._driver.title)
+                       self._driver.title)
 
     def switch_to_default_content(self):
         self._safe_log(u"Switching to default content")
 
-        self._driver.switch_to_default_content()
+        self._driver.switch_to.default_content()
 
     def close_current_window_and_focus_to_previous_one(self):
         handles = self._driver.window_handles
         self.close()
-        self._driver.switch_to_window(handles[-2])
+        self._driver.switch_to.window(handles[-2])
 
     def get_page_source(self):
         return self._driver.page_source
@@ -577,12 +575,12 @@ class Browser(object):
     def alert_accept(self):
         self._safe_log(u"Clicking Accept/OK in alert box")
 
-        self._driver.switch_to_alert().accept()
+        self._driver.switch_to.alert.accept()
 
     def alert_dismiss(self):
         self._safe_log(u"Clicking Dismiss/Cancel in alert box")
 
-        self._driver.switch_to_alert().dismiss()
+        self._driver.switch_to.alert.dismiss()
 
     def refresh_page(self):
         self._driver.refresh()

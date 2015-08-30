@@ -1,23 +1,23 @@
 import os
 import re
-
-from wx import Panel, GridBagSizer, Button, EVT_BUTTON, ALL, EXPAND, TextCtrl, \
+from wx import Panel, GridBagSizer, Button, EVT_BUTTON, TextCtrl, \
     TE_MULTILINE, FileDialog, FD_SAVE, ID_OK, BoxSizer, VERTICAL, \
     TE_READONLY, FONTFAMILY_TELETYPE, NORMAL, Font, EVT_KEY_DOWN, WXK_TAB, \
     TextEntryDialog, FD_OPEN, HSCROLL, Dialog, StaticText, DEFAULT_DIALOG_STYLE, \
     RESIZE_BORDER, ID_CANCEL, ALIGN_RIGHT, HORIZONTAL
-from wx.grid import Grid, EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK, \
-    GridStringTable
+from wx.grid import EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK
 
-from easyselenium.ui.utils import Tabs, show_dialog, \
-    get_class_name_from_file, check_file_for_errors, show_error_dialog, \
-    show_dialog_bad_name, check_py_code_for_errors, LINESEP
+from easyselenium.ui.widgets.utils import show_dialog, show_error_dialog, \
+    show_dialog_bad_name
+from easyselenium.ui.utils import LINESEP, FLAG_ALL_AND_EXPAND, get_class_name_from_file, \
+    check_file_for_errors, check_py_code_for_errors
 from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.string_utils import StringUtils
-from easyselenium.ui.generator.page_object_class import get_by_as_code_str
 from easyselenium.ui.parser.parsed_class import ParsedMouseClass, \
     ParsedBrowserClass, ParsedPageObjectClass
 from easyselenium.ui.file_utils import save_file
+from easyselenium.ui.widgets.table import Table
+from easyselenium.ui.widgets.utils import Tabs
 from easyselenium.utils import is_windows
 
 
@@ -28,6 +28,7 @@ class PyFileUI(Panel):
         pass
 
 '''
+
     def __init__(self, parent, file_path, load_file=False):
         Panel.__init__(self, parent)
         self.grandparent = self.GetGrandParent()
@@ -38,7 +39,7 @@ class PyFileUI(Panel):
         self.txt_test_file_path = TextCtrl(self,
                                            value=self.__file_path,
                                            style=TE_READONLY)
-        sizer.Add(self.txt_test_file_path, 0, flag=ALL | EXPAND)
+        sizer.Add(self.txt_test_file_path, 0, flag=FLAG_ALL_AND_EXPAND)
 
         self.txt_content = TextCtrl(self,
                                     style=TE_MULTILINE | HSCROLL)
@@ -47,7 +48,7 @@ class PyFileUI(Panel):
             self.txt_content.LoadFile(self.__file_path)
         font_size = self.txt_content.GetFont().GetPointSize()
         self.txt_content.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
-        sizer.Add(self.txt_content, 1, flag=ALL | EXPAND)
+        sizer.Add(self.txt_content, 1, flag=FLAG_ALL_AND_EXPAND)
 
         self.SetSizer(sizer)
 
@@ -78,7 +79,7 @@ class PyFileUI(Panel):
             if formatted_exc:
                 show_error_dialog(self, formatted_exc, u'File contains errors')
 
-    def _set_file_was_changed(self):
+    def set_file_was_changed(self):
         text = self.__get_selected_tab_text()
         if not text.startswith(self.CHANGED_PREFIX):
             self.__set_selected_tab_text(self.CHANGED_PREFIX + text)
@@ -92,7 +93,7 @@ class PyFileUI(Panel):
         elif ctrl_s_pressed:
             self.save_file()
         else:
-            self._set_file_was_changed()
+            self.set_file_was_changed()
             evt.Skip()
 
     def append_text(self, text):
@@ -103,13 +104,13 @@ class PyFileUI(Panel):
             self.txt_content.SetValue(content)
 
         self.txt_content.AppendText(text)
-        self._set_file_was_changed()
+        self.set_file_was_changed()
 
     def insert_text(self, line, pos):
         self.txt_content.SetInsertionPoint(pos)
         self.txt_content.WriteText(line.rstrip() + LINESEP)
         self.txt_content.SetInsertionPointEnd()
-        self._set_file_was_changed()
+        self.set_file_was_changed()
 
     def create_method(self, method_name):
         test_case = self.METHOD_TEMPLATE.format(method_name=method_name)
@@ -168,7 +169,7 @@ class PyFileUI(Panel):
             method_kwargs = {}
 
         if (len(args) > 1 and (is_browser_method or is_mouse_method) or
-            len(args) > 0 and (is_assert_method or is_page_object_method)):
+                        len(args) > 0 and (is_assert_method or is_page_object_method)):
             if is_assert_method or is_page_object_method:
                 dialog = MultipleTextEntry(self, 'Please enter values', args)
             else:
@@ -218,6 +219,7 @@ class {class_name}(BaseTest):
         self.browser.get(u'{url}')
 
 '''
+
     def __init__(self, parent, test_file_path,
                  po_class, load_file=False):
         PyFileUI.__init__(self, parent, test_file_path, load_file)
@@ -278,6 +280,7 @@ class {class_name}(BaseTest):
 class FieldsTableAndTestFilesTabs(Panel):
     TAB_INDEX_FOR_TABLE = 0
     TAB_INDEX_FOR_PO_CLASS_FILE = 1
+
     def __init__(self, parent, editor_tab):
         Panel.__init__(self, parent)
 
@@ -306,15 +309,15 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.btn_create_test = Button(self, label=u'Create new method/test case')
         self.btn_create_test.Bind(EVT_BUTTON, self.__create_method_or_test)
         inner_sizer.Add(self.btn_create_test)
-        sizer.Add(inner_sizer, pos=(row, 0), span=full_span, flag=ALL | EXPAND)
+        sizer.Add(inner_sizer, pos=(row, 0), span=full_span, flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
-        self.tabs = Tabs(self, [(Grid, "Fields' table")])
+        self.tabs = Tabs(self, [(Table, "Fields' table")])
         self.table = self.tabs.GetPage(0)
-        self.table.Bind(EVT_GRID_SELECT_CELL, self.__on_cell_select)
-        self.table.Bind(EVT_GRID_CELL_RIGHT_CLICK, self.__on_cell_select)
+        self.table.Bind(EVT_GRID_SELECT_CELL, self.__on_cell_click)
+        self.table.Bind(EVT_GRID_CELL_RIGHT_CLICK, self.__on_cell_click)
 
-        sizer.Add(self.tabs, pos=(row, 0), span=full_span, flag=ALL | EXPAND)
+        sizer.Add(self.tabs, pos=(row, 0), span=full_span, flag=FLAG_ALL_AND_EXPAND)
 
         sizer.AddGrowableCol(1, 1)
         sizer.AddGrowableRow(1, 1)
@@ -335,7 +338,7 @@ class FieldsTableAndTestFilesTabs(Panel):
             self.tabs.AddPage(py_file_ui, os.path.basename(self.__cur_po_class.file_path))
 
         if (not more_than_1_tab and
-            self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE):
+                    self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE):
             self.tabs.SetSelection(self.TAB_INDEX_FOR_PO_CLASS_FILE)
 
         self.tabs.set_tabs_text(file_name,
@@ -347,41 +350,12 @@ class FieldsTableAndTestFilesTabs(Panel):
     def clear_table(self):
         self.table.ClearGrid()
 
-    def select_item_in_table(self, index):
-        self.table.Scroll(0, index)
-        self.table.SelectRow(index)
-
     def get_current_pageobject_class(self):
         return self.__cur_po_class
 
     def __set_pageobject_class(self, po_class):
         self.__cur_po_class = po_class
-        field_count = len(self.__cur_po_class.fields)
-        field_attrs = [u'name', u'by', u'selector', u'location', u'dimensions']
-        table = GridStringTable(field_count, len(field_attrs))
-
-        # filling headers
-        for field_attr in field_attrs:
-            table.SetColLabelValue(field_attrs.index(field_attr),
-                                   field_attr.capitalize())
-
-        # filling data
-        for field in self.__cur_po_class.fields:
-            j = self.__cur_po_class.fields.index(field)
-            for field_attr in field_attrs:
-                value = getattr(field, field_attr)
-                i = field_attrs.index(field_attr)
-                is_by = field_attr == field_attrs[1]
-                is_location_or_dimensions = type(value) in (tuple, list)
-                if is_by:
-                    value = get_by_as_code_str(value)
-                elif is_location_or_dimensions:
-                    value = str(value)
-
-                table.SetValue(j, i, value)
-
-        self.table.SetTable(table)
-        self.table.AutoSizeColumns()
+        self.table.load_data(po_class.fields)
 
     def __create_method_or_test(self, evt):
         count = self.tabs.GetPageCount()
@@ -458,7 +432,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                     self.tabs.SetSelection(self.tabs.GetPageCount() - 1)
 
                     if style == FD_SAVE:
-                        test_file_ui._set_file_was_changed()
+                        test_file_ui.set_file_was_changed()
                 else:
                     show_dialog_bad_name(self, filename, 'my_first_test.py')
         else:
@@ -472,13 +446,13 @@ class FieldsTableAndTestFilesTabs(Panel):
     def __on_create_test_file(self, evt):
         self.__open_or_create_test_file(FD_SAVE)
 
-    def __on_cell_select(self, evt):
-        if self.__cur_po_class:
-            row = evt.GetRow()
-            field = self.__cur_po_class.fields[row]
+    def __on_cell_click(self, evt):
+        self.table.selected_row = evt.GetRow()
+        field = self.table.get_selected_data()
+        if field:
             self.__editor_tab.image_panel.draw_selected_field(field, True)
-            if evt.GetEventType() == EVT_GRID_CELL_RIGHT_CLICK.typeId:
-                self.__editor_tab._show_content_menu(field)
+            if evt.GetEventType() == EVT_GRID_CELL_RIGHT_CLICK.typeId and field:
+                self.__editor_tab.show_content_menu()
         evt.Skip()
 
 
@@ -498,16 +472,16 @@ class MultipleTextEntry(Dialog):
 
             txtctrl = TextCtrl(self)
             self.txt_ctrls.append(txtctrl)
-            sizer.Add(txtctrl, pos=(row, 1), flag=ALL | EXPAND)
+            sizer.Add(txtctrl, pos=(row, 1), flag=FLAG_ALL_AND_EXPAND)
             row += 1
 
         self.btn_cancel = Button(self, label=u'Cancel')
         self.btn_cancel.Bind(EVT_BUTTON, self.__on_btn)
-        sizer.Add(self.btn_cancel, pos=(row, 0), flag=ALL | EXPAND)
+        sizer.Add(self.btn_cancel, pos=(row, 0), flag=FLAG_ALL_AND_EXPAND)
 
         self.btn_ok = Button(self, label=u'OK')
         self.btn_ok.Bind(EVT_BUTTON, self.__on_btn)
-        sizer.Add(self.btn_ok, pos=(row, 1), flag=ALL | EXPAND)
+        sizer.Add(self.btn_ok, pos=(row, 1), flag=FLAG_ALL_AND_EXPAND)
 
         sizer.AddGrowableCol(1)
         self.SetSizerAndFit(sizer)
@@ -535,4 +509,3 @@ class MultipleTextEntry(Dialog):
             show_dialog(self, LINESEP.join(errors), 'Bad entered data')
         else:
             self.EndModal(return_code)
-

@@ -1,6 +1,6 @@
 from wx import EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL, VERTICAL, Rect
 
-from easyselenium.ui.image.image_panel import ImagePanel
+from easyselenium.ui.widgets.image.image_panel import ImagePanel
 from easyselenium.utils import is_windows
 
 
@@ -8,7 +8,7 @@ class SelectableImagePanel(ImagePanel):
     def __init__(self, parent):
         ImagePanel.__init__(self, parent)
         self.static_bitmap.Bind(EVT_LEFT_DOWN, self.__on_mouse_down)
-        self.static_bitmap.Bind(EVT_MOTION, self._on_mouse_move)
+        self.static_bitmap.Bind(EVT_MOTION, self.on_mouse_move)
 
         self.__start_position = None
         self.__selected_area = None
@@ -20,7 +20,7 @@ class SelectableImagePanel(ImagePanel):
             h = self.original_bitmap.GetHeight()
             self._draw_selected_area((0, 0), (w, h))
 
-    def _on_mouse_move(self, evt):
+    def on_mouse_move(self, evt):
         if self.was_image_loaded() and evt.Dragging() and self.__start_position:
             # TODO: doesn't work in Windows if window is scrolled
             start_position = self._get_fixed_position(self.__start_position)
@@ -52,4 +52,4 @@ class SelectableImagePanel(ImagePanel):
             return self.__selected_area
         else:
             w, h = self.get_image_dimensions()
-            return (0, 0, w, h)
+            return 0, 0, w, h

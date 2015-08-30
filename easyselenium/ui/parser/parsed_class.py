@@ -1,9 +1,7 @@
 import os
 import imp
 import inspect
-
 from pprint import pformat
-
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser, Mouse
@@ -12,6 +10,7 @@ from easyselenium.browser import Browser, Mouse
 class ParsedClass(object):
     PROTECTED_PREFIX = '_'
     PRIVATE_PREFIX = '__'
+
     def __init__(self, name, class_obj, fields, methods):
         self.name = name
         self.class_obj = class_obj
@@ -73,7 +72,7 @@ class ParsedClass(object):
 
         def filter_private_members(members):
             return [m for m in members
-                    if cls.PROTECTED_PREFIX not in m[0] or \
+                    if cls.PROTECTED_PREFIX not in m[0] or
                     cls.PRIVATE_PREFIX not in m[0]]
 
         parsed_classes = []
@@ -147,7 +146,6 @@ class ParsedPageObjectClass(ParsedClass):
         def filter_class_data(class1, class2, methods_or_fields):
             return dict([(n, v) for n, v in getattr(class1, methods_or_fields).items()
                          if n not in getattr(class2, methods_or_fields)])
-
 
         for _class in parsed_classes:
             _class.methods = filter_class_data(_class, super_class, 'methods')

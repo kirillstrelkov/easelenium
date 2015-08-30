@@ -18,6 +18,7 @@ class MenuItemData(object):
 
 class ContextMenu(Menu):
     SEPARATOR_TEXT = u'------'
+
     def __init__(self, data):
         Menu.__init__(self)
 
@@ -26,7 +27,6 @@ class ContextMenu(Menu):
 
         self.__create_menu(data)
         self._bind_evt_menu(self.__on_menu_click)
-
 
     def _bind_evt_menu(self, function):
         self.Bind(EVT_MENU, function)

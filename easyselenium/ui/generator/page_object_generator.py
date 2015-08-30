@@ -1,12 +1,11 @@
 # coding=utf8
 import os
 import re
-
 from time import sleep
-
 from wx import Point, Rect
 
 from selenium.webdriver.common.by import By
+
 from selenium.webdriver.remote.webelement import WebElement
 
 from easyselenium.utils import unicode_str
@@ -129,7 +128,7 @@ return getElementXPath(arguments[0]);'''
         self.__log(u'Number of fields:', len(fields))
         return fields
 
-    def _get_all_po_fields(self, url, area):
+    def get_all_po_fields(self, url, area):
         if self.browser.get_current_url() != url:
             self.browser.get(url)
             sleep(3)
@@ -154,7 +153,7 @@ return getElementXPath(arguments[0]);'''
             if field.name in names:
                 uniq_name = False
                 i = 0
-                while(not uniq_name):
+                while not uniq_name:
                     new_name = u'_'.join([field.name, str(i)])
                     if new_name not in names:
                         uniq_name = True
@@ -173,7 +172,7 @@ return getElementXPath(arguments[0]);'''
         check_if_path_exists(folder_path)
 
         self.__log(u'Generating PageObjectClass for url %s with area %s' % (url, str(area)))
-        fields = self._get_all_po_fields(url, area)
+        fields = self.get_all_po_fields(url, area)
         img_as_png = self.browser.get_screenshot_as_png()
 
         filename = get_py_file_name_from_class_name(class_name)
@@ -234,8 +233,8 @@ return getElementXPath(arguments[0]);'''
     def _get_class_name_selector(self, element):
         class_name = self.browser.get_class(element)
         if (len(class_name) > 0 and
-                u' ' not in class_name and
-                len(self.browser.find_elements((By.CLASS_NAME, class_name))) == 1):
+                    u' ' not in class_name and
+                    len(self.browser.find_elements((By.CLASS_NAME, class_name))) == 1):
             return By.CLASS_NAME, class_name
         else:
             return None
@@ -280,7 +279,7 @@ return getElementXPath(arguments[0]);'''
     def _get_link_text_selector(self, element):
         text = self.browser.get_text(element)
         if (len(self.browser.find_elements((By.LINK_TEXT, text))) == 1 and
-            len(text) > 1):
+                    len(text) > 1):
             return By.LINK_TEXT, text
         else:
             return None

@@ -1,10 +1,13 @@
-from wx import ScrolledWindow, BoxSizer, VERTICAL, StaticBitmap, ALL, EXPAND, \
-    Image, BITMAP_TYPE_ANY, BitmapFromImage, Rect, MemoryDC, BufferedDC, \
+from wx import ScrolledWindow, BoxSizer, VERTICAL, StaticBitmap, Image, BITMAP_TYPE_ANY, BitmapFromImage, Rect, \
+    MemoryDC, BufferedDC, \
     BLACK_PEN, TRANSPARENT_BRUSH, GREY_PEN, NullBitmap
+
+from easyselenium.ui.utils import FLAG_ALL_AND_EXPAND
 
 
 class ImagePanel(ScrolledWindow):
     MIN_SCROLL = 10
+
     def __init__(self, parent):
         ScrolledWindow.__init__(self, parent)
 
@@ -15,7 +18,7 @@ class ImagePanel(ScrolledWindow):
 
         sizer = BoxSizer(VERTICAL)
         self.static_bitmap = StaticBitmap(self)
-        sizer.Add(self.static_bitmap, 1, flag=ALL | EXPAND)
+        sizer.Add(self.static_bitmap, 1, flag=FLAG_ALL_AND_EXPAND)
 
         self.SetSizer(sizer)
 
@@ -40,8 +43,7 @@ class ImagePanel(ScrolledWindow):
             bitmap = BitmapFromImage(self.wx_image)
             bitmap_to_draw = bitmap.GetSubBitmap(Rect(x, y, w, h))
 
-            bitmap = bitmap.ConvertToImage()\
-            .ConvertToGreyscale(
+            bitmap = bitmap.ConvertToImage().ConvertToGreyscale(
                 0.156, 0.308, 0.060
             ).ConvertToBitmap()
 

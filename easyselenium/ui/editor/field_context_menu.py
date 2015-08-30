@@ -1,5 +1,5 @@
 from easyselenium.ui.context_menu import ContextMenu
-from easyselenium.ui.utils import show_dialog
+from easyselenium.ui.widgets.utils import show_dialog
 
 
 class FieldContextMenu(ContextMenu):
@@ -42,6 +42,7 @@ class FieldContextMenu(ContextMenu):
         initial_data = sorted(initial_data, key=lambda x: x[0])
 
         data = {}
+
         def append_to_data(submenu_text, item_text, func):
             if submenu_text in data:
                 data[submenu_text] += [(item_text, func)]

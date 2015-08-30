@@ -1,6 +1,5 @@
 # coding=utf8
 import traceback
-
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser
@@ -34,7 +33,7 @@ class BaseTest(TestCase):
 
     def tearDown(self):
         if (self._resultForDoCleanups.errors or
-            self._resultForDoCleanups.failures):
+                self._resultForDoCleanups.failures):
             name = self.id()
             filename = u'_'.join([name,
                                   self.browser.get_browser_initials(),

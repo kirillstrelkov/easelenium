@@ -1,6 +1,5 @@
 # coding=utf8
 import tempfile
-
 from wx import Rect, Point
 
 from selenium.webdriver.common.by import By
@@ -23,7 +22,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.browser.get('https://duckduckgo.com/')
 
     def test_get_po_fields_from_page(self):
-        fields = self.generator._get_all_po_fields('https://duckduckgo.com/', None)
+        fields = self.generator.get_all_po_fields('https://duckduckgo.com/', None)
         self.assertGreaterEqual(len(fields), 7)
 
     def test_get_po_class_from_url(self):
@@ -55,7 +54,7 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertIn('duck_duck_go', po_class.img_path)
 
     def test_get_po_class_fields_from_elements(self):
-        fields = self.generator._get_all_po_fields(
+        fields = self.generator.get_all_po_fields(
             'https://duckduckgo.com/',
             None
         )
@@ -108,15 +107,6 @@ class PageObjectGeneratorTest(BaseTest):
         self.assertEqual((By.ID, u'search_form_input_homepage'),
                          self.generator._get_selector(element))
         self.assertEqual(u'SEARCH_FORM_INPUT_HOMEPAGE',
-                         self.generator._get_name_for_field(element))
-
-        by_and_selector = By.XPATH, u'/html/body/div/div[2]/div/div/div'
-        element = self.browser.find_element(by_and_selector)
-        self.assertEqual(by_and_selector,
-                         self.generator._get_xpath_selector(element))
-        self.assertEqual((By.LINK_TEXT, u'About DuckDuckGo'),
-                         self.generator._get_selector(element))
-        self.assertEqual(u'ABOUT_DUCKDUCKGO',
                          self.generator._get_name_for_field(element))
 
     def test_get_css_selector_for_element(self):
