@@ -1,13 +1,14 @@
 import os
 import traceback
 from subprocess import check_output
-from wx import Panel, GridBagSizer, Button, CB_READONLY, ComboBox, TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, \
+from wx import Panel, GridBagSizer, Button, TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, \
     SP_LIVE_UPDATE, \
     CallAfter, TextCtrl, VSCROLL, TE_MULTILINE, TE_READONLY, HSCROLL, \
     StaticText, EVT_BUTTON, FileDialog, ID_OK, FD_OPEN, DirDialog, \
     DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, \
     CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT, Font, \
     FONTFAMILY_TELETYPE, NORMAL
+from wx._controls import Choice
 from wx.lib.agw.customtreectrl import CustomTreeCtrl, TR_AUTO_CHECK_CHILD, \
     TR_AUTO_CHECK_PARENT, EVT_TREE_ITEM_CHECKED, TR_AUTO_TOGGLE_CHILD
 
@@ -106,9 +107,7 @@ class TestRunnerTab(Panel):
         sizer.Add(dummy_label, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.cb_browser = ComboBox(self,
-                                   style=CB_READONLY,
-                                   choices=Browser.get_supported_browsers())
+        self.cb_browser = Choice(self, choices=Browser.get_supported_browsers())
         self.cb_browser.Select(0)
         sizer.Add(self.cb_browser, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -144,6 +143,7 @@ class TestRunnerTab(Panel):
     def __on_select_file(self, evt):
         folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
         obj = evt.GetEventObject()
+        txt_ctrl = None
         if obj == self.btn_select_html:
             wildcard = u'*.html'
             txt_ctrl = self.txt_html_report
@@ -156,7 +156,7 @@ class TestRunnerTab(Panel):
                             defaultDir=folder,
                             style=FD_SAVE | FD_OVERWRITE_PROMPT,
                             wildcard=wildcard)
-        if dialog.ShowModal() == ID_OK:
+        if dialog.ShowModal() == ID_OK and txt_ctrl:
             txt_ctrl.SetValue(dialog.GetPath())
 
     def __on_check(self, evt):
@@ -213,9 +213,9 @@ class TestRunnerTab(Panel):
         python_files = [f for f in python_files
                         if 'test' in os.path.basename(f) and os.path.splitext(f)[-1] == '.py']
         if len(python_files) > 0:
+            syspath = list(os.sys.path)
             try:
                 root_folder = self.__get_safe_path_from_root_folder()
-                syspath = list(os.sys.path)
 
                 if root_folder not in os.sys.path:
                     os.sys.path.append(root_folder)
@@ -273,23 +273,24 @@ class TestRunnerTab(Panel):
             for _class in _file.GetChildren():
                 for test_case in _class.GetChildren():
                     if test_case.IsChecked():
-                        tests.append(u"%s:%s.%s" % (_file.GetText(),
+                        # TODO: fix for files that contain spaces
+                        tests.append(u'%s:%s.%s' % (_file.GetText(),
                                                     _class.GetText(),
                                                     test_case.GetText()))
-        args = ['--with-path=%s' % self.__get_safe_path_from_root_folder(),
+        args = ['--with-path="%s"' % self.__get_safe_path_from_root_folder(),
                 '--logging-level=INFO']
 
         use_html_report = (self.cb_html_output.IsChecked() and
                            len(self.txt_html_report.GetValue()) > 0)
         if use_html_report:
             report_path = self.txt_html_report.GetValue()
-            args.append('--with-html --html-file=%s' % report_path)
+            args.append('--with-html --html-file="%s"' % report_path)
 
         use_xml_report = (self.cb_xml_output.IsChecked() and
                           len(self.txt_xml_report.GetValue()) > 0)
         if use_xml_report:
             report_path = self.txt_xml_report.GetValue()
-            args.append('--with-xunit --xunit-file=%s' % report_path)
+            args.append('--with-xunit --xunit-file="%s"' % report_path)
 
         use_options = (self.cb_options.IsChecked() and
                        len(self.txt_options.GetValue()) > 0)
@@ -297,12 +298,11 @@ class TestRunnerTab(Panel):
             report_path = self.txt_options.GetValue()
             args.append(report_path)
 
-        formatted_cmd = u'nosetests {args} {tests}'.format(**{'args': u' '.join(args),
-                                                              'tests': u' '.join(tests)})
-        return formatted_cmd
+        nose_cmd = [u'nosetests'] + args + tests
+        return nose_cmd
 
     def __run_tests(self, evt):
-        # TODO: do not run is root folder is not selected
+        # TODO: do not run if root folder is not selected
         self.txt_ctrl.Clear()
 
         dialog = InfiniteProgressBarDialog(self,
@@ -316,17 +316,17 @@ class TestRunnerTab(Panel):
             os.sys.stdout = redirected
             os.sys.stderr = redirected
             try:
-                formatted_cmd = self.__get_nose_command()
-                browser_name = self.cb_browser.GetValue()
+                nose_cmd = self.__get_nose_command()
+                browser_name = self.cb_browser.GetStringSelection()
                 Browser.DEFAULT_BROWSER = browser_name
                 report_folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 
-                easy_selenium_cmd = formatted_cmd.replace("nosetests", "easy_selenium_cli.py -b " + browser_name)
+                easy_selenium_cmd = u" ".join(nose_cmd).replace("nosetests", "easy_selenium_cli.py -b " + browser_name)
                 print u"Executing command:\n%s" % easy_selenium_cmd
                 print u"Nose output:"
 
-                run(argv=formatted_cmd.split()[1:])
+                run(argv=nose_cmd[1:])
             finally:
                 dialog.close_event.set()
                 os.sys.stdout = stdout

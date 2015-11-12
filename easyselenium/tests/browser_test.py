@@ -6,6 +6,7 @@ from easyselenium.base_test import BaseTest
 
 
 class BrowserTest(BaseTest):
+    BROWSER_NAME = 'gc'
 
     def test_switch_to_frame(self):
         frame_left = (By.XPATH, "//frame[@name='menu']")
@@ -54,13 +55,14 @@ class BrowserTest(BaseTest):
         self.browser.wait_for_visible(context_menu)
 
     def test_mouse_hover(self):
-        self.browser.get('http://map.project-osrm.org/')
+        self.browser.get('https://www.openstreetmap.org/')
 
-        layers = (By.CSS_SELECTOR, "a.gui-layers")
-        layers_list = (By.CSS_SELECTOR, 'div.gui-layers-base')
+        edit_buton = (By.ID, "editanchor")
+        tooltip = (By.CSS_SELECTOR, '.primary .tooltip')
 
-        self.browser.mouse.hover(layers)
-        self.browser.wait_for_visible(layers_list)
+        self.browser.mouse.hover(edit_buton)
+        self.browser.wait_for_visible(tooltip)
+        self.assertEqual('Zoom in to edit the map', self.browser.get_text(tooltip))
 
     def test_select(self):
         self.browser.get('https://developer.mozilla.org/en-US/docs/' +

@@ -62,11 +62,12 @@ class ContextMenu(Menu):
                     item = MenuItem(self, data.id, text)
                     self.AppendItem(item)
 
+    def _get_menu_item_data(self, menu_item_id):
+        return self.__id_and_item_data.get(menu_item_id)
+
     def _get_function(self, menu_item_id):
-        func = None
-        if menu_item_id in self.__id_and_item_data:
-            func = self.__id_and_item_data[menu_item_id].func
-        return func
+        menu_item_data = self._get_menu_item_data(menu_item_id)
+        return menu_item_data.func if menu_item_data else None
 
     def __on_menu_click(self, evt):
         _id = evt.GetId()

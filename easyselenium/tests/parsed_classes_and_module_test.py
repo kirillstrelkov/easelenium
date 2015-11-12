@@ -1,11 +1,12 @@
 import os
 import inspect
-
 from unittest.case import TestCase
+
+from nose import tools
 
 from easyselenium import browser
 from easyselenium.ui.parser.parsed_class import ParsedClass, ParsedBrowserClass, \
-    ParsedTestCaseClass, ParsedMouseClass, ParsedPageObjectClass
+    ParsedMouseClass, ParsedPageObjectClass, ParsedModule
 
 
 class ParsedClassTest(TestCase):
@@ -60,6 +61,8 @@ class ParsedBrowserClassTest(TestCase):
         self.assertIn('find_element', parsed_class.methods)
         self.assertIn('find_elements', parsed_class.methods)
         self.assertIn('type', parsed_class.methods)
+        self.assertIn('get_attribute', parsed_class.methods)
+        self.assertIn('get_text', parsed_class.methods)
         self.assertIn('wait_for_visible', parsed_class.methods)
         self.assertIn('get_title', parsed_class.methods)
         self.assertIn('get_current_url', parsed_class.methods)
@@ -68,77 +71,50 @@ class ParsedBrowserClassTest(TestCase):
         self.assertIn('switch_to_default_content', parsed_class.methods)
 
 
-class ParsedTestCaseClassTest(TestCase):
-    def test_methods_parsed_browser_class_with_asserts(self):
-        parsed_class = ParsedTestCaseClass.get_parsed_classes()[0]
-        good_methods = ['assertAlmostEqual',
-                        'assertAlmostEquals',
-                        'assertDictContainsSubset',
-                        'assertDictEqual',
-                        'assertEqual',
-                        'assertEquals',
-                        'assertFalse',
-                        'assertGreater',
-                        'assertGreaterEqual',
-                        'assertIn',
-                        'assertIs',
-                        'assertIsInstance',
-                        'assertIsNone',
-                        'assertIsNot',
-                        'assertIsNotNone',
-                        'assertItemsEqual',
-                        'assertLess',
-                        'assertLessEqual',
-                        'assertListEqual',
-                        'assertMultiLineEqual',
-                        'assertNotAlmostEqual',
-                        'assertNotAlmostEquals',
-                        'assertNotEqual',
-                        'assertNotEquals',
-                        'assertNotIn',
-                        'assertNotIsInstance',
-                        'assertNotRegexpMatches',
-                        'assertRaises',
-                        'assertRaisesRegexp',
-                        'assertRegexpMatches',
-                        'assertSequenceEqual',
-                        'assertSetEqual',
-                        'assertTrue',
-                        'assertTupleEqual']
-        for m in good_methods:
-            self.assertIn(m, parsed_class.methods)
+class ParseNoseToolsModuleTest(TestCase):
+    def test_methods_parsed_tools_module(self):
+        parsed_module = ParsedModule.get_parsed_module(tools)
+        self.assertEqual('nose.tools', parsed_module.name)
+        self.assertIs(parsed_module.module_obj, tools)
+        good_methods = [
+            'assert_almost_equal',
+            'assert_almost_equals',
+            'assert_dict_contains_subset',
+            'assert_dict_equal',
+            'assert_equal',
+            'assert_equals',
+            'assert_false',
+            'assert_greater',
+            'assert_greater_equal',
+            'assert_in',
+            'assert_is',
+            'assert_is_instance',
+            'assert_is_none',
+            'assert_is_not',
+            'assert_is_not_none',
+            'assert_items_equal',
+            'assert_less',
+            'assert_less_equal',
+            'assert_list_equal',
+            'assert_multi_line_equal',
+            'assert_not_almost_equal',
+            'assert_not_almost_equals',
+            'assert_not_equal',
+            'assert_not_equals',
+            'assert_not_in',
+            'assert_not_is_instance',
+            'assert_not_regexp_matches',
+            'assert_raises',
+            'assert_raises_regexp',
+            'assert_regexp_matches',
+            'assert_sequence_equal',
+            'assert_set_equal',
+            'assert_true',
+            'assert_tuple_equal'
+        ]
 
-        bad_methods = ['_addSkip',
-                       '_baseAssertEqual',
-                       '_deprecate',
-                       '_formatMessage',
-                       '_getAssertEqualityFunc',
-                       '_truncateMessage',
-                       'addCleanup',
-                       'addTypeEqualityFunc',
-                       'assert_',
-                       'countTestCases',
-                       'debug',
-                       'defaultTestResult',
-                       'doCleanups',
-                       'fail',
-                       'failIf',
-                       'failIfAlmostEqual',
-                       'failIfEqual',
-                       'failUnless',
-                       'failUnlessAlmostEqual',
-                       'failUnlessEqual',
-                       'failUnlessRaises',
-                       'id',
-                       'run',
-                       'setUp',
-                       'setUpClass',
-                       'shortDescription',
-                       'skipTest',
-                       'tearDown',
-                       'tearDownClass']
-        for m in bad_methods:
-            self.assertNotIn(m, parsed_class.methods)
+        for m in good_methods:
+            self.assertIn(m, parsed_module.methods)
 
 
 class ParsedMouseClassTest(TestCase):

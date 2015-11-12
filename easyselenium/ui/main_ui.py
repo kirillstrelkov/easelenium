@@ -143,7 +143,7 @@ class MainFrame(Frame):
         return self.__browser
 
     def get_browser_initials(self):
-        return self.__cb_browser.GetString(self.__cb_browser.GetCurrentSelection())
+        return self.__cb_browser.GetStringSelection()
 
     def get_tmp_dir(self):
         return self.__tmp_dir

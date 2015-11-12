@@ -5,7 +5,6 @@ from time import sleep
 from wx import Point, Rect
 
 from selenium.webdriver.common.by import By
-
 from selenium.webdriver.remote.webelement import WebElement
 
 from easyselenium.utils import unicode_str
@@ -59,7 +58,7 @@ return getElementXPath(arguments[0]);'''
     ELEMENTS_SELECTOR = (By.CSS_SELECTOR,
                          '[onclick], [jsaction], a, select, button, input, '
                          'span, p, h1, h2, h3, h4, h5, h6, '
-                         'frame, iframe')
+                         'frame, iframe, .btn')
     FRAMES_SELECTOR = (By.CSS_SELECTOR, 'frame, iframe')
 
     def __init__(self, browser, logger=None):

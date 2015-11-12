@@ -62,6 +62,7 @@ class PageObjectClassField(object):
 class PageObjectClass(object):
     IMAGE_FOLDER = 'img'
     TEMPLATE = u'''# coding=utf8
+from nose.tools import *
 from selenium.webdriver.common.by import By
 
 from easyselenium.base_page_object import BasePageObject

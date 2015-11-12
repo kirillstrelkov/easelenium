@@ -16,7 +16,7 @@ class FieldContextMenu(ContextMenu):
     def __prepare_data_from_classes(self, parsed_classes):
         data = []
         for pc in parsed_classes:
-            is_asserts = 'assertTrue' in pc.methods
+            is_asserts = 'assert_true' in pc.methods
             is_mouse = 'hover' in pc.methods
             is_browser = 'click' in pc.methods
             if is_asserts or is_mouse or not is_browser:
@@ -68,11 +68,14 @@ class FieldContextMenu(ContextMenu):
     def __on_menu_click(self, evt):
         if self.__test_file:
             if self.__txt_ctrl_ui.has_one_or_more_methods_or_test_cases():
-                method = self._get_function(evt.GetId())
+                item_data = self._get_menu_item_data(evt.GetId())
+                method_name = item_data.text
+                method = item_data.func
                 for pc in self.__parsed_classes:
                     if method in pc.methods.values():
                         arg_spec = pc.get_arg_spec(method)
                         self.__txt_ctrl_ui.append_method_call(self.__field,
+                                                              method_name,
                                                               method,
                                                               arg_spec)
                         break

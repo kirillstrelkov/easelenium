@@ -1,6 +1,7 @@
 # coding=utf8
 import os
 import tempfile
+from functools import wraps
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,10 +10,24 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import WebDriverException, TimeoutException, \
+from selenium.common.exceptions import WebDriverException, TimeoutException, StaleElementReferenceException, \
     NoSuchElementException
 
 from easyselenium.utils import get_random_value, get_timestamp, is_windows
+
+
+def stale_exception_wrapper(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return_value = None
+        try:
+            return_value = func(*args, **kwargs)
+        except StaleElementReferenceException:
+            return_value = func(*args, **kwargs)
+        finally:
+            return return_value
+
+    return wrapper
 
 
 class Mouse(object):
@@ -94,14 +109,16 @@ class Browser(object):
 
     __BROWSERS = [FF, GC, IE, OP]
 
-    def __init__(self, browser_name=None, logger=None, timeout=5):
+    def __init__(self, browser_name=None, logger=None, timeout=5, **kwargs):
         if browser_name:
             self.__browser_name = browser_name
         else:
             self.__browser_name = self.DEFAULT_BROWSER
         self.logger = logger
         self.__timeout = timeout
-        self._driver = self.__create_driver(self.__browser_name)
+        self._driver = self.__create_driver(self.__browser_name, **kwargs)
+        prefix = u'easyselenium_' + get_timestamp() + u'_'
+        self.__screenshot_path = tempfile.mkdtemp(prefix=prefix)
         self.mouse = Mouse(self)
 
     @classmethod
@@ -111,7 +128,7 @@ class Browser(object):
     def get_browser_initials(self):
         return self.__browser_name
 
-    def __create_driver(self, name):
+    def __create_driver(self, name, *args, **kwargs):
         folder_with_drivers = os.path.expanduser('~')
         driver = None
 
@@ -121,7 +138,7 @@ class Browser(object):
                 'IEDriverServer.exe'
             )
             if os.path.exists(path_to_iedriver):
-                driver = webdriver.Ie(executable_path=path_to_iedriver)
+                driver = webdriver.Ie(executable_path=path_to_iedriver, **kwargs)
             else:
                 raise Exception("IEDriver.exe wasn't found in " +
                                 path_to_iedriver)
@@ -131,7 +148,7 @@ class Browser(object):
                 'chromedriver.exe' if is_windows() else 'chromedriver'
             )
             if os.path.exists(path_to_chromedriver):
-                driver = webdriver.Chrome(executable_path=path_to_chromedriver)
+                driver = webdriver.Chrome(executable_path=path_to_chromedriver, **kwargs)
             else:
                 raise Exception("Chromedriver wasn't found in " +
                                 path_to_chromedriver)
@@ -144,12 +161,13 @@ class Browser(object):
                 capabilities = DesiredCapabilities.OPERA.copy()
                 capabilities['engine'] = 2
                 driver = webdriver.Opera(desired_capabilities=capabilities,
-                                         executable_path=path_to_selenium_server)
+                                         executable_path=path_to_selenium_server,
+                                         **kwargs)
             else:
                 raise Exception("Selenium server jar file wasn't found in " +
                                 path_to_selenium_server)
         elif name == self.FF:
-            driver = webdriver.Firefox()
+            driver = webdriver.Firefox(**kwargs)
         else:
             raise ValueError(
                 "Unsupported browser '%s', "
@@ -256,26 +274,28 @@ class Browser(object):
         else:
             return self.find_descendant(element, (By.XPATH, u'./..'))
 
-    def get_text(self, element):
+    def get_text(self, element, log=True):
         self.wait_for_visible(element)
         element = self.find_element(element)
         text = element.text
 
-        self._safe_log(u"Getting text from '%s' -> '%s'",
-                       self._to_string(element),
-                       text)
+        if log:
+            self._safe_log(u"Getting text from '%s' -> '%s'",
+                           self._to_string(element),
+                           text)
 
         return text
 
-    def get_attribute(self, element, attr):
+    def get_attribute(self, element, attr, log=True):
         self.wait_for_visible(element)
         element = self.find_elements(element)[0]
         value = element.get_attribute(attr)
 
-        self._safe_log(u"Getting attribute '%s' from '%s' -> '%s'",
-                       attr,
-                       self._to_string(element),
-                       value)
+        if log:
+            self._safe_log(u"Getting attribute '%s' from '%s' -> '%s'",
+                           attr,
+                           self._to_string(element),
+                           value)
 
         return value
 
@@ -449,14 +469,36 @@ class Browser(object):
     def find_descendants(self, parent, element):
         return self.__get_webelements(element, parent)
 
-    def wait_for_visible(self, element, msg=None, timeout=None):
+    def wait_for_text_is_changed(self, element, old_text, msg=None, timeout=None):
+        if not timeout:
+            timeout = self.__timeout
+        if not msg:
+            msg = '%s text was not changed for %s seconds' % \
+                  (self._to_string(element), timeout)
+
+        self.webdriver_wait(lambda driver: old_text != self.get_text(element, False),
+                            msg,
+                            timeout)
+
+    def wait_for_attribute_is_changed(self, element, attr, old_value, msg=None, timeout=None):
+        if not timeout:
+            timeout = self.__timeout
+        if not msg:
+            msg = '%s attribute was not changed for %s seconds' % \
+                  (self._to_string(element), timeout)
+
+        self.webdriver_wait(lambda driver: old_value != self.get_attribute(element, attr, False),
+                            msg,
+                            timeout)
+
+    def wait_for_visible(self, element, msg=None, timeout=None, parent=None):
         if not timeout:
             timeout = self.__timeout
         if not msg:
             msg = '%s is not visible for %s seconds' % \
                   (self._to_string(element), timeout)
 
-        self.webdriver_wait(lambda driver: self.is_visible(element),
+        self.webdriver_wait(lambda driver: self.is_visible(element, parent),
                             msg,
                             timeout)
 
@@ -471,7 +513,7 @@ class Browser(object):
                             msg,
                             timeout)
 
-    def wait_for_present(self, element, timeout=None):
+    def wait_for_present(self, element, msg=None, timeout=None):
         if not timeout:
             timeout = self.__timeout
             msg = '%s is not present for %s seconds' % \
@@ -481,7 +523,7 @@ class Browser(object):
                             msg,
                             timeout)
 
-    def wait_for_not_present(self, element, timeout=None):
+    def wait_for_not_present(self, element, msg=None, timeout=None):
         if not timeout:
             timeout = self.__timeout
             msg = '%s is present for %s seconds' % \
@@ -491,11 +533,13 @@ class Browser(object):
                             msg,
                             timeout)
 
-    def is_visible(self, element):
+    def is_visible(self, element, parent=None):
         try:
-            elements = self.find_elements(element)
-            return elements and len(elements) > 0 and \
-                   elements[0].is_displayed()
+            if parent:
+                elements = self.find_descendants(parent, element)
+            else:
+                elements = self.find_elements(element)
+            return len(elements) > 0 and elements[0].is_displayed()
         except WebDriverException:
             return False
 
@@ -507,7 +551,7 @@ class Browser(object):
 
     def save_screenshot(self, saving_dir=None, filename=None):
         if not saving_dir:
-            saving_dir = tempfile.gettempdir()
+            saving_dir = self.__screenshot_path
         if not filename:
             filename = get_timestamp() + '.png'
         path_to_file = os.path.abspath(os.path.join(saving_dir,

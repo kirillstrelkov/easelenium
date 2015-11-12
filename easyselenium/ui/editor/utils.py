@@ -119,7 +119,7 @@ class PyFileUI(Panel):
     def has_one_or_more_methods_or_test_cases(self):
         return len(re.findall('def [a-z_]+\(self.+:', self.txt_content.GetValue())) > 0
 
-    def append_method_call(self, field, method, arg_spec):
+    def append_method_call(self, field, method_name, method, arg_spec):
         is_po_class_file_selected = type(self) == PyFileUI
         # removing arguments with default value
         args = arg_spec.args
@@ -134,7 +134,6 @@ class PyFileUI(Panel):
         po_class = self.grandparent.get_current_pageobject_class()
         lowered_class_name = po_class.name.lower()
 
-        method_name = method.__name__
         is_assert_method = method_name.startswith('assert')
         is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
         is_mouse_method = method_name in ParsedMouseClass.get_parsed_classes()[0].methods
@@ -155,21 +154,25 @@ class PyFileUI(Panel):
             caller = 'self.browser.mouse'
         elif is_page_object_method and not is_po_class_file_selected:
             caller = 'self.' + lowered_class_name
+        elif is_assert_method:
+            caller = None
         else:
             caller = 'self'
 
         get_prefix = 'get_'
         is_getter_method_and_no_args = method_name.startswith(get_prefix)
+        method_kwargs = {}
         if is_getter_method_and_no_args:
             var = method_name.replace(get_prefix, '')
             method_call_template = u"        {var} = {caller}.{method}({method_args})" + LINESEP
-            method_kwargs = {'var': var}
+            method_kwargs['var'] = var
+        elif caller is None:
+            method_call_template = u"        {method}({method_args})" + LINESEP
         else:
             method_call_template = u"        {caller}.{method}({method_args})" + LINESEP
-            method_kwargs = {}
 
-        if (len(args) > 1 and (is_browser_method or is_mouse_method) or
-                        len(args) > 0 and (is_assert_method or is_page_object_method)):
+        if (len(args) > 1 and (is_browser_method or is_mouse_method) or len(args) > 0 and (
+            is_assert_method or is_page_object_method)):
             if is_assert_method or is_page_object_method:
                 dialog = MultipleTextEntry(self, 'Please enter values', args)
             else:
@@ -203,6 +206,7 @@ class PyFileUI(Panel):
 
 class TestFileUI(PyFileUI):
     TEST_FILE_TEMPLATE = u'''# coding=utf8
+from nose.tools import *
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -265,13 +269,13 @@ class {class_name}(BaseTest):
             pos = text.index(class_def_end) + len(class_def_end) + shift
             self.insert_text(field_line, pos)
 
-    def append_method_call(self, field, method, arg_spec):
+    def append_method_call(self, field, method_name, method, arg_spec):
         po_class = self.grandparent.get_current_pageobject_class()
 
         self.__fix_class_initialization(po_class)
         self.__fix_imports(po_class)
 
-        PyFileUI.append_method_call(self, field, method, arg_spec)
+        PyFileUI.append_method_call(self, field, method_name, method, arg_spec)
 
     def create_new_test_case(self, test_case_name):
         self.create_method(test_case_name)
