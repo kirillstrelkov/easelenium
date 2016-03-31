@@ -1,4 +1,5 @@
 import shutil
+import traceback
 from tempfile import mkdtemp
 from wx import Panel, Frame, GridBagSizer, \
     StaticText, TextCtrl, Button, EVT_BUTTON, DirDialog, ID_OK, \
@@ -6,14 +7,14 @@ from wx import Panel, Frame, GridBagSizer, \
 
 from easyselenium.browser import Browser
 from easyselenium.ui.editor.editor_ui import EditorTab
-from easyselenium.ui.string_utils import StringUtils
-from easyselenium.ui.widgets.utils import show_dialog
-from easyselenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.generator.generator_ui import GeneratorTab
-from easyselenium.ui.test_runner_ui import TestRunnerTab
+from easyselenium.ui.root_folder import RootFolder
 from easyselenium.ui.selector_finder.finder_ui import SelectorFinderTab
+from easyselenium.ui.string_utils import StringUtils
+from easyselenium.ui.test_runner_ui import TestRunnerTab
+from easyselenium.ui.utils import FLAG_ALL_AND_EXPAND
 from easyselenium.ui.widgets.utils import Tabs
+from easyselenium.ui.widgets.utils import show_dialog, show_error_dialog
 
 
 class MainFrame(Frame):
@@ -108,16 +109,20 @@ class MainFrame(Frame):
             self.bth_open_url.Disable()
 
             name = self.get_browser_initials()
-            if self.__browser and self.__browser.get_browser_initials() != name:
-                self.__browser.quit()
-                self.__browser = Browser(name)
-            elif not self.__browser:
-                self.__browser = Browser(name)
 
-            self.__browser.open(url)
+            try:
+                if self.__browser and self.__browser.get_browser_initials() != name:
+                    self.__browser.quit()
+                    self.__browser = Browser(name)
+                elif not self.__browser:
+                    self.__browser = Browser(name)
+            except Exception:
+                show_error_dialog(self, traceback.format_exc(), u'Failed to open browser')
+                self.__browser = None
 
+            if self.__browser:
+                self.__browser.open(url)
             # TODO: if generator or selector -> load image
-
             self.bth_open_url.Enable()
         else:
             show_dialog(self, u'Bad url: %s' % url, u'Bad url')

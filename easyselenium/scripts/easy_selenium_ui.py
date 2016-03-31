@@ -24,3 +24,4 @@ if __name__ == '__main__':
 # TODO: add wait_for_attribute_changed
 # TODO: add parent to Browser methods
 # TODO: changes are not applied when running test - if method is added to pagemodel and is used in test - NoMethod exception will be raised
+    # TODO: generator - when browser is closed - remove screenshot
