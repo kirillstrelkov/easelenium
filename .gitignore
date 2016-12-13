@@ -4,3 +4,8 @@
 /.idea
 /.project
 /.pydevproject
+*.pyc
+page_objects/
+.idea
+geckodriver.log
+easyselenium/tests/geckodriver.log

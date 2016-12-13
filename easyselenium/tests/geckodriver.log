@@ -1,0 +1,29 @@
+1481665818747	geckodriver	INFO	Listening on 127.0.0.1:49931
+1481665819746	mozprofile::profile	INFO	Using profile path /tmp/rust_mozprofile.VjiD5L7dF2Jq
+1481665819746	geckodriver::marionette	INFO	Starting browser /usr/bin/firefox
+1481665819749	geckodriver::marionette	INFO	Connecting to Marionette on localhost:36491
+1481665820861	Marionette	INFO	Listening on port 36491
+JavaScript warning: https://duckduckgo.com/d2031.js, line 61: unreachable code after return statement
+JavaScript warning: https://duckduckgo.com/d2031.js, line 61: unreachable code after return statement
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+JavaScript warning: http://openrouteservice.org/lib/jsts.min.js, line 189: unreachable code after return statement
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+JavaScript warning: https://duckduckgo.com/d2031.js, line 61: unreachable code after return statement
+
+(firefox:24585): GLib-GObject-WARNING **: /build/glib2.0-7IO_Yw/glib2.0-2.48.1/./gobject/gsignal.c:3486: signal name 'selection_changed' is invalid for instance '0x7f8399a447e0' of type 'MaiAtkType13b'
+JavaScript warning: https://duckduckgo.com/d2031.js, line 61: unreachable code after return statement
+JavaScript warning: https://duckduckgo.com/d2031.js, line 61: unreachable code after return statement
+
+(firefox:24585): GLib-GObject-CRITICAL **: g_type_add_interface_static: assertion 'g_type_parent (interface_type) == G_TYPE_INTERFACE' failed
+[Child 24641] ###!!! ABORT: Aborting on channel error.: file /build/firefox-GoqHGf/firefox-50.0.2+build1/ipc/glue/MessageChannel.cpp, line 2056
+[Child 24641] ###!!! ABORT: Aborting on channel error.: file /build/firefox-GoqHGf/firefox-50.0.2+build1/ipc/glue/MessageChannel.cpp, line 2056

@@ -1,4 +1,5 @@
 # coding=utf8
+from nose.tools import *
 from selenium.webdriver.common.by import By
 
 from easyselenium.base_page_object import BasePageObject
