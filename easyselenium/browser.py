@@ -167,7 +167,15 @@ class Browser(object):
                 raise Exception("Selenium server jar file wasn't found in " +
                                 path_to_selenium_server)
         elif name == self.FF:
-            driver = webdriver.Firefox(**kwargs)
+            path_to_driver = os.path.join(
+                folder_with_drivers,
+                'geckodriver.exe' if is_windows() else 'geckodriver'
+            )
+            if os.path.exists(path_to_driver):
+                driver = webdriver.Firefox(executable_path=path_to_driver, **kwargs)
+            else:
+                raise Exception("Geckoriver wasn't found in " +
+                                path_to_driver)
         else:
             raise ValueError(
                 "Unsupported browser '%s', "

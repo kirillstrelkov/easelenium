@@ -80,13 +80,13 @@ class PageObjectGeneratorTest(BaseTest):
                          self.generator._get_name_for_field(element))
 
     def test_get_class_name_selector_for_element(self):
-        by_and_selector = By.CLASS_NAME, u'logo_homepage'
+        by_and_selector = By.CLASS_NAME, u'logo-wrap--home'
         element = self.browser.find_element(by_and_selector)
         self.assertEqual(by_and_selector,
                          self.generator._get_class_name_selector(element))
-        self.assertEqual((By.ID, u'logo_homepage_link'),
+        self.assertEqual((By.LINK_TEXT, u'About DuckDuckGo'),
                          self.generator._get_selector(element))
-        self.assertEqual(u'LOGO_HOMEPAGE_LINK',
+        self.assertEqual(u'ABOUT_DUCKDUCKGO',
                          self.generator._get_name_for_field(element))
 
     def test_get_link_text_selector_for_element(self):

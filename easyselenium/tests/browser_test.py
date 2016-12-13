@@ -6,7 +6,7 @@ from easyselenium.base_test import BaseTest
 
 
 class BrowserTest(BaseTest):
-    BROWSER_NAME = 'gc'
+    BROWSER_NAME = 'ff'
 
     def test_switch_to_frame(self):
         frame_left = (By.XPATH, "//frame[@name='menu']")
@@ -34,14 +34,15 @@ class BrowserTest(BaseTest):
         self.browser.type(text_field, 'selenium')
         self.browser.click(search_btn)
 
+        self.browser.wait_for_visible(results)
         self.assertEqual('Selenium - Web Browser Automation',
-                         self.browser.get_text(results))
+                         self.browser.get_text(self.browser.find_elements(results)[1]))
 
     def test_mouse_left_right_clicks(self):
         self.browser.get('http://openrouteservice.org/')
 
-        map_element = (By.CSS_SELECTOR, 'svg')
-        context_menu = (By.ID, 'mapContextMenu')
+        map_element = (By.ID, 'map')
+        context_menu = (By.CLASS_NAME, 'ORS-mapContextMenu')
 
         self.assertFalse(self.browser.is_visible(context_menu))
 
