@@ -97,9 +97,10 @@ class Browser(object):
     GC = 'gc'
     IE = 'ie'
     OP = 'op'
+    PHANTOMJS = 'phantomjs'
     DEFAULT_BROWSER = FF
 
-    __BROWSERS = [FF, GC, IE, OP]
+    __BROWSERS = [FF, GC, IE, OP, PHANTOMJS]
 
     def __init__(self, browser_name=None, logger=None, timeout=5, **kwargs):
         if browser_name:
@@ -109,8 +110,10 @@ class Browser(object):
         self.logger = logger
         self.__timeout = timeout
         self._driver = self.__create_driver(self.__browser_name, **kwargs)
-        prefix = u'easyselenium_' + get_timestamp() + u'_'
-        self.__screenshot_path = tempfile.mkdtemp(prefix=prefix)
+        self.__screenshot_path = os.path.join(
+            tempfile.gettempdir(), u'easyselenium_screenshots', get_timestamp()
+        )
+        os.makedirs(self.__screenshot_path)
         self.mouse = Mouse(self)
 
     @classmethod
@@ -166,8 +169,10 @@ class Browser(object):
             if os.path.exists(path_to_driver):
                 driver = webdriver.Firefox(executable_path=path_to_driver, **kwargs)
             else:
-                raise Exception("Geckoriver wasn't found in " +
+                raise Exception("Geckodriver wasn't found in " +
                                 path_to_driver)
+        elif name == self.PHANTOMJS:
+            driver = webdriver.PhantomJS()
         else:
             raise ValueError(
                 "Unsupported browser '%s', "
