@@ -12,5 +12,7 @@ python:
   - "2.7"
 install:
   - pip install selenium
+  - pip install nose-pathmunge
+  - pip install nose-htmloutput
 script:
   - easyselenium/scripts/easy_selenium_cli.py --with-path . -w easyselenium/tests/ -b phantomjs
