@@ -13,4 +13,4 @@ python:
 install:
   - pip install selenium
 script:
-  - easyselenium/scripts/easy_selenium_cli.py -w easyselenium/tests/ -b phantomjs
+  - easyselenium/scripts/easy_selenium_cli.py --with-path . -w easyselenium/tests/ -b phantomjs
