@@ -9,20 +9,20 @@ class BrowserTest(BaseTest):
     BROWSER_NAME = 'gc'
 
     def test_switch_to_frame(self):
-        frame_left = (By.XPATH, "//frame[@name='menu']")
+        frame_left = (By.CSS_SELECTOR, "frame[name='menu']")
 
         url = 'http://www.quackit.com/html/templates/' + \
               'frames/frames_example_1.html'
         frame_url = 'http://www.quackit.com/html/templates/frames/menu_1.html'
 
         self.browser.get(url)
-        self.assertEqual(url, self.browser.get_current_url())
+        self.assertEqual(url, self.browser.get_current_frame_url())
 
         self.browser.switch_to_frame(frame_left)
-        self.assertEqual(frame_url, self.browser.get_current_url())
+        self.assertEqual(frame_url, self.browser.get_current_frame_url())
 
         self.browser.switch_to_default_content()
-        self.assertEqual(url, self.browser.get_current_url())
+        self.assertEqual(url, self.browser.get_current_frame_url())
 
     def test_type_click_get_text(self):
         self.browser.get('https://duckduckgo.com/')
@@ -36,7 +36,7 @@ class BrowserTest(BaseTest):
 
         self.browser.wait_for_visible(results)
         self.assertEqual('Selenium - Web Browser Automation',
-                         self.browser.get_text(self.browser.find_elements(results)[1]))
+                         self.browser.get_text(self.browser.find_elements(results)[0]))
 
     def test_mouse_left_right_clicks(self):
         self.browser.get('http://openrouteservice.org/')
