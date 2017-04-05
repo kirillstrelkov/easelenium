@@ -8,7 +8,7 @@ addons:
       - wx2.8-examples
       - wx2.8-headers
       - wx2.8-i18n
-      - firefox
+  firefox: "49.0"
 python:
   - "2.7"
 before_install:
