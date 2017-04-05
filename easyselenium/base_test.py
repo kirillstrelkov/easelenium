@@ -15,8 +15,9 @@ class BaseTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super(BaseTest, cls).setUpClass()
-        cls.browser = Browser(browser_name=cls.BROWSER_NAME,
-                              logger=cls.logger)
+        if cls.BROWSER_NAME and not Browser.DEFAULT_BROWSER:
+            Browser.DEFAULT_BROWSER = cls.BROWSER_NAME
+        cls.browser = Browser(logger=cls.logger)
 
     @classmethod
     def tearDownClass(cls):

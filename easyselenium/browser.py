@@ -98,7 +98,7 @@ class Browser(object):
     IE = 'ie'
     OP = 'op'
     PHANTOMJS = 'phantomjs'
-    DEFAULT_BROWSER = FF
+    DEFAULT_BROWSER = None
 
     __BROWSERS = [FF, GC, IE, OP, PHANTOMJS]
 
@@ -106,7 +106,7 @@ class Browser(object):
         if browser_name:
             self.__browser_name = browser_name
         else:
-            self.__browser_name = self.DEFAULT_BROWSER
+            self.__browser_name = self.DEFAULT_BROWSER if self.DEFAULT_BROWSER else self.FF
         self.logger = logger
         self.__timeout = timeout
         self._driver = self.__create_driver(self.__browser_name, **kwargs)

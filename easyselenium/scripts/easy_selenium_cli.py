@@ -24,8 +24,8 @@ class EasySeleniumPlugin(Plugin):
     def options(self, parser, env):
         browsers = Browser.get_supported_browsers()
         parser.add_option('-b', '--browser',
-                          help="Specify browser by using initials. " \
-                               "If value was not passed then 'ff' will be used. " \
+                          help="Specify browser by using initials. "
+                               "If value was not passed then 'ff' will be used. "
                                "Supported choices: %s" % browsers,
                           choices=browsers)
         Plugin.options(self, parser, env)
