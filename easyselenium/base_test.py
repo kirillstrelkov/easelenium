@@ -33,8 +33,7 @@ class BaseTest(TestCase):
                                      name)
 
     def tearDown(self):
-        if (self._resultForDoCleanups.errors or
-                self._resultForDoCleanups.failures):
+        if self._resultForDoCleanups.current_failed:
             name = self.id()
             filename = u'_'.join([name,
                                   self.browser.get_browser_initials(),
