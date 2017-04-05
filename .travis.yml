@@ -8,10 +8,17 @@ addons:
       - wx2.8-examples
       - wx2.8-headers
       - wx2.8-i18n
+      - firefox
 python:
   - "2.7"
+before_install:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - wget https://github.com/mozilla/geckodriver/releases/download/v0.15.0/geckodriver-v0.15.0-linux64.tar.gz
+  - tar -xzf geckodriver-v0.15.0-linux64.tar.gz
+  - rm geckodriver-v0.15.0-linux64.tar.gz
 install:
   - pip install -r requirements.txt
   - python setup.py install --user
 script:
-  - easy_selenium_cli.py easyselenium/tests/ -b phantomjs
+  - easy_selenium_cli.py easyselenium/tests/ -b ff easyselenium/tests/browser_test.py
