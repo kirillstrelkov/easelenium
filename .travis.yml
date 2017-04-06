@@ -16,7 +16,7 @@ before_install:
   - sudo apt-get update
   - sudo apt-get install -y chromium-chromedriver
 install:
-  - pip install -r requirements.txt
+  - pip install -U -r requirements.txt
 before_script:
   - "export PATH=$PATH:/usr/lib/chromium-browser/"
   - "export DISPLAY=:99.0"
