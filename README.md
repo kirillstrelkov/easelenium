@@ -1,6 +1,8 @@
 easyselenium
 ============
 
+[![Build Status](https://travis-ci.org/kirillstrelkov/easyselenium.svg?branch=master)](https://travis-ci.org/kirillstrelkov/easyselenium)
+
 Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
 
 Features:
