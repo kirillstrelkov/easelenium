@@ -47,7 +47,7 @@ class PageObjectGeneratorTest(BaseTest):
         )
         po_class.save()
         self.assertGreater(len(po_class.fields), 0)
-        self.assertLess(len(po_class.fields), 5)
+        self.assertLess(len(po_class.fields), 8)
         self.assertTrue(po_class.file_path.startswith(folder))
         self.assertIn('duck_duck_go', po_class.file_path)
         self.assertTrue(po_class.img_path.startswith(folder))
