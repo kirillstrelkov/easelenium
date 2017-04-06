@@ -1,3 +1,5 @@
+sudo: required
+dist: trusty
 language: python
 addons:
   apt:
@@ -8,18 +10,15 @@ addons:
       - wx2.8-examples
       - wx2.8-headers
       - wx2.8-i18n
-  firefox: "49.0"
 python:
   - "2.7"
 before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y chromium-chromedriver
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - sleep 3
-  - wget https://github.com/mozilla/geckodriver/releases/download/v0.15.0/geckodriver-v0.15.0-linux64.tar.gz
-  - tar -xzf geckodriver-v0.15.0-linux64.tar.gz
-  - rm geckodriver-v0.15.0-linux64.tar.gz
-  - mv geckodriver ~/
 install:
   - pip install -r requirements.txt
 script:
-  - easyselenium/scripts/easy_selenium_cli.py -b ff easyselenium/tests/browser_test.py
+  - easyselenium/scripts/easy_selenium_cli.py -b gc easyselenium/tests/browser_test.py
