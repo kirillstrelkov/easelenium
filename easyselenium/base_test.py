@@ -34,8 +34,11 @@ class BaseTest(TestCase):
                                      name)
 
     def tearDown(self):
-        if hasattr(self._resultForDoCleanups, 'result') and self._resultForDoCleanups.result.wasSuccessful() or \
-           self._resultForDoCleanups.current_failed:
+        nose_failed = (hasattr(self._resultForDoCleanups, 'result') and
+                       not self._resultForDoCleanups.result.wasSuccessful())
+        failed = (hasattr(self._resultForDoCleanups, 'current_failed') and
+                  self._resultForDoCleanups.current_failed)
+        if nose_failed or failed:
             name = self.id()
             filename = u'_'.join([name,
                                   self.browser.get_browser_initials(),

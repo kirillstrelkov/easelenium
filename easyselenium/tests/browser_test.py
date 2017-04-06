@@ -36,7 +36,7 @@ class BrowserTest(BaseTest):
 
         self.browser.wait_for_visible(results)
         self.assertEqual('Selenium - Web Browser Automation',
-                         self.browser.get_text(self.browser.find_elements(results)[0]))
+                         self.browser.get_text(self.browser.find_elements(results)[1]))
 
     def test_mouse_left_right_clicks(self):
         self.browser.get('http://openrouteservice.org/')
