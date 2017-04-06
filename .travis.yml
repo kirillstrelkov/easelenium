@@ -24,3 +24,4 @@ before_script:
   - "sleep 3"
 script:
   - easyselenium/scripts/easy_selenium_cli.py --logging-level=INFO -b gc easyselenium/tests/browser_test.py
+  - easyselenium/scripts/easy_selenium_cli.py --logging-level=INFO -b gc easyselenium/tests/
