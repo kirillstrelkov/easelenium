@@ -1,5 +1,6 @@
 # coding=utf8
 import traceback
+from nose.result import TextTestResult
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser
@@ -33,7 +34,8 @@ class BaseTest(TestCase):
                                      name)
 
     def tearDown(self):
-        if self._resultForDoCleanups.current_failed:
+        if hasattr(self._resultForDoCleanups, 'result') and self._resultForDoCleanups.result.wasSuccessful() or \
+           self._resultForDoCleanups.current_failed:
             name = self.id()
             filename = u'_'.join([name,
                                   self.browser.get_browser_initials(),
