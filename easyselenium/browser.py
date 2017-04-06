@@ -124,61 +124,35 @@ class Browser(object):
         return self.__browser_name
 
     def __create_driver(self, name, *args, **kwargs):
-        folder_with_drivers = os.path.expanduser('~')
-        driver = None
+        driver_and_constructor = {
+            self.FF: ('geckodriver', webdriver.Firefox),
+            self.IE: ('IEDriverServer', webdriver.Ie),
+            self.GC: ('chromedriver', webdriver.Chrome),
+            self.OP: ('operadriver', webdriver.Opera),
+            self.PHANTOMJS: ('phantomjs', webdriver.PhantomJS),
+        }.get(name, None)
 
-        if name == self.IE:
-            path_to_iedriver = os.path.join(
-                folder_with_drivers,
-                'IEDriverServer.exe'
-            )
-            if os.path.exists(path_to_iedriver):
-                driver = webdriver.Ie(executable_path=path_to_iedriver, **kwargs)
-            else:
-                raise Exception("IEDriver.exe wasn't found in " +
-                                path_to_iedriver)
-        elif name == self.GC:
-            path_to_chromedriver = os.path.join(
-                folder_with_drivers,
-                'chromedriver.exe' if is_windows() else 'chromedriver'
-            )
-            if os.path.exists(path_to_chromedriver):
-                driver = webdriver.Chrome(executable_path=path_to_chromedriver, **kwargs)
-            else:
-                raise Exception("Chromedriver wasn't found in " +
-                                path_to_chromedriver)
-        elif name == self.OP:
-            path_to_selenium_server = os.path.join(
-                folder_with_drivers,
-                'operadriver.exe' if is_windows else 'operadriver'
-            )
-            if os.path.exists(path_to_selenium_server):
-                capabilities = DesiredCapabilities.OPERA.copy()
-                capabilities['engine'] = 2
-                driver = webdriver.Opera(desired_capabilities=capabilities,
-                                         executable_path=path_to_selenium_server,
-                                         **kwargs)
-            else:
-                raise Exception("Selenium server jar file wasn't found in " +
-                                path_to_selenium_server)
-        elif name == self.FF:
-            path_to_driver = os.path.join(
-                folder_with_drivers,
-                'geckodriver.exe' if is_windows() else 'geckodriver'
-            )
-            if os.path.exists(path_to_driver):
-                driver = webdriver.Firefox(executable_path=path_to_driver, **kwargs)
-            else:
-                raise Exception("Geckodriver wasn't found in " +
-                                path_to_driver)
-        elif name == self.PHANTOMJS:
-            driver = webdriver.PhantomJS()
-        else:
+        if driver_and_constructor is None:
             raise ValueError(
                 "Unsupported browser '%s', "
                 "supported browsers: ['%s']" % (name,
                                                 "', '".join(self.__BROWSERS))
             )
+
+        driver, constructor = driver_and_constructor
+        if is_windows():
+            driver += '.exe'
+
+        home_dir = os.path.expanduser('~')
+        driver_in_home = os.path.join(home_dir, driver)
+        if os.path.exists(driver_in_home):
+            driver = constructor(executable_path=driver_in_home, **kwargs)
+        else:
+            if self.logger:
+                self.logger.warn("Driver for '%s' wasn't found in %s.\n"
+                                 "Using driver from PATH environment variable.",
+                                 name, driver_in_home)
+            driver = constructor(**kwargs)
 
         if driver and not self.is_gc() and not self.is_op():
             driver.maximize_window()

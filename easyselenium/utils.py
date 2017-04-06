@@ -55,3 +55,6 @@ class Logger(object):
 
     def info(self, msg, *args, **kwargs):
         self.__logger.info(msg, *args, **kwargs)
+
+    def warn(self, msg, *args, **kwargs):
+        self.__logger.warn(msg, *args, **kwargs)
