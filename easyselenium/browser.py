@@ -2,6 +2,7 @@
 import os
 import tempfile
 from functools import wraps
+from tempfile import tempdir, gettempdir
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -111,9 +112,11 @@ class Browser(object):
         self.__timeout = timeout
         self._driver = self.__create_driver(self.__browser_name, **kwargs)
         self.__screenshot_path = os.path.join(
-            tempfile.gettempdir(), u'easyselenium_screenshots', get_timestamp()
+            gettempdir(),
+            'easyselenium_screenshots'
         )
-        os.makedirs(self.__screenshot_path)
+        if not os.path.exists(self.__screenshot_path):
+            os.makedirs(self.__screenshot_path)
         self.mouse = Mouse(self)
 
     @classmethod

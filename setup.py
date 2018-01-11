@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='easyselenium',
-      version='0.2',
+      version='0.3',
       description='Easy Selenium - Selenium-based Test Automation Framework',
       author='Kirill Strelkov',
       author_email='kirillstrelkov@users.noreply.github.com',

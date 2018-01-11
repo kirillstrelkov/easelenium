@@ -1,5 +1,6 @@
 # coding=utf8
 import traceback
+
 from nose.result import TextTestResult
 from unittest.case import TestCase
 
@@ -29,16 +30,22 @@ class BaseTest(TestCase):
         TestCase.setUp(self)
         if self.browser.logger:
             name = self.id()
-            symbols_before = u"-" * ((self.TC_NAME_WIDTH - len(name) - 2) / 2)
-            self.browser.logger.info(symbols_before + ' %s ' + symbols_before,
-                                     name)
+            symbols_before = u'-' * int((self.TC_NAME_WIDTH - len(name) - 2) / 2)
+            self.browser.logger.info('{} {} {}'.format(symbols_before, name, symbols_before))
 
     def tearDown(self):
-        nose_failed = (hasattr(self._resultForDoCleanups, 'result') and
-                       not self._resultForDoCleanups.result.wasSuccessful())
-        failed = (hasattr(self._resultForDoCleanups, 'current_failed') and
-                  self._resultForDoCleanups.current_failed)
-        if nose_failed or failed:
+        failed = True
+        if hasattr(self, '_outcome'):
+            # python3
+            failed = not self._outcome.success
+        elif hasattr(self, '_resultForDoCleanups') and hasattr(self._resultForDoCleanups, 'result'):
+            # nose
+            failed = not self._resultForDoCleanups.result.wasSuccessful()
+        elif hasattr(self, '_resultForDoCleanups') and hasattr(self._resultForDoCleanups, 'current_failed'):
+            # python2
+            failed = self._resultForDoCleanups.current_failed
+
+        if failed:
             name = self.id()
             filename = u'_'.join([name,
                                   self.browser.get_browser_initials(),
