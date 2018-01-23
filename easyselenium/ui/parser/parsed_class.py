@@ -5,6 +5,7 @@ from pprint import pformat
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser, Mouse
+from easyselenium.utils import is_string
 
 
 class ParsedModule(object):
@@ -51,7 +52,7 @@ class ParsedModule(object):
         module_name = None
         module_obj = None
 
-        is_path = type(module_or_path) in (str, unicode)
+        is_path = is_string(module_or_path)
         if inspect.ismodule(module_or_path) or is_path:
             if is_path:
                 module_name = os.path.splitext(
@@ -124,7 +125,7 @@ class ParsedClass(object):
 
     @classmethod
     def get_parsed_classes(cls, module_or_class_or_path):
-        is_path = type(module_or_class_or_path) in (str, unicode)
+        is_path = is_string(module_or_class_or_path)
         if inspect.ismodule(module_or_class_or_path) or is_path:
             if is_path:
                 module_name = os.path.splitext(
@@ -154,6 +155,7 @@ class ParsedClass(object):
         parsed_classes = []
         for class_name, _class in classes:
             methods = inspect.getmembers(_class, inspect.ismethod)
+            methods += inspect.getmembers(_class, inspect.isfunction)
             methods = filter_private_members(methods)
             fields = inspect.getmembers(
                 _class,

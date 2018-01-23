@@ -92,7 +92,6 @@ class ParseNoseToolsModuleTest(TestCase):
             'assert_is_none',
             'assert_is_not',
             'assert_is_not_none',
-            'assert_items_equal',
             'assert_less',
             'assert_less_equal',
             'assert_list_equal',

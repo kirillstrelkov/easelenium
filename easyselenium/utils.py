@@ -28,6 +28,12 @@ def get_timestamp():
     return timestamp
 
 
+def is_string(obj):
+    return type(obj) in (
+        (str, unicode) if sys.version_info.major == 2 else (str,)
+    )
+
+
 def get_random_value(_list, *val_to_skip):
     _tmp = list(_list)
     for skipped in val_to_skip:
