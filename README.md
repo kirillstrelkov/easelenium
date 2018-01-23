@@ -75,6 +75,12 @@ License
 -------
 MIT License [easyselenium_license.txt](/easyselenium/licenses/easyselenium_license.txt)
 
+Tutorial
+--------
+1. [Introduction](https://kirillstrelkov.blogspot.de/2016/03/test-automation-with-selenium-webdriver.html)
+2. [Setup](https://kirillstrelkov.blogspot.de/2016/03/test-automation-with-selenium-webdriver_28.html)
+3. [Test creation](https://kirillstrelkov.blogspot.de/2016/03/test-automation-tutorial-with-selenium.html)
+
 More information
 ----------------
 [Presentation](https://www.dropbox.com/s/4y877giru9qwx3b/present_Kirill_Strelkov.pdf?dl=0)
