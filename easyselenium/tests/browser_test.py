@@ -11,9 +11,9 @@ class BrowserTest(BaseTest):
     def test_switch_to_frame(self):
         frame_left = (By.CSS_SELECTOR, "frame[name='menu']")
 
-        url = 'http://www.quackit.com/html/templates/' + \
+        url = 'https://www.quackit.com/html/templates/' + \
               'frames/frames_example_1.html'
-        frame_url = 'http://www.quackit.com/html/templates/frames/menu_1.html'
+        frame_url = 'https://www.quackit.com/html/templates/frames/menu_1.html'
 
         self.browser.get(url)
         self.assertEqual(url, self.browser.get_current_frame_url())
@@ -43,9 +43,12 @@ class BrowserTest(BaseTest):
         self.browser.get('http://openrouteservice.org/')
 
         map_element = (By.ID, 'map')
-        context_menu = (By.CLASS_NAME, 'ORS-mapContextMenu')
+        context_menu = (By.CLASS_NAME, 'leaflet-popup')
+        close_box = (By.CLASS_NAME, 'fa-close')
 
         self.assertFalse(self.browser.is_visible(context_menu))
+        if self.browser.is_visible(close_box):
+            self.browser.click(close_box)
 
         self.browser.mouse.right_click(map_element)
         self.browser.wait_for_visible(context_menu)
@@ -53,7 +56,7 @@ class BrowserTest(BaseTest):
         self.browser.mouse.left_click(map_element)
         self.browser.wait_for_not_visible(context_menu)
 
-        self.browser.mouse.right_click_by_offset(map_element, -100, -100)
+        self.browser.mouse.right_click_by_offset(map_element, 100, 100)
         self.browser.wait_for_visible(context_menu)
 
     def test_mouse_hover(self):
