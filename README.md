@@ -6,10 +6,12 @@ easyselenium
 Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
 
 Features:
-* Supports Firefox, Chrome, IE and Opera.
+* Supports Firefox, Chrome, IE, Opera and PhantomJS.
 * Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 * Supports Continuous Integration
 * Suits for novice users.
+* Full Python 2 support
+* Partial Python 3 support(*parts which are dependant on wxpython are not supported*)
 
 Framework can be used as standalone framwork by UI interaction and as a library.
 Supportive classes:
@@ -24,7 +26,7 @@ GUI [easy_selenium_ui.py](/easyselenium/scripts/easy_selenium_ui.py):
 
 Dependencies
 ------------
-1. Python 2.7
+1. Python
 2. wxPython
 3. Selenium WebDriver
 4. nose

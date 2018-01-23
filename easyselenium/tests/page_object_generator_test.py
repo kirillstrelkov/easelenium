@@ -131,7 +131,7 @@ class PageObjectGeneratorTest(BaseTest):
     def test_duckduckgo_search_results_area(self):
         folder = tempfile.gettempdir()
         name = 'DuckDuckGo'
-        area = (63, 363, 869, 481)
+        area = (50, 156, 615, 244)
         po_class = self.generator.get_po_class_for_url(
             u'https://duckduckgo.com/?q=selenium&ia=about',
             name,
