@@ -10,8 +10,7 @@ Features:
 * Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 * Supports Continuous Integration
 * Suits for novice users.
-* Full Python 2 support
-* Partial Python 3 support(*parts which are dependant on wxpython are not supported*)
+* Python 2 & 3 support
 
 Framework can be used as standalone framwork by UI interaction and as a library.
 Supportive classes:
@@ -59,18 +58,21 @@ Check [browser_test.py](/easyselenium/test/browser_test.py) for more examples.
 
 Continuous Integration
 ----------------------
-Done via command line script [easyselenium_cli.py](/easyselenium/scripts/easy_selenium_cli.py)
+Done via command line script [easy_selenium_cli.py](/easyselenium/scripts/easy_selenium_cli.py)
 
 Installation
 ------------
-0. Install all required software and libraries
-1. Download latest code from GitHub as archive file
-2. Unzip it
+1. Download latest code from GitHub
+2. Extract it
 3. Open terminal or command line console
 4. Navigate to extracted folder
+5. Install all required libraries
+```shell
+python -m pip install --user -r requirements.txt
+```
 5. Go to `easyselenium` folder and install with command:
 ```shell
-python setup.py install
+python setup.py install --user
 ```
 
 License

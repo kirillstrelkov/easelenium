@@ -2,3 +2,4 @@ nose
 nose-pathmunge
 nose-htmloutput
 selenium
+wxPython
