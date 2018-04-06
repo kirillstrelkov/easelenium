@@ -8,7 +8,7 @@ from wx import Panel, GridBagSizer, Button, TR_SINGLE, TR_HAS_BUTTONS, SplitterW
     DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, \
     CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT, Font, \
     FONTFAMILY_TELETYPE, NORMAL
-from wx._controls import Choice
+from wx import Choice
 from wx.lib.agw.customtreectrl import CustomTreeCtrl, TR_AUTO_CHECK_CHILD, \
     TR_AUTO_CHECK_PARENT, EVT_TREE_ITEM_CHECKED, TR_AUTO_TOGGLE_CHILD
 
