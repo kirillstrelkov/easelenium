@@ -323,8 +323,8 @@ class TestRunnerTab(Panel):
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 
                 easy_selenium_cmd = u" ".join(nose_cmd).replace("nosetests", "easy_selenium_cli.py -b " + browser_name)
-                print u"Executing command:\n%s" % easy_selenium_cmd
-                print u"Nose output:"
+                print(u"Executing command:\n%s" % easy_selenium_cmd)
+                print(u"Nose output:")
 
                 run(argv=nose_cmd[1:])
             finally:
