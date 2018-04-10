@@ -341,8 +341,7 @@ class FieldsTableAndTestFilesTabs(Panel):
             py_file_ui = PyFileUI(self.tabs, self.__cur_po_class.file_path, True)
             self.tabs.AddPage(py_file_ui, os.path.basename(self.__cur_po_class.file_path))
 
-        if (not more_than_1_tab and
-                    self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE):
+        if not more_than_1_tab and self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE:
             self.tabs.SetSelection(self.TAB_INDEX_FOR_PO_CLASS_FILE)
 
         self.tabs.set_tabs_text(file_name,

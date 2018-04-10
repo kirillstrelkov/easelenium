@@ -41,7 +41,7 @@ class Table(Grid):
 
                 new_table.SetValue(j, i, value)
 
-        self.SetTable(new_table)
+        self.SetTable(new_table, takeOwnership=True)
         self.AutoSizeColumns()
 
     def clear_table(self):
