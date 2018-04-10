@@ -1,22 +1,18 @@
 sudo: required
 dist: trusty
 language: python
-addons:
-  apt:
-    packages:
-      - python-wxgtk2.8
-      - python-wxtools
-      - wx2.8-doc
-      - wx2.8-examples
-      - wx2.8-headers
-      - wx2.8-i18n
 python:
-  - "2.7"
+  - '2.7'
+  - '3.6'
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y chromium-chromedriver
 install:
-  - pip install -U -r requirements.txt
+  - pip install nose
+  - pip install nose-pathmunge
+  - pip install nose-htmloutput
+  - pip install selenium
+  - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython
 before_script:
   - "export PATH=$PATH:/usr/lib/chromium-browser/"
   - "export DISPLAY=:99.0"
