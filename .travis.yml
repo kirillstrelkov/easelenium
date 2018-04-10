@@ -19,4 +19,4 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - "sleep 3"
 script:
-  - easyselenium/scripts/easy_selenium_cli.py --with-path /usr/lib/python2.7/dist-packages/wx-2.8-gtk2-unicode --logging-level=INFO -b gc
+  - easyselenium/scripts/easy_selenium_cli.py --logging-level=INFO -b gc
