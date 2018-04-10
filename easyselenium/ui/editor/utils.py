@@ -489,7 +489,7 @@ class MultipleTextEntry(Dialog):
 
         sizer.AddGrowableCol(1)
         self.SetSizerAndFit(sizer)
-        self.SetSizeWH(400, self.GetSizeTuple()[1])
+        self.SetSize(400, self.GetSizeTuple()[1])
 
     def __on_btn(self, evt):
         errors = []

@@ -74,7 +74,7 @@ class DialogWithText(Dialog):
     def __init__(self, parent, title, text=None):
         Dialog.__init__(self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER)
         self.SetTitle(title)
-        self.SetSizeWH(600, 400)
+        self.SetSize(600, 400)
 
         sizer = BoxSizer(VERTICAL)
 

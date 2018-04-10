@@ -1,4 +1,4 @@
-from wx import EVT_MOTION, StockCursor, CURSOR_HAND, CURSOR_ARROW, Point, Rect
+from wx import EVT_MOTION, Cursor, CURSOR_HAND, CURSOR_ARROW, Point, Rect
 
 from easyselenium.ui.widgets.image.selectable_image import SelectableImagePanel
 
@@ -26,13 +26,13 @@ class ImageWithElements(SelectableImagePanel):
             end_pos = (field.location[0] + field.dimensions[0],
                        field.location[1] + field.dimensions[1])
             start_pos = field.location
-            cursor = StockCursor(CURSOR_HAND)
+            cursor = Cursor(CURSOR_HAND)
         else:
             start_pos = (0, 0)
             if self.original_bitmap:
                 end_pos = (self.original_bitmap.GetWidth(),
                            self.original_bitmap.GetHeight())
-            cursor = StockCursor(CURSOR_ARROW)
+            cursor = Cursor(CURSOR_ARROW)
         if start_pos and end_pos:
             self._draw_selected_area(start_pos, end_pos)
         self.static_bitmap.SetCursor(cursor)

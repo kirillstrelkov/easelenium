@@ -1,4 +1,4 @@
-from wx import ScrolledWindow, BoxSizer, VERTICAL, StaticBitmap, Image, BITMAP_TYPE_ANY, BitmapFromImage, Rect, \
+from wx import ScrolledWindow, BoxSizer, VERTICAL, StaticBitmap, Image, BITMAP_TYPE_ANY, Bitmap, Rect, \
     MemoryDC, BufferedDC, \
     BLACK_PEN, TRANSPARENT_BRUSH, GREY_PEN, NullBitmap
 
@@ -40,7 +40,7 @@ class ImagePanel(ScrolledWindow):
         height = self.wx_image.GetHeight()
         if area:
             x, y, w, h = area
-            bitmap = BitmapFromImage(self.wx_image)
+            bitmap = Bitmap(self.wx_image)
             bitmap_to_draw = bitmap.GetSubBitmap(Rect(x, y, w, h))
 
             bitmap = bitmap.ConvertToImage().ConvertToGreyscale(
@@ -51,7 +51,7 @@ class ImagePanel(ScrolledWindow):
                 bitmap, bitmap_to_draw, x, y, w, h, False
             )
         else:
-            self.original_bitmap = BitmapFromImage(self.wx_image)
+            self.original_bitmap = Bitmap(self.wx_image)
         self.greyscaled_bitmap = self.original_bitmap.ConvertToImage().ConvertToGreyscale(
             0.209, 0.411, 0.080
         ).ConvertToBitmap()
