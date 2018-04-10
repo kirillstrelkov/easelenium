@@ -10,7 +10,7 @@ Features:
 * Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 * Supports Continuous Integration
 * Suits for novice users.
-* Python 2 & 3 support
+* Supports Python 2 and Python 3
 
 Framework can be used as standalone framwork by UI interaction and as a library.
 Supportive classes:
@@ -68,11 +68,11 @@ Installation
 4. Navigate to extracted folder
 5. Install all required libraries
 ```shell
-python -m pip install --user -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 5. Go to `easyselenium` folder and install with command:
 ```shell
-python setup.py install --user
+python setup.py install
 ```
 
 License
