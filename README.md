@@ -12,7 +12,7 @@ Features:
 * Suits for novice users.
 * Supports Python 2 and Python 3
 
-Framework can be used as standalone framwork by UI interaction and as a library.
+Framework can be used as standalone framework with UI and/or as a library.
 Supportive classes:
 * [browser.py](/easyselenium/browser.py)
 * [base_page_object.py](/easyselenium/base_page_object.py)
@@ -84,6 +84,7 @@ Tutorial
 1. [Introduction](https://kirillstrelkov.blogspot.de/2016/03/test-automation-with-selenium-webdriver.html)
 2. [Setup](https://kirillstrelkov.blogspot.de/2016/03/test-automation-with-selenium-webdriver_28.html)
 3. [Test creation](https://kirillstrelkov.blogspot.de/2016/03/test-automation-tutorial-with-selenium.html)
+4. [Continuous Integration](https://kirillstrelkov.blogspot.com/2018/04/test-automation-tutorial-with-selenium.html)
 
 More information
 ----------------
