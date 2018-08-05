@@ -40,7 +40,7 @@ class BrowserTest(BaseTest):
                        self.browser.get_text(self.browser.find_elements(results)[1])])
 
     def test_mouse_left_right_clicks(self):
-        self.browser.get('http://openrouteservice.org/')
+        self.browser.get('https://maps.openrouteservice.org/')
 
         map_element = (By.ID, 'map')
         context_menu = (By.CLASS_NAME, 'leaflet-popup')
@@ -83,11 +83,11 @@ class BrowserTest(BaseTest):
             .get_selected_value_from_dropdown(select_element)
 
         self.assertNotEqual(old_option, new_option)
-        self.assertEqual(new_option.lower().replace(' ', ''), new_option_value)
+        self.assertEqual(new_option.lower().split(' ')[0], new_option_value)
 
         self.browser.select_option_by_index_from_dropdown(select_element, 0)
 
-        new_option = 'Value 2'
+        new_option = 'Second Value'
         self.browser.select_option_by_text_from_dropdown(select_element,
                                                          new_option)
         self.assertEqual(
@@ -95,7 +95,7 @@ class BrowserTest(BaseTest):
             new_option
         )
 
-        new_option = 'value3'
+        new_option = 'third'
         self.browser.select_option_by_value_from_dropdown(select_element,
                                                           new_option)
         self.assertEqual(
@@ -108,7 +108,7 @@ class BrowserTest(BaseTest):
             select_element, index)
         self.assertEquals(
             self.browser.get_selected_value_from_dropdown(select_element),
-            'value%d' % (index + 1)
+            'first'
         )
 
         index = 2
@@ -116,14 +116,14 @@ class BrowserTest(BaseTest):
             select_element, index)
         self.assertEquals(
             self.browser.get_selected_value_from_dropdown(select_element),
-            'value%d' % (index + 1)
+            'third'
         )
 
         texts = self.browser.get_texts_from_dropdown(select_element)
         values = self.browser.get_values_from_dropdown(select_element)
         self.assertEqual(len(texts), len(values))
-        self.assertEqual(texts, ['Value %d' % i for i in range(1, 4)])
-        self.assertEqual(values, ['value%d' % i for i in range(1, 4)])
+        self.assertEqual(texts, [u'First Value', u'Second Value', u'Third Value'])
+        self.assertEqual(values, [u'first', u'second', u'third'])
 
     def test_js_script(self):
         self.browser.get('https://duckduckgo.com/')
