@@ -433,7 +433,7 @@ class Browser(object):
             msg = '%s text was not changed for %s seconds' % \
                   (element, timeout)
 
-        self.webdriver_wait(lambda driver: old_text != self.get_text(element, False),
+        self.webdriver_wait(lambda driver: old_text != self.get_text(element),
                             msg,
                             timeout)
 
