@@ -26,7 +26,7 @@ class PageObjectClassTest(TestCase):
         )
         if is_python2():
             with codecs.open(cls.pickled_object_path) as f:
-                cls.po_class_object = pickle.load(f, errors='ignore')
+                cls.po_class_object = pickle.load(f)
         else:
             cls.po_class_object = pickle.load(
                 codecs.open(cls.pickled_object_path, mode='rb'),
