@@ -6,7 +6,7 @@ from unittest.case import TestCase
 
 from selenium.webdriver.common.by import By
 
-from easyselenium.utils import is_windows
+from easyselenium.utils import is_windows, is_python2
 from easyselenium.ui.file_utils import safe_remove_path, check_if_path_exists, \
     read_file
 from easyselenium.ui.generator.page_object_class import get_by_as_code_str, \
@@ -24,8 +24,18 @@ class PageObjectClassTest(TestCase):
         cls.expected_duckduckgo_class_path = os.path.join(
             cur_path, 'data', 'expected_duckduckgo_class.py'
         )
-        with codecs.open(cls.pickled_object_path) as f:
-            cls.po_class_object = pickle.load(f)
+        if is_python2():
+            with codecs.open(cls.pickled_object_path) as f:
+                cls.po_class_object = pickle.load(f, errors='ignore')
+        else:
+            cls.po_class_object = pickle.load(
+                codecs.open(cls.pickled_object_path, mode='rb'),
+                encoding='utf8',
+                errors='replace'
+            )
+            # Fixing bytes read as string because of Python2 pickling
+            cls.po_class_object.img_as_png = cls.po_class_object.img_as_png.encode('utf8')
+
         cls.maxDiff = None
 
     def test_save_po_object_class(self):

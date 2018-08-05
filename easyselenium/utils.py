@@ -14,6 +14,10 @@ def get_match(regexp, string, single_match=True):
         return None
 
 
+def is_python2():
+    return sys.version_info.major == 2
+
+
 def is_windows():
     return sys.platform.startswith('win')
 
@@ -30,7 +34,7 @@ def get_timestamp():
 
 def is_string(obj):
     return type(obj) in (
-        (str, unicode) if sys.version_info.major == 2 else (str,)
+        (str, unicode) if is_python2() else (str,)
     )
 
 
