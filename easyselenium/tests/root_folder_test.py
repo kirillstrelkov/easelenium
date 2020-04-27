@@ -23,13 +23,13 @@ class RootFolderTest(TestCase):
 
         files_and_folders = os.listdir(self.tmp_dir)
 
-        self.assertIn(RootFolder.PO_FOLDER, files_and_folders)
-        self.assertIn(RootFolder.TESTS_FOLDER, files_and_folders)
+        assert RootFolder.PO_FOLDER in files_and_folders
+        assert RootFolder.TESTS_FOLDER in files_and_folders
 
-        self.assertIn(RootFolder.INIT_PY,
-                      os.listdir(os.path.join(self.tmp_dir,
-                                              RootFolder.PO_FOLDER)))
+        assert RootFolder.INIT_PY in os.listdir(
+            os.path.join(self.tmp_dir, RootFolder.PO_FOLDER)
+        )
 
-        self.assertNotIn(RootFolder.INIT_PY,
-                         os.listdir(os.path.join(self.tmp_dir,
-                                                 RootFolder.TESTS_FOLDER)))
+        assert RootFolder.INIT_PY not in os.listdir(
+            os.path.join(self.tmp_dir, RootFolder.TESTS_FOLDER)
+        )

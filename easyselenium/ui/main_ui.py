@@ -1,9 +1,19 @@
 import shutil
 import traceback
 from tempfile import mkdtemp
-from wx import Panel, Frame, GridBagSizer, \
-    StaticText, TextCtrl, Button, EVT_BUTTON, DirDialog, ID_OK, \
-    Choice, EVT_CLOSE
+from wx import (
+    Panel,
+    Frame,
+    GridBagSizer,
+    StaticText,
+    TextCtrl,
+    Button,
+    EVT_BUTTON,
+    DirDialog,
+    ID_OK,
+    Choice,
+    EVT_CLOSE,
+)
 
 from easyselenium.browser import Browser
 from easyselenium.ui.editor.editor_ui import EditorTab
@@ -35,30 +45,37 @@ class MainFrame(Frame):
         sizer = GridBagSizer(5, 5)
         row = 0
         col = 0
-        label = StaticText(panel, label=u'Root folder:')
+        label = StaticText(panel, label=u"Root folder:")
         sizer.Add(label, pos=(row, col))
 
         col += 1
         col_width = 4
         self.__txt_root_path = TextCtrl(panel)
-        sizer.Add(self.__txt_root_path, pos=(row, col), span=(1, col_width), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(
+            self.__txt_root_path,
+            pos=(row, col),
+            span=(1, col_width),
+            flag=FLAG_ALL_AND_EXPAND,
+        )
 
         col += col_width
-        self.__btn_set_root = Button(panel, label=u'Set root folder')
+        self.__btn_set_root = Button(panel, label=u"Set root folder")
         self.__btn_set_root.Bind(EVT_BUTTON, self.__set_root_folder)
         sizer.Add(self.__btn_set_root, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        label = StaticText(panel, label=u'Url:')
+        label = StaticText(panel, label=u"Url:")
         sizer.Add(label, pos=(row, col))
 
         col += 1
-        self.__txt_url = TextCtrl(panel, value=u'https://www.google.com/')  # TODO: remove url
+        self.__txt_url = TextCtrl(
+            panel, value=u"https://www.google.com/"
+        )  # TODO: remove url
         sizer.Add(self.__txt_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        label = StaticText(panel, label=u'Browser:')
+        label = StaticText(panel, label=u"Browser:")
         sizer.Add(label, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
@@ -67,21 +84,26 @@ class MainFrame(Frame):
         sizer.Add(self.__cb_browser, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_open_url = Button(panel, label=u'Open url')
+        self.bth_open_url = Button(panel, label=u"Open url")
         self.bth_open_url.Bind(EVT_BUTTON, self.__open_url)
         sizer.Add(self.bth_open_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_close_url = Button(panel, label=u'Close browser')
+        self.bth_close_url = Button(panel, label=u"Close browser")
         self.bth_close_url.Bind(EVT_BUTTON, self.__close_browser)
         sizer.Add(self.bth_close_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        tabs = Tabs(panel, [(GeneratorTab, "Generator"),
-                            (EditorTab, "Editor"),
-                            (TestRunnerTab, "Test runner"),
-                            (SelectorFinderTab, "Selector finder")])
+        tabs = Tabs(
+            panel,
+            [
+                (GeneratorTab, "Generator"),
+                (EditorTab, "Editor"),
+                (TestRunnerTab, "Test runner"),
+                (SelectorFinderTab, "Selector finder"),
+            ],
+        )
         sizer.Add(tabs, pos=(row, col), span=(1, 6), flag=FLAG_ALL_AND_EXPAND)
 
         sizer.AddGrowableCol(1, 1)
@@ -117,7 +139,9 @@ class MainFrame(Frame):
                 elif not self.__browser:
                     self.__browser = Browser(name)
             except Exception:
-                show_error_dialog(self, traceback.format_exc(), u'Failed to open browser')
+                show_error_dialog(
+                    self, traceback.format_exc(), u"Failed to open browser"
+                )
                 self.__browser = None
 
             if self.__browser:
@@ -125,7 +149,7 @@ class MainFrame(Frame):
             # TODO: if generator or selector -> load image
             self.bth_open_url.Enable()
         else:
-            show_dialog(self, u'Bad url: %s' % url, u'Bad url')
+            show_dialog(self, u"Bad url: %s" % url, u"Bad url")
 
     def __close_browser(self, evt):
         if self.__browser:

@@ -9,10 +9,14 @@ class Table(Grid):
 
         self.selected_row = None
         self.__data = None
-        self.__data_attrs = [u'name', u'by', u'selector', u'location', u'dimensions']
+        self.__data_attrs = [u"name", u"by", u"selector", u"location", u"dimensions"]
 
     def get_selected_data(self):
-        return self.__data[self.selected_row] if self.selected_row is not None else self.selected_row
+        return (
+            self.__data[self.selected_row]
+            if self.selected_row is not None
+            else self.selected_row
+        )
 
     def load_data(self, data):
         self.clear_table()
@@ -23,8 +27,7 @@ class Table(Grid):
 
         # filling headers
         for attr in self.__data_attrs:
-            new_table.SetColLabelValue(self.__data_attrs.index(attr),
-                                       attr.capitalize())
+            new_table.SetColLabelValue(self.__data_attrs.index(attr), attr.capitalize())
 
         # filling data
         for d in self.__data:

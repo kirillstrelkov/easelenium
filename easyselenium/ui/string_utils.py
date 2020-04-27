@@ -3,12 +3,12 @@ import re
 
 
 class RegExps(object):
-    CLASS_NAME = r'^[A-Z][a-zA-Z0-9]*$'
-    TEST_FILE_NAME = r'^[a-z_\d]+_test.py$'
-    TEST_CASE_NAME = r'^test_[a-z_\d]+$'
-    METHOD_NAME = r'^[a-z][a-z_\d]+$'
-    AREA = r'\( *\d+ *, *\d+ *, *\d+ *, *\d+ *\)'
-    URL = r'https?://.+'
+    CLASS_NAME = r"^[A-Z][a-zA-Z0-9]*$"
+    TEST_FILE_NAME = r"^[a-z_\d]+_test.py$"
+    TEST_CASE_NAME = r"^test_[a-z_\d]+$"
+    METHOD_NAME = r"^[a-z][a-z_\d]+$"
+    AREA = r"\( *\d+ *, *\d+ *, *\d+ *, *\d+ *\)"
+    URL = r"https?://.+"
 
 
 class StringUtils(object):

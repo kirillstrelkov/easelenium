@@ -11,8 +11,12 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import WebDriverException, TimeoutException, StaleElementReferenceException, \
-    NoSuchElementException
+from selenium.common.exceptions import (
+    WebDriverException,
+    TimeoutException,
+    StaleElementReferenceException,
+    NoSuchElementException,
+)
 
 from easyselenium.utils import get_random_value, get_timestamp, is_windows
 
@@ -64,10 +68,11 @@ class Mouse(object):
 
         element = self.browser.find_element(element)
 
-        self.browser._safe_log(u"Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset)
+        self.browser._safe_log(
+            u"Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset
+        )
 
-        actions.move_to_element(element) \
-            .move_by_offset(xoffset, yoffset).perform()
+        actions.move_to_element(element).move_by_offset(xoffset, yoffset).perform()
 
     def right_click(self, element):
         actions = self.browser.get_action_chains()
@@ -87,18 +92,21 @@ class Mouse(object):
         if type(element) == tuple:
             element = self.browser.find_element(element)
 
-        self.browser._safe_log(u"Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset)
+        self.browser._safe_log(
+            u"Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset
+        )
 
-        actions.move_to_element(element) \
-            .move_by_offset(xoffset, yoffset).context_click().perform()
+        actions.move_to_element(element).move_by_offset(
+            xoffset, yoffset
+        ).context_click().perform()
 
 
 class Browser(object):
-    FF = 'ff'
-    GC = 'gc'
-    IE = 'ie'
-    OP = 'op'
-    PHANTOMJS = 'phantomjs'
+    FF = "ff"
+    GC = "gc"
+    IE = "ie"
+    OP = "op"
+    PHANTOMJS = "phantomjs"
     DEFAULT_BROWSER = None
 
     __BROWSERS = [FF, GC, IE, OP, PHANTOMJS]
@@ -107,14 +115,13 @@ class Browser(object):
         if browser_name:
             self.__browser_name = browser_name
         else:
-            self.__browser_name = self.DEFAULT_BROWSER if self.DEFAULT_BROWSER else self.FF
+            self.__browser_name = (
+                self.DEFAULT_BROWSER if self.DEFAULT_BROWSER else self.FF
+            )
         self.logger = logger
         self.__timeout = timeout
         self._driver = self.__create_driver(self.__browser_name, **kwargs)
-        self.__screenshot_path = os.path.join(
-            gettempdir(),
-            'easyselenium_screenshots'
-        )
+        self.__screenshot_path = os.path.join(gettempdir(), "easyselenium_screenshots")
         if not os.path.exists(self.__screenshot_path):
             os.makedirs(self.__screenshot_path)
         self.mouse = Mouse(self)
@@ -128,33 +135,35 @@ class Browser(object):
 
     def __create_driver(self, name, *args, **kwargs):
         driver_and_constructor = {
-            self.FF: ('geckodriver', webdriver.Firefox),
-            self.IE: ('IEDriverServer', webdriver.Ie),
-            self.GC: ('chromedriver', webdriver.Chrome),
-            self.OP: ('operadriver', webdriver.Opera),
-            self.PHANTOMJS: ('phantomjs', webdriver.PhantomJS),
+            self.FF: ("geckodriver", webdriver.Firefox),
+            self.IE: ("IEDriverServer", webdriver.Ie),
+            self.GC: ("chromedriver", webdriver.Chrome),
+            self.OP: ("operadriver", webdriver.Opera),
+            self.PHANTOMJS: ("phantomjs", webdriver.PhantomJS),
         }.get(name, None)
 
         if driver_and_constructor is None:
             raise ValueError(
                 "Unsupported browser '%s', "
-                "supported browsers: ['%s']" % (name,
-                                                "', '".join(self.__BROWSERS))
+                "supported browsers: ['%s']" % (name, "', '".join(self.__BROWSERS))
             )
 
         driver, constructor = driver_and_constructor
         if is_windows():
-            driver += '.exe'
+            driver += ".exe"
 
-        home_dir = os.path.expanduser('~')
+        home_dir = os.path.expanduser("~")
         driver_in_home = os.path.join(home_dir, driver)
         if os.path.exists(driver_in_home):
             driver = constructor(executable_path=driver_in_home, **kwargs)
         else:
             if self.logger:
-                self.logger.warn("Driver for '%s' wasn't found in %s.\n"
-                                 "Using driver from PATH environment variable.",
-                                 name, driver_in_home)
+                self.logger.warn(
+                    "Driver for '%s' wasn't found in %s.\n"
+                    "Using driver from PATH environment variable.",
+                    name,
+                    driver_in_home,
+                )
             driver = constructor(**kwargs)
 
         if driver and not self.is_gc() and not self.is_op():
@@ -171,11 +180,10 @@ class Browser(object):
             else:
                 return self._driver.find_elements(*element)
         else:
-            raise Exception('Unsupported element - %s' % str(element))
+            raise Exception("Unsupported element - %s" % str(element))
 
     def __get_by_and_locator(self, element):
-        if (type(element) == list or type(element) == tuple) and \
-                        len(element) == 2:
+        if (type(element) == list or type(element) == tuple) and len(element) == 2:
             by, locator = element
             return by, locator
         else:
@@ -184,26 +192,28 @@ class Browser(object):
     def _to_string(self, element):
         by_and_locator = self.__get_by_and_locator(element)
         if by_and_locator:
-            return "Element {By: '%s', value: '%s'}" % (by_and_locator[0],
-                                                        by_and_locator[1])
+            return "Element {By: '%s', value: '%s'}" % (
+                by_and_locator[0],
+                by_and_locator[1],
+            )
         else:
             string = "tag_name: '%s'" % element.tag_name
-            _id = element.get_attribute('id')
+            _id = element.get_attribute("id")
             if _id:
                 string += ", id: '%s'" % _id
-            class_name = element.get_attribute('class')
+            class_name = element.get_attribute("class")
             if class_name:
                 string += ", class: '%s'" % class_name
             text = element.text
             if text:
                 string += ", text: '%s'" % text
-            value = element.get_attribute('value')
+            value = element.get_attribute("value")
             if value:
                 string += ", value: '%s'" % value
-            name = element.get_attribute('name')
+            name = element.get_attribute("name")
             if name and element.tag_name in ["frame", "iframe"]:
                 string += ", name: '%s'" % name
-            return 'Element {%s}' % string
+            return "Element {%s}" % string
 
     def is_ff(self):
         return self.__browser_name == Browser.FF
@@ -219,8 +229,10 @@ class Browser(object):
 
     def _safe_log(self, *args):
         if self.logger:
-            args = [self._to_string(arg) if isinstance(arg, WebElement) else arg
-                    for arg in args]
+            args = [
+                self._to_string(arg) if isinstance(arg, WebElement) else arg
+                for arg in args
+            ]
             self.logger.info(*args)
 
     """
@@ -233,7 +245,7 @@ class Browser(object):
         try:
             element.clear()
         except WebDriverException as e:
-            if u'Element must be user-editable in order to clear it.' != e.msg:
+            if u"Element must be user-editable in order to clear it." != e.msg:
                 raise e
 
         self._safe_log(u"Typing '%s' at '%s'", text, element)
@@ -254,7 +266,7 @@ class Browser(object):
         if isinstance(parent, WebElement):
             return parent
         else:
-            return self.find_descendant(element, (By.XPATH, u'./..'))
+            return self.find_descendant(element, (By.XPATH, u"./.."))
 
     def get_text(self, element):
         self.wait_for_visible(element)
@@ -270,7 +282,9 @@ class Browser(object):
         element = self.find_elements(element)[0]
         value = element.get_attribute(attr)
 
-        self._safe_log(u"Getting attribute '%s' from '%s' -> '%s'", attr, element, value)
+        self._safe_log(
+            u"Getting attribute '%s' from '%s' -> '%s'", attr, element, value
+        )
 
         return value
 
@@ -278,13 +292,13 @@ class Browser(object):
         return self.find_element(element).tag_name
 
     def get_id(self, element):
-        return self.get_attribute(element, 'id')
+        return self.get_attribute(element, "id")
 
     def get_class(self, element):
-        return self.get_attribute(element, 'class')
+        return self.get_attribute(element, "class")
 
     def get_value(self, element):
-        return self.get_attribute(element, 'value')
+        return self.get_attribute(element, "value")
 
     def get_location(self, element):
         """Return tuple like (x, y)."""
@@ -292,7 +306,7 @@ class Browser(object):
 
         self._safe_log(u"Getting location from '%s' -> '%s'", element, str(location))
 
-        return int(location['x']), int(location['y'])
+        return int(location["x"]), int(location["y"])
 
     def get_dimensions(self, element):
         """Return tuple like (width, height)."""
@@ -300,7 +314,7 @@ class Browser(object):
 
         self._safe_log(u"Getting dimensions from '%s' -> '%s'", element, str(size))
 
-        return size['width'], size['height']
+        return size["width"], size["height"]
 
     """
         Dropdown list related methods
@@ -310,7 +324,7 @@ class Browser(object):
         self.wait_for_visible(element)
 
         element = self.find_element(element)
-        value = Select(element).first_selected_option.get_attribute('value')
+        value = Select(element).first_selected_option.get_attribute("value")
 
         self._safe_log(u"Getting selected value from '%s' -> '%s'", element, value)
 
@@ -383,7 +397,7 @@ class Browser(object):
         values = []
         element = self.find_element(element)
         for option in Select(element).options:
-            values.append(option.get_attribute('value'))
+            values.append(option.get_attribute("value"))
 
         self._safe_log(u"Getting values from '%s' -> '%s'", element, str(values))
 
@@ -412,7 +426,8 @@ class Browser(object):
         found_elements = self.find_descendants(parent, element)
         if len(found_elements) == 0:
             raise NoSuchElementException(
-                "Didn't find any elements for selector - %s" % str(element))
+                "Didn't find any elements for selector - %s" % str(element)
+            )
         else:
             return found_elements[0]
 
@@ -430,65 +445,57 @@ class Browser(object):
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = '%s text was not changed for %s seconds' % \
-                  (element, timeout)
+            msg = "%s text was not changed for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: old_text != self.get_text(element),
-                            msg,
-                            timeout)
+        self.webdriver_wait(
+            lambda driver: old_text != self.get_text(element), msg, timeout
+        )
 
-    def wait_for_attribute_is_changed(self, element, attr, old_value, msg=None, timeout=None):
+    def wait_for_attribute_is_changed(
+        self, element, attr, old_value, msg=None, timeout=None
+    ):
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = '%s attribute was not changed for %s seconds' % \
-                  (element, timeout)
+            msg = "%s attribute was not changed for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: old_value != self.get_attribute(element, attr, False),
-                            msg,
-                            timeout)
+        self.webdriver_wait(
+            lambda driver: old_value != self.get_attribute(element, attr, False),
+            msg,
+            timeout,
+        )
 
     def wait_for_visible(self, element, msg=None, timeout=None, parent=None):
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = '%s is not visible for %s seconds' % \
-                  (element, timeout)
+            msg = "%s is not visible for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: self.is_visible(element, parent),
-                            msg,
-                            timeout)
+        self.webdriver_wait(
+            lambda driver: self.is_visible(element, parent), msg, timeout
+        )
 
     def wait_for_not_visible(self, element, msg=None, timeout=None):
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = '%s is visible for %s seconds' % \
-                  (element, timeout)
+            msg = "%s is visible for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: not self.is_visible(element),
-                            msg,
-                            timeout)
+        self.webdriver_wait(lambda driver: not self.is_visible(element), msg, timeout)
 
     def wait_for_present(self, element, msg=None, timeout=None):
         if not timeout:
             timeout = self.__timeout
-            msg = '%s is not present for %s seconds' % \
-                  (element, timeout)
+            msg = "%s is not present for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: self.is_present(element),
-                            msg,
-                            timeout)
+        self.webdriver_wait(lambda driver: self.is_present(element), msg, timeout)
 
     def wait_for_not_present(self, element, msg=None, timeout=None):
         if not timeout:
             timeout = self.__timeout
-            msg = '%s is present for %s seconds' % \
-                  (element, timeout)
+            msg = "%s is present for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: not self.is_present(element),
-                            msg,
-                            timeout)
+        self.webdriver_wait(lambda driver: not self.is_present(element), msg, timeout)
 
     def is_visible(self, element, parent=None):
         try:
@@ -510,9 +517,8 @@ class Browser(object):
         if not saving_dir:
             saving_dir = self.__screenshot_path
         if not filename:
-            filename = get_timestamp() + '.png'
-        path_to_file = os.path.abspath(os.path.join(saving_dir,
-                                                    filename))
+            filename = get_timestamp() + ".png"
+        path_to_file = os.path.abspath(os.path.join(saving_dir, filename))
 
         self._safe_log(u"Saving screenshot to '%s'", path_to_file)
 
@@ -565,7 +571,7 @@ class Browser(object):
         return self._driver.current_url
 
     def get_current_frame_url(self):
-        return self.execute_js('return document.location.href')
+        return self.execute_js("return document.location.href")
 
     def go_back(self):
         self._driver.back()
@@ -586,7 +592,7 @@ class Browser(object):
     def refresh_page(self):
         self._driver.refresh()
 
-    def webdriver_wait(self, function, msg='', timeout=None):
+    def webdriver_wait(self, function, msg="", timeout=None):
         if not timeout:
             timeout = self.__timeout
         try:

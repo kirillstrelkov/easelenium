@@ -32,7 +32,7 @@ class SelectableImagePanel(ImagePanel):
         scroll_offset = (self.GetScrollPos(HORIZONTAL), self.GetScrollPos(VERTICAL))
         return (
             position[0] + scroll_offset[0] * fix_for_scrolling,
-            position[1] + scroll_offset[1] * fix_for_scrolling
+            position[1] + scroll_offset[1] * fix_for_scrolling,
         )
 
     def _draw_selected_area(self, start_pos, end_pos):

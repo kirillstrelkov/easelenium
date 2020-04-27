@@ -1,6 +1,14 @@
 from threading import Thread
-from wx import Panel, GridBagSizer, Button, EVT_BUTTON, \
-    EVT_MOTION, SplitterWindow, SP_3D, SP_LIVE_UPDATE
+from wx import (
+    Panel,
+    GridBagSizer,
+    Button,
+    EVT_BUTTON,
+    EVT_MOTION,
+    SplitterWindow,
+    SP_3D,
+    SP_LIVE_UPDATE,
+)
 from wx.grid import EVT_GRID_SELECT_CELL
 
 from easyselenium.ui.utils import FLAG_ALL_AND_EXPAND
@@ -29,12 +37,12 @@ class SelectorFinderTab(Panel):
 
         row = 0
         col = 1
-        self.bth_reload_img = Button(self, label=u'Reload image')
+        self.bth_reload_img = Button(self, label=u"Reload image")
         self.bth_reload_img.Bind(EVT_BUTTON, self.__load_img)
         sizer.Add(self.bth_reload_img, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_reload_selectors = Button(self, label=u'Find selectors')
+        self.bth_reload_selectors = Button(self, label=u"Find selectors")
         self.bth_reload_selectors.Bind(EVT_BUTTON, self.__find_selectors)
         sizer.Add(self.bth_reload_selectors, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
         # third row
@@ -63,10 +71,7 @@ class SelectorFinderTab(Panel):
 
     def __on_mouse_move(self, evt):
         ImageAndTableHelper.select_field_on_mouse_move(
-            evt,
-            self.po_fields,
-            self.image_panel,
-            self.table
+            evt, self.po_fields, self.image_panel, self.table
         )
 
     def __on_cell_select(self, evt):
@@ -86,9 +91,9 @@ class SelectorFinderTab(Panel):
         if browser:
             url = self.main_frame.get_url()
             if not StringUtils.is_url_correct(url):
-                show_dialog(self, u'Bad url: %s' % url, u'Bad url')
+                show_dialog(self, u"Bad url: %s" % url, u"Bad url")
             else:
-                dialog = DialogWithText(self, 'Finding selectors...')
+                dialog = DialogWithText(self, "Finding selectors...")
                 handler = WxTextCtrlHandler(dialog.txt_ctrl)
                 logger = Logger(log_to_console=False, handler=handler)
 
@@ -99,7 +104,7 @@ class SelectorFinderTab(Panel):
                 def find_selectors():
                     dialog.btn_ok.Disable()
                     self.po_fields = generator.get_all_po_fields(url, None)
-                    logger.info(u'DONE')
+                    logger.info(u"DONE")
                     self.__update_table()
                     dialog.btn_ok.Enable()
 

@@ -1,11 +1,34 @@
 import logging
 from threading import Event
 from time import sleep
-from wx import Notebook, TextCtrl, TE_MULTILINE, TE_READONLY, Button, StaticText, Gauge, GA_SMOOTH, \
-    GA_HORIZONTAL, CallAfter, BoxSizer, VERTICAL, HSCROLL, EVT_BUTTON, CENTER, CAPTION, ID_OK, Dialog, \
-    STAY_ON_TOP, DEFAULT_DIALOG_STYLE, RESIZE_BORDER, OK, MessageDialog
+from wx import (
+    Notebook,
+    TextCtrl,
+    TE_MULTILINE,
+    TE_READONLY,
+    Button,
+    StaticText,
+    Gauge,
+    GA_SMOOTH,
+    GA_HORIZONTAL,
+    CallAfter,
+    BoxSizer,
+    VERTICAL,
+    HSCROLL,
+    EVT_BUTTON,
+    CENTER,
+    CAPTION,
+    ID_OK,
+    Dialog,
+    STAY_ON_TOP,
+    DEFAULT_DIALOG_STYLE,
+    RESIZE_BORDER,
+    OK,
+    MessageDialog,
+)
 
-from easyselenium.ui.utils import LINESEP, FLAG_ALL_AND_EXPAND, run_in_separate_thread
+from easyselenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
+from easyselenium.utils import LINESEP
 from easyselenium.ui.widgets.image.image_with_elements import ImageWithElements
 
 
@@ -19,25 +42,25 @@ def show_dialog(parent, message, caption, style=OK | CENTER):
 
 def show_dialog_path_does_exist(parent, path):
     if path is None:
-        path = ''
+        path = ""
     msg = u"Path already exists: '%s'" % path
-    caption = u'Bad path'
+    caption = u"Bad path"
     return show_dialog(parent, msg, caption)
 
 
 def show_dialog_path_doesnt_exist(parent, path):
     if path is None:
-        path = ''
+        path = ""
     msg = u"Path doesn't exist: '%s'" % path
-    caption = u'Bad path'
+    caption = u"Bad path"
     return show_dialog(parent, msg, caption)
 
 
 def show_dialog_bad_name(parent, name, *expected_names):
     msg = u"Bad name: '%s'" % name
     if len(expected_names) > 0:
-        msg += LINESEP + 'Expected names like:' + LINESEP + LINESEP.join(expected_names)
-    caption = u'Bad name'
+        msg += LINESEP + "Expected names like:" + LINESEP + LINESEP.join(expected_names)
+    caption = u"Bad name"
     return show_dialog(parent, msg, caption)
 
 
@@ -72,7 +95,9 @@ class WxTextCtrlHandler(logging.Handler):
 
 class DialogWithText(Dialog):
     def __init__(self, parent, title, text=None):
-        Dialog.__init__(self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER)
+        Dialog.__init__(
+            self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER
+        )
         self.SetTitle(title)
         self.SetSize(600, 400)
 
@@ -83,7 +108,7 @@ class DialogWithText(Dialog):
             self.txt_ctrl.SetValue(text)
         sizer.Add(self.txt_ctrl, 1, flag=FLAG_ALL_AND_EXPAND)
 
-        self.btn_ok = Button(self, label=u'OK')
+        self.btn_ok = Button(self, label=u"OK")
         self.btn_ok.Bind(EVT_BUTTON, self.__close)
         sizer.Add(self.btn_ok, flag=CENTER)
 

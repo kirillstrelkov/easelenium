@@ -1,21 +1,47 @@
 import os
 import traceback
-from wx import GridBagSizer, Panel, StaticText, ComboBox, CB_READONLY, ALL, \
-    EVT_COMBOBOX, Button, EVT_BUTTON, SplitterWindow, EVT_MOTION, \
-    EVT_RIGHT_DOWN, FileDialog, ID_OK, SP_LIVE_UPDATE, SP_3D, BoxSizer, \
-    HORIZONTAL
+from wx import (
+    GridBagSizer,
+    Panel,
+    StaticText,
+    ComboBox,
+    CB_READONLY,
+    ALL,
+    EVT_COMBOBOX,
+    Button,
+    EVT_BUTTON,
+    SplitterWindow,
+    EVT_MOTION,
+    EVT_RIGHT_DOWN,
+    FileDialog,
+    ID_OK,
+    SP_LIVE_UPDATE,
+    SP_3D,
+    BoxSizer,
+    HORIZONTAL,
+)
 
 from nose import tools
 
-from easyselenium.ui.editor.utils import FieldsTableAndTestFilesTabs, \
-    TestFileUI, PyFileUI
+from easyselenium.ui.editor.utils import (
+    FieldsTableAndTestFilesTabs,
+    TestFileUI,
+    PyFileUI,
+)
 from easyselenium.ui.root_folder import RootFolder
-from easyselenium.ui.widgets.utils import show_dialog, \
-    show_dialog_path_doesnt_exist, show_error_dialog
+from easyselenium.ui.widgets.utils import (
+    show_dialog,
+    show_dialog_path_doesnt_exist,
+    show_error_dialog,
+)
 from easyselenium.ui.utils import FLAG_ALL_AND_EXPAND
 from easyselenium.ui.editor.field_context_menu import FieldContextMenu
-from easyselenium.ui.parser.parsed_class import ParsedMouseClass, \
-    ParsedBrowserClass, ParsedPageObjectClass, ParsedModule
+from easyselenium.ui.parser.parsed_class import (
+    ParsedMouseClass,
+    ParsedBrowserClass,
+    ParsedPageObjectClass,
+    ParsedModule,
+)
 from easyselenium.ui.generator.page_object_class import PageObjectClass
 from easyselenium.ui.file_utils import read_file, is_correct_python_file
 from easyselenium.ui.widgets.image.image_with_elements import ImageWithElements
@@ -36,18 +62,18 @@ class EditorTab(Panel):
 
         # Next row
         inner_sizer = BoxSizer(HORIZONTAL)
-        label = StaticText(self, label=u'Class path:')
+        label = StaticText(self, label=u"Class path:")
         inner_sizer.Add(label, flag=ALL)
 
         self.cb_class_path = ComboBox(self, style=CB_READONLY)
         self.cb_class_path.Bind(EVT_COMBOBOX, self.__on_load_po_class)
         inner_sizer.Add(self.cb_class_path, 1, flag=FLAG_ALL_AND_EXPAND)
 
-        self.btn_reload = Button(self, label=u'Reload')
+        self.btn_reload = Button(self, label=u"Reload")
         self.btn_reload.Bind(EVT_BUTTON, self.__on_load_po_class)
         inner_sizer.Add(self.btn_reload, flag=ALL)
 
-        self.btn_open_class = Button(self, label=u'Open class')
+        self.btn_open_class = Button(self, label=u"Open class")
         self.btn_open_class.Bind(EVT_BUTTON, self.__open_class)
         inner_sizer.Add(self.btn_open_class, flag=ALL)
 
@@ -71,7 +97,9 @@ class EditorTab(Panel):
         sizer.AddGrowableCol(0, 1)
 
     def __get_parsed_classes(self, field):
-        classes = ParsedPageObjectClass.get_parsed_classes(self.__cur_po_class.file_path)
+        classes = ParsedPageObjectClass.get_parsed_classes(
+            self.__cur_po_class.file_path
+        )
         if len(classes) > 0 and len(classes[0].methods) == 0:
             classes = []
         classes += [ParsedModule.get_parsed_module(tools)]
@@ -89,18 +117,23 @@ class EditorTab(Panel):
                 file_path = selected_tab.get_file_path()
                 txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
                 parsed_classes = self.__get_parsed_classes(field)
-                context_menu = FieldContextMenu(field,
-                                                parsed_classes,
-                                                file_path,
-                                                txt_ctrl_ui)
+                context_menu = FieldContextMenu(
+                    field, parsed_classes, file_path, txt_ctrl_ui
+                )
                 self.PopupMenu(context_menu)
                 context_menu.Destroy()
             else:
-                show_dialog(self, u'Please select tab with test file.',
-                            u'Tab with test file was not selected')
+                show_dialog(
+                    self,
+                    u"Please select tab with test file.",
+                    u"Tab with test file was not selected",
+                )
         else:
-            show_dialog(self, u'Please create/open test file.',
-                        u'Test file was not created/opened')
+            show_dialog(
+                self,
+                u"Please create/open test file.",
+                u"Test file was not created/opened",
+            )
 
     def __on_load_po_class(self, evt):
         path = self.cb_class_path.GetValue()
@@ -117,7 +150,7 @@ class EditorTab(Panel):
                 evt,
                 self.__cur_po_class.fields,
                 self.image_panel,
-                self.table_and_test_file_tabs.table
+                self.table_and_test_file_tabs.table,
             )
 
     def __get_current_field(self, evt):
@@ -128,7 +161,7 @@ class EditorTab(Panel):
         if folder:
             if RootFolder.PO_FOLDER in os.listdir(folder):
                 folder = os.path.join(folder, RootFolder.PO_FOLDER)
-            dialog = FileDialog(self, defaultDir=folder, wildcard=u'*.py')
+            dialog = FileDialog(self, defaultDir=folder, wildcard=u"*.py")
             if dialog.ShowModal() == ID_OK:
                 self.__load_po_class(dialog.GetPath())
         else:
@@ -140,17 +173,21 @@ class EditorTab(Panel):
         if not os.path.exists(path):
             show_dialog_path_doesnt_exist(self, path)
         if not is_correct_python_file(path):
-            show_dialog(self, u'File name is incorrect: %s' % path,
-                        u'Bad file name')
+            show_dialog(self, u"File name is incorrect: %s" % path, u"Bad file name")
         else:
             folder = os.path.dirname(path)
-            files = [os.path.join(folder, p) for p in os.listdir(folder)
-                     if is_correct_python_file(p)]
+            files = [
+                os.path.join(folder, p)
+                for p in os.listdir(folder)
+                if is_correct_python_file(p)
+            ]
             self.cb_class_path.Clear()
             self.cb_class_path.AppendItems(files)
             self.cb_class_path.Select(files.index(path))
             try:
-                self.__cur_po_class = PageObjectClass.parse_string_to_po_class(read_file(path))
+                self.__cur_po_class = PageObjectClass.parse_string_to_po_class(
+                    read_file(path)
+                )
                 area = self.__cur_po_class.area
                 self.image_panel.set_po_fields(self.__cur_po_class.fields)
                 self.image_panel.load_image(self.__cur_po_class.img_path, area)
@@ -160,5 +197,6 @@ class EditorTab(Panel):
                 self.table_and_test_file_tabs.load_po_class(self.__cur_po_class)
             except Exception:
                 self.__cur_po_class = None
-                show_error_dialog(self, traceback.format_exc(),
-                                  u'Failed to open file %s' % path)
+                show_error_dialog(
+                    self, traceback.format_exc(), u"Failed to open file %s" % path
+                )

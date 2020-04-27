@@ -23,15 +23,19 @@ class ImageWithElements(SelectableImagePanel):
         end_pos = None
         start_pos = None
         if field:
-            end_pos = (field.location[0] + field.dimensions[0],
-                       field.location[1] + field.dimensions[1])
+            end_pos = (
+                field.location[0] + field.dimensions[0],
+                field.location[1] + field.dimensions[1],
+            )
             start_pos = field.location
             cursor = Cursor(CURSOR_HAND)
         else:
             start_pos = (0, 0)
             if self.original_bitmap:
-                end_pos = (self.original_bitmap.GetWidth(),
-                           self.original_bitmap.GetHeight())
+                end_pos = (
+                    self.original_bitmap.GetWidth(),
+                    self.original_bitmap.GetHeight(),
+                )
             cursor = Cursor(CURSOR_ARROW)
         if start_pos and end_pos:
             self._draw_selected_area(start_pos, end_pos)
@@ -49,7 +53,9 @@ class ImageWithElements(SelectableImagePanel):
         position = self._get_fixed_position(position)
         position = Point(*position)
         if self.__po_fields:
-            fields_sorted_by_dimensions = sorted(self.__po_fields, key=lambda f: f.dimensions)
+            fields_sorted_by_dimensions = sorted(
+                self.__po_fields, key=lambda f: f.dimensions
+            )
             for field in fields_sorted_by_dimensions:
                 field_x, field_y = field.location
                 w, h = field.dimensions

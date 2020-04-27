@@ -1,5 +1,7 @@
-nose
-nose-pathmunge
-nose-htmloutput
+pytest
+pytest-html
+pytest-dotenv
 selenium
 wxPython
+black
+flake8

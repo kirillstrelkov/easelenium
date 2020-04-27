@@ -16,14 +16,14 @@ class FieldContextMenu(ContextMenu):
     def __prepare_data_from_classes(self, parsed_classes):
         data = []
         for pc in parsed_classes:
-            is_asserts = 'assert_true' in pc.methods
-            is_mouse = 'hover' in pc.methods
-            is_browser = 'click' in pc.methods
+            is_asserts = "assert_true" in pc.methods
+            is_mouse = "hover" in pc.methods
+            is_browser = "click" in pc.methods
             if is_asserts or is_mouse or not is_browser:
                 if is_mouse:
-                    name = u'Mouse'
+                    name = u"Mouse"
                 elif is_asserts:
-                    name = u'Asserts'
+                    name = u"Asserts"
                 else:
                     name = pc.name
                 data.append((name, self.__prepare_context_data(pc.methods)))
@@ -50,15 +50,15 @@ class FieldContextMenu(ContextMenu):
                 data[submenu_text] = [(item_text, func)]
 
         for text, func in initial_data:
-            if text.startswith('_') or text.startswith('find'):
+            if text.startswith("_") or text.startswith("find"):
                 continue
 
-            if 'dropdown' in text:
-                append_to_data('dropdowns', text, func)
-            elif text.startswith('get'):
-                append_to_data('getters', text, func)
-            elif text.startswith('wait'):
-                append_to_data('waits', text, func)
+            if "dropdown" in text:
+                append_to_data("dropdowns", text, func)
+            elif text.startswith("get"):
+                append_to_data("getters", text, func)
+            elif text.startswith("wait"):
+                append_to_data("waits", text, func)
             else:
                 data[text] = func
 
@@ -74,16 +74,19 @@ class FieldContextMenu(ContextMenu):
                 for pc in self.__parsed_classes:
                     if method in pc.methods.values():
                         arg_spec = pc.get_arg_spec(method)
-                        self.__txt_ctrl_ui.append_method_call(self.__field,
-                                                              method_name,
-                                                              method,
-                                                              arg_spec)
+                        self.__txt_ctrl_ui.append_method_call(
+                            self.__field, method_name, method, arg_spec
+                        )
                         break
             else:
-                show_dialog(self.GetParent(),
-                            u'Please create method or test case.',
-                            u"Class doesn't have any methods or test cases")
+                show_dialog(
+                    self.GetParent(),
+                    u"Please create method or test case.",
+                    u"Class doesn't have any methods or test cases",
+                )
         else:
-            show_dialog(self.GetParent(),
-                        u'Please select or create test file.',
-                        u'Test file was not selected')
+            show_dialog(
+                self.GetParent(),
+                u"Please select or create test file.",
+                u"Test file was not selected",
+            )

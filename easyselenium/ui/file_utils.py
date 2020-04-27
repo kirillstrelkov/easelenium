@@ -2,14 +2,14 @@ import os
 import codecs
 
 
-__ENCODING = 'utf8'
-__WRITE_MODE = 'wb'
-__READ_MODE = 'rb'
+__ENCODING = "utf8"
+__WRITE_MODE = "wb"
+__READ_MODE = "rb"
 
 
 def is_correct_python_file(filename):
     name = os.path.basename(filename)
-    return name.endswith('.py') and not name.startswith('__')
+    return name.endswith(".py") and not name.startswith("__")
 
 
 def check_if_path_exists(path):

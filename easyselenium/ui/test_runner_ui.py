@@ -1,22 +1,57 @@
 import os
 import traceback
 from subprocess import check_output
-from wx import Panel, GridBagSizer, Button, TR_SINGLE, TR_HAS_BUTTONS, SplitterWindow, SP_3D, \
-    SP_LIVE_UPDATE, \
-    CallAfter, TextCtrl, VSCROLL, TE_MULTILINE, TE_READONLY, HSCROLL, \
-    StaticText, EVT_BUTTON, FileDialog, ID_OK, FD_OPEN, DirDialog, \
-    DD_DIR_MUST_EXIST, FD_FILE_MUST_EXIST, FD_MULTIPLE, \
-    CheckBox, EVT_CHECKBOX, FD_SAVE, FD_OVERWRITE_PROMPT, Font, \
-    FONTFAMILY_TELETYPE, NORMAL
-from wx import Choice
-from wx.lib.agw.customtreectrl import CustomTreeCtrl, TR_AUTO_CHECK_CHILD, \
-    TR_AUTO_CHECK_PARENT, EVT_TREE_ITEM_CHECKED, TR_AUTO_TOGGLE_CHILD
+import pytest
 
-from nose.core import run
+pytest.skip("Module doesn't contain tests", allow_module_level=True)
+
+from wx import (
+    Panel,
+    GridBagSizer,
+    Button,
+    TR_SINGLE,
+    TR_HAS_BUTTONS,
+    SplitterWindow,
+    SP_3D,
+    SP_LIVE_UPDATE,
+    CallAfter,
+    TextCtrl,
+    VSCROLL,
+    TE_MULTILINE,
+    TE_READONLY,
+    HSCROLL,
+    StaticText,
+    EVT_BUTTON,
+    FileDialog,
+    ID_OK,
+    FD_OPEN,
+    DirDialog,
+    DD_DIR_MUST_EXIST,
+    FD_FILE_MUST_EXIST,
+    FD_MULTIPLE,
+    CheckBox,
+    EVT_CHECKBOX,
+    FD_SAVE,
+    FD_OVERWRITE_PROMPT,
+    Font,
+    FONTFAMILY_TELETYPE,
+    NORMAL,
+)
+from wx import Choice
+from wx.lib.agw.customtreectrl import (
+    CustomTreeCtrl,
+    TR_AUTO_CHECK_CHILD,
+    TR_AUTO_CHECK_PARENT,
+    EVT_TREE_ITEM_CHECKED,
+    TR_AUTO_TOGGLE_CHILD,
+)
 
 from easyselenium.browser import Browser
 from easyselenium.ui.utils import run_in_separate_thread, FLAG_ALL_AND_EXPAND
-from easyselenium.ui.widgets.utils import show_dialog_path_doesnt_exist, show_error_dialog
+from easyselenium.ui.widgets.utils import (
+    show_dialog_path_doesnt_exist,
+    show_error_dialog,
+)
 from easyselenium.ui.parser.parsed_class import ParsedClass
 from easyselenium.ui.file_utils import get_list_of_files
 from easyselenium.ui.root_folder import RootFolder
@@ -43,64 +78,74 @@ class TestRunnerTab(Panel):
 
         row = 0
         col = 0
-        self.cb_html_output = CheckBox(self, label=u'Report in HTML')
+        self.cb_html_output = CheckBox(self, label=u"Report in HTML")
         self.cb_html_output.Bind(EVT_CHECKBOX, self.__on_check)
         sizer.Add(self.cb_html_output, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.txt_html_report = TextCtrl(self, style=TE_READONLY)
         self.txt_html_report.Disable()
-        sizer.Add(self.txt_html_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(
+            self.txt_html_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND
+        )
 
         col += 3
-        self.btn_select_html = Button(self, label=u'Select HTML file')
+        self.btn_select_html = Button(self, label=u"Select HTML file")
         self.btn_select_html.Disable()
         self.btn_select_html.Bind(EVT_BUTTON, self.__on_select_file)
         sizer.Add(self.btn_select_html, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        self.cb_xml_output = CheckBox(self, label=u'Report in XML')
+        self.cb_xml_output = CheckBox(self, label=u"Report in XML")
         self.cb_xml_output.Bind(EVT_CHECKBOX, self.__on_check)
         sizer.Add(self.cb_xml_output, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.txt_xml_report = TextCtrl(self, style=TE_READONLY)
         self.txt_xml_report.Disable()
-        sizer.Add(self.txt_xml_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(
+            self.txt_xml_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND
+        )
 
         col += 3
-        self.btn_select_xml = Button(self, label=u'Select XML file')
+        self.btn_select_xml = Button(self, label=u"Select XML file")
         self.btn_select_xml.Disable()
         self.btn_select_xml.Bind(EVT_BUTTON, self.__on_select_file)
         sizer.Add(self.btn_select_xml, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        self.cb_options = CheckBox(self, label=u'Additional options')
+        self.cb_options = CheckBox(self, label=u"Additional options")
         self.cb_options.Bind(EVT_CHECKBOX, self.__on_check)
         sizer.Add(self.cb_options, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
         self.txt_options = TextCtrl(self)
         self.txt_options.Disable()
-        sizer.Add(self.txt_options, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(
+            self.txt_options, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND
+        )
 
         col += 3
-        self.btn_nose_help = Button(self, label=u'Show help')
+        self.btn_nose_help = Button(self, label=u"Show help")
         self.btn_nose_help.Bind(EVT_BUTTON, self.__on_show_help)
         sizer.Add(self.btn_nose_help, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        self.btn_load_tests_from_files = Button(self, label=u'Load tests from files')
+        self.btn_load_tests_from_files = Button(self, label=u"Load tests from files")
         self.btn_load_tests_from_files.Bind(EVT_BUTTON, self.__load_tests_from_files)
-        sizer.Add(self.btn_load_tests_from_files, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(
+            self.btn_load_tests_from_files, pos=(row, col), flag=FLAG_ALL_AND_EXPAND
+        )
 
         col += 1
-        self.btn_load_tests_from_dir = Button(self, label=u'Load tests from directory')
+        self.btn_load_tests_from_dir = Button(self, label=u"Load tests from directory")
         self.btn_load_tests_from_dir.Bind(EVT_BUTTON, self.__load_tests_from_directory)
-        sizer.Add(self.btn_load_tests_from_dir, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(
+            self.btn_load_tests_from_dir, pos=(row, col), flag=FLAG_ALL_AND_EXPAND
+        )
 
         col += 1
         dummy_label = StaticText(self)
@@ -112,20 +157,28 @@ class TestRunnerTab(Panel):
         sizer.Add(self.cb_browser, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.btn_run = Button(self, label=u'Run test cases')
+        self.btn_run = Button(self, label=u"Run test cases")
         self.btn_run.Bind(EVT_BUTTON, self.__run_tests)
         sizer.Add(self.btn_run, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
         window = SplitterWindow(self, style=SP_3D | SP_LIVE_UPDATE)
-        self.tree_ctrl = CustomTreeCtrl(window,
-                                        style=TR_SINGLE | TR_HAS_BUTTONS | TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD)
+        self.tree_ctrl = CustomTreeCtrl(
+            window,
+            style=TR_SINGLE
+            | TR_HAS_BUTTONS
+            | TR_AUTO_CHECK_CHILD
+            | TR_AUTO_CHECK_PARENT
+            | TR_AUTO_TOGGLE_CHILD,
+        )
         self.tree_ctrl.SetBackgroundColour(self.GetBackgroundColour())
         self.tree_ctrl.SetForegroundColour(self.GetForegroundColour())
         self.tree_ctrl.Bind(EVT_TREE_ITEM_CHECKED, self.__on_tree_check)
 
-        self.txt_ctrl = TextCtrl(window, style=TE_MULTILINE | TE_READONLY | HSCROLL | VSCROLL)
+        self.txt_ctrl = TextCtrl(
+            window, style=TE_MULTILINE | TE_READONLY | HSCROLL | VSCROLL
+        )
         font_size = self.txt_ctrl.GetFont().GetPointSize()
         self.txt_ctrl.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
 
@@ -137,35 +190,41 @@ class TestRunnerTab(Panel):
         self.SetSizerAndFit(sizer)
 
     def __on_show_help(self, evt):
-        text = check_output(['nosetests', '--help'])
-        DialogWithText(self, u'Help for nosetests', text).ShowModal()
+        text = check_output(["nosetests", "--help"])
+        DialogWithText(self, u"Help for nosetests", text).ShowModal()
 
     def __on_select_file(self, evt):
         folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
         obj = evt.GetEventObject()
         txt_ctrl = None
         if obj == self.btn_select_html:
-            wildcard = u'*.html'
+            wildcard = u"*.html"
             txt_ctrl = self.txt_html_report
         elif obj == self.btn_select_xml:
-            wildcard = u'*.xml'
+            wildcard = u"*.xml"
             txt_ctrl = self.txt_xml_report
         else:
-            wildcard = u'*.*'
-        dialog = FileDialog(self,
-                            defaultDir=folder,
-                            style=FD_SAVE | FD_OVERWRITE_PROMPT,
-                            wildcard=wildcard)
+            wildcard = u"*.*"
+        dialog = FileDialog(
+            self,
+            defaultDir=folder,
+            style=FD_SAVE | FD_OVERWRITE_PROMPT,
+            wildcard=wildcard,
+        )
         if dialog.ShowModal() == ID_OK and txt_ctrl:
             txt_ctrl.SetValue(dialog.GetPath())
 
     def __on_check(self, evt):
         cb_obj = evt.GetEventObject()
-        checkboxes_and_txt_ctrls = {self.cb_html_output: self.txt_html_report,
-                                    self.cb_options: self.txt_options,
-                                    self.cb_xml_output: self.txt_xml_report}
-        checkboxes_and_btns = {self.cb_html_output: self.btn_select_html,
-                               self.cb_xml_output: self.btn_select_xml}
+        checkboxes_and_txt_ctrls = {
+            self.cb_html_output: self.txt_html_report,
+            self.cb_options: self.txt_options,
+            self.cb_xml_output: self.txt_xml_report,
+        }
+        checkboxes_and_btns = {
+            self.cb_html_output: self.btn_select_html,
+            self.cb_xml_output: self.btn_select_xml,
+        }
         txt_ctrl = checkboxes_and_txt_ctrls[cb_obj]
         btn = checkboxes_and_btns.get(cb_obj)
         if txt_ctrl.IsEnabled():
@@ -200,7 +259,7 @@ class TestRunnerTab(Panel):
             if os.path.exists(path_for_subfolder):
                 return path_for_subfolder
 
-        return folder if folder else '.'
+        return folder if folder else "."
 
     def __load_tests_to_tree(self, file_paths=None, dir_path=None):
         if file_paths:
@@ -210,8 +269,11 @@ class TestRunnerTab(Panel):
         else:
             python_files = []
 
-        python_files = [f for f in python_files
-                        if 'test' in os.path.basename(f) and os.path.splitext(f)[-1] == '.py']
+        python_files = [
+            f
+            for f in python_files
+            if "test" in os.path.basename(f) and os.path.splitext(f)[-1] == ".py"
+        ]
         if len(python_files) > 0:
             syspath = list(os.sys.path)
             try:
@@ -222,33 +284,37 @@ class TestRunnerTab(Panel):
 
                 checkbox_type = 1
                 self.tree_ctrl.DeleteAllItems()
-                root = self.tree_ctrl.AddRoot('All test cases', checkbox_type)
+                root = self.tree_ctrl.AddRoot("All test cases", checkbox_type)
 
                 for python_file in python_files:
-                    top_item = self.tree_ctrl.AppendItem(root, os.path.abspath(python_file), checkbox_type)
+                    top_item = self.tree_ctrl.AppendItem(
+                        root, os.path.abspath(python_file), checkbox_type
+                    )
 
                     parsed_classes = ParsedClass.get_parsed_classes(python_file)
                     for parsed_class in parsed_classes:
-                        item = self.tree_ctrl.AppendItem(top_item, parsed_class.name, checkbox_type)
+                        item = self.tree_ctrl.AppendItem(
+                            top_item, parsed_class.name, checkbox_type
+                        )
 
-                        test_methods = [k for k in parsed_class.methods.keys() if k.startswith('test_')]
+                        test_methods = [
+                            k
+                            for k in parsed_class.methods.keys()
+                            if k.startswith("test_")
+                        ]
                         for tc_name in test_methods:
                             self.tree_ctrl.AppendItem(item, tc_name, checkbox_type)
 
                 self.tree_ctrl.ExpandAll()
             except Exception:
-                show_error_dialog(self,
-                                  traceback.format_exc(),
-                                  'Cannot add test cases')
+                show_error_dialog(self, traceback.format_exc(), "Cannot add test cases")
             finally:
                 os.sys.path = syspath
 
     def __load_tests_from_directory(self, evt):
         folder = self.__get_safe_path_from_root_folder(RootFolder.TESTS_FOLDER)
         if folder:
-            dialog = DirDialog(self,
-                               defaultPath=folder,
-                               style=DD_DIR_MUST_EXIST)
+            dialog = DirDialog(self, defaultPath=folder, style=DD_DIR_MUST_EXIST)
             if dialog.ShowModal() == ID_OK:
                 self.__load_tests_to_tree(dir_path=dialog.GetPath())
         else:
@@ -257,10 +323,12 @@ class TestRunnerTab(Panel):
     def __load_tests_from_files(self, evt):
         folder = self.__get_safe_path_from_root_folder(RootFolder.TESTS_FOLDER)
         if folder:
-            dialog = FileDialog(self,
-                                defaultDir=folder,
-                                style=FD_OPEN | FD_FILE_MUST_EXIST | FD_MULTIPLE,
-                                wildcard=u'*.py')
+            dialog = FileDialog(
+                self,
+                defaultDir=folder,
+                style=FD_OPEN | FD_FILE_MUST_EXIST | FD_MULTIPLE,
+                wildcard=u"*.py",
+            )
             if dialog.ShowModal() == ID_OK:
                 self.__load_tests_to_tree(file_paths=dialog.GetPaths())
         else:
@@ -274,40 +342,48 @@ class TestRunnerTab(Panel):
                 for test_case in _class.GetChildren():
                     if test_case.IsChecked():
                         # TODO: fix for files that contain spaces
-                        tests.append(u'%s:%s.%s' % (_file.GetText(),
-                                                    _class.GetText(),
-                                                    test_case.GetText()))
-        args = ['--with-path="%s"' % self.__get_safe_path_from_root_folder(),
-                '--logging-level=INFO']
+                        tests.append(
+                            u"%s:%s.%s"
+                            % (_file.GetText(), _class.GetText(), test_case.GetText())
+                        )
+        args = [
+            '--with-path="%s"' % self.__get_safe_path_from_root_folder(),
+            "--logging-level=INFO",
+        ]
 
-        use_html_report = (self.cb_html_output.IsChecked() and
-                           len(self.txt_html_report.GetValue()) > 0)
+        use_html_report = (
+            self.cb_html_output.IsChecked() and len(self.txt_html_report.GetValue()) > 0
+        )
         if use_html_report:
             report_path = self.txt_html_report.GetValue()
             args.append('--with-html --html-file="%s"' % report_path)
 
-        use_xml_report = (self.cb_xml_output.IsChecked() and
-                          len(self.txt_xml_report.GetValue()) > 0)
+        use_xml_report = (
+            self.cb_xml_output.IsChecked() and len(self.txt_xml_report.GetValue()) > 0
+        )
         if use_xml_report:
             report_path = self.txt_xml_report.GetValue()
             args.append('--with-xunit --xunit-file="%s"' % report_path)
 
-        use_options = (self.cb_options.IsChecked() and
-                       len(self.txt_options.GetValue()) > 0)
+        use_options = (
+            self.cb_options.IsChecked() and len(self.txt_options.GetValue()) > 0
+        )
         if use_options:
             report_path = self.txt_options.GetValue()
             args.append(report_path)
 
-        nose_cmd = [u'nosetests'] + args + tests
+        nose_cmd = [u"nosetests"] + args + tests
         return nose_cmd
 
     def __run_tests(self, evt):
         # TODO: do not run if root folder is not selected
         self.txt_ctrl.Clear()
 
-        dialog = InfiniteProgressBarDialog(self,
-                                           u'Running test cases',
-                                           u'Running selected test cases... Please wait...')
+        dialog = InfiniteProgressBarDialog(
+            self,
+            u"Running test cases",
+            u"Running selected test cases... Please wait...",
+        )
 
         def wrap_func():
             stdout = os.sys.stdout
@@ -319,10 +395,14 @@ class TestRunnerTab(Panel):
                 nose_cmd = self.__get_nose_command()
                 browser_name = self.cb_browser.GetStringSelection()
                 Browser.DEFAULT_BROWSER = browser_name
-                report_folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
+                report_folder = self.__get_safe_path_from_root_folder(
+                    RootFolder.REPORTS
+                )
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 
-                easy_selenium_cmd = u" ".join(nose_cmd).replace("nosetests", "easy_selenium_cli.py -b " + browser_name)
+                easy_selenium_cmd = u" ".join(nose_cmd).replace(
+                    "nosetests", "easy_selenium_cli.py -b " + browser_name
+                )
                 print(u"Executing command:\n%s" % easy_selenium_cmd)
                 print(u"Nose output:")
 

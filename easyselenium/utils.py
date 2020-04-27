@@ -1,9 +1,17 @@
+import os
 import re
 import sys
 import logging
 
 from random import choice
 from datetime import datetime
+
+
+def unicode_str(string):
+    return u"%s" % string
+
+
+LINESEP = unicode_str(os.linesep)
 
 
 def get_match(regexp, string, single_match=True):
@@ -19,23 +27,17 @@ def is_python2():
 
 
 def is_windows():
-    return sys.platform.startswith('win')
-
-
-def unicode_str(string):
-    return u"%s" % string
+    return sys.platform.startswith("win")
 
 
 def get_timestamp():
     timetuple = datetime.now().timetuple()
-    timestamp = '%d%02d%02d%02d%02d%02d' % timetuple[:6]
+    timestamp = "%d%02d%02d%02d%02d%02d" % timetuple[:6]
     return timestamp
 
 
 def is_string(obj):
-    return type(obj) in (
-        (str, unicode) if is_python2() else (str,)
-    )
+    return type(obj) in ((str, unicode) if is_python2() else (str,))
 
 
 def get_random_value(_list, *val_to_skip):
@@ -47,7 +49,6 @@ def get_random_value(_list, *val_to_skip):
 
 
 class Logger(object):
-
     def __init__(self, name=None, log_to_console=True, file_path=None, handler=None):
         self.__logger = logging.getLogger(name)
         self.__logger.setLevel(logging.INFO)
@@ -57,7 +58,7 @@ class Logger(object):
             self.__logger.addHandler(h)
 
         if file_path:
-            h = logging.FileHandler(file_path, encoding='utf8')
+            h = logging.FileHandler(file_path, encoding="utf8")
             self.__logger.addHandler(h)
 
         if handler:
@@ -68,3 +69,14 @@ class Logger(object):
 
     def warn(self, msg, *args, **kwargs):
         self.__logger.warn(msg, *args, **kwargs)
+
+
+def get_class_name_from_file(path):
+    filename, _ = os.path.splitext(os.path.basename(path))
+    return "".join([w.capitalize() for w in filename.split(u"_")])
+
+
+def get_py_file_name_from_class_name(class_name):
+    words = re.findall("[A-Z]*[a-z0-9]*", class_name)
+    words = [w for w in words if len(w) > 0]
+    return "_".join(words).lower() + ".py"

@@ -17,13 +17,15 @@ class MenuItemData(object):
 
 
 class ContextMenu(Menu):
-    SEPARATOR_TEXT = u'------'
+    SEPARATOR_TEXT = u"------"
 
     def __init__(self, data):
         Menu.__init__(self)
 
         self.__id_and_item_data = self.__get_ids_and_item_data(data)
-        self.__text_and_item_data = dict([(d.text, d) for d in self.__id_and_item_data.values()])
+        self.__text_and_item_data = dict(
+            [(d.text, d) for d in self.__id_and_item_data.values()]
+        )
 
         self.__create_menu(data)
         self._bind_evt_menu(self.__on_menu_click)
@@ -74,4 +76,3 @@ class ContextMenu(Menu):
         func = self._get_function(_id)
         if func:
             func()
-
