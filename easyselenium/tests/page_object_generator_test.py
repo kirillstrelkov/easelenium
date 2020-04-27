@@ -136,8 +136,8 @@ class PageObjectGeneratorTest(BaseTest):
 
         selectors = [f.selector for f in po_class.fields]
         bys = [f.by for f in po_class.fields]
-        assert "link text" == bys
-        assert u"WebDriver :: Documentation for Selenium" == selectors
+        assert "link text" in bys
+        assert u"WebDriver :: Documentation for Selenium" in selectors
 
     def test_get_po_class_for_url_with_frames(self):
         folder = tempfile.gettempdir()
@@ -150,4 +150,4 @@ class PageObjectGeneratorTest(BaseTest):
         selectors = [f.selector for f in po_class.fields]
 
         assert len(selectors) >= 5
-        assert u"/html/body/div[6]/div/div/div[3]/iframe" == selectors
+        assert u"/html/body/div[6]/div/div/div[3]/iframe" in selectors
