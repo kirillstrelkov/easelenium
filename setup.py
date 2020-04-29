@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name="easyselenium",
-    version="0.4",
+    version="0.5",
     description="Easy Selenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",

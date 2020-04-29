@@ -1,9 +1,6 @@
 import os
 import traceback
 from subprocess import check_output
-import pytest
-
-pytest.skip("Module doesn't contain tests", allow_module_level=True)
 
 from wx import (
     Panel,

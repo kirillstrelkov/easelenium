@@ -262,7 +262,6 @@ class PyFileUI(Panel):
 
 class TestFileUI(PyFileUI):
     TEST_FILE_TEMPLATE = u"""# coding=utf8
-from nose.tools import *
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 

@@ -5,7 +5,6 @@ import sys
 
 from wx import App
 
-# TODO: remove, fix for local import
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from easyselenium.ui.main_ui import MainFrame
 

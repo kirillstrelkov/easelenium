@@ -21,8 +21,6 @@ from wx import (
     HORIZONTAL,
 )
 
-from nose import tools
-
 from easyselenium.ui.editor.utils import (
     FieldsTableAndTestFilesTabs,
     TestFileUI,
@@ -102,7 +100,8 @@ class EditorTab(Panel):
         )
         if len(classes) > 0 and len(classes[0].methods) == 0:
             classes = []
-        classes += [ParsedModule.get_parsed_module(tools)]
+        # TODO: fix
+        # classes += [ParsedModule.get_parsed_module(tools)]
         if field:
             classes += ParsedMouseClass.get_parsed_classes()
             classes += ParsedBrowserClass.get_parsed_classes()

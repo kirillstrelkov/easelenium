@@ -115,9 +115,7 @@ class Browser(object):
         if browser_name:
             self.__browser_name = browser_name
         else:
-            self.__browser_name = (
-                self.DEFAULT_BROWSER if self.DEFAULT_BROWSER else self.FF
-            )
+            self.__browser_name = self.DEFAULT_BROWSER or self.FF
         self.logger = logger
         self.__timeout = timeout
         self._driver = self.__create_driver(self.__browser_name, **kwargs)

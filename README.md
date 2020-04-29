@@ -10,7 +10,7 @@ Features:
 - Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 - Supports Continuous Integration
 - Suits for novice users.
-- Supports Python 2 and Python 3
+- Supports only Python 3.6+(for other versions check old master releases)
 
 Framework can be used as standalone framework with UI and/or as a library.
 Supportive classes:
@@ -30,9 +30,9 @@ GUI [easy_selenium_ui.py](/easyselenium/scripts/easy_selenium_ui.py):
 1. Python
 2. wxPython
 3. Selenium WebDriver
-4. nose
-5. nose-htmloutput plug-in
-6. nose-pathmunge plug-in
+4. pytest
+5. pytest-html
+6. pytest-dotenv
 
 ## Simple usage
 
