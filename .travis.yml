@@ -11,6 +11,7 @@ before_install:
 install:
   - pip install pytest
   - pip install pytest-html
+  - pip install pytest-dotenv
   - pip install selenium
   - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython
 before_script:
