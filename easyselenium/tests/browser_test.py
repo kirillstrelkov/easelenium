@@ -10,7 +10,7 @@ class BrowserTest(BaseTest):
     BROWSER_NAME = "gc"
 
     def test_switch_to_frame(self):
-        frame_left = (By.CSS_SELECTOR, "iframe")
+        frame = (By.CSS_SELECTOR, "iframe[src*=default]")
 
         url = "https://www.w3schools.com/html/html_iframe.asp"
         frame_url = "https://www.w3schools.com/html/default.asp"
@@ -18,7 +18,7 @@ class BrowserTest(BaseTest):
         self.browser.get(url)
         assert url == self.browser.get_current_frame_url()
 
-        self.browser.switch_to_frame(frame_left)
+        self.browser.switch_to_frame(frame)
         assert frame_url == self.browser.get_current_frame_url()
 
         self.browser.switch_to_default_content()

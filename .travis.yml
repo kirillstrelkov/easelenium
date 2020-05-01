@@ -16,7 +16,5 @@ install:
   - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
 services:
   - xvfb
-before_script:
-  - "export PATH=$PATH:/usr/lib/chromium-browser/"
 script:
   - easyselenium/scripts/easyselenium_cli.py --browser gc .
