@@ -24,4 +24,4 @@ class EasySeleniumPlugin(object):
 
 
 if __name__ == "__main__":
-    main(plugins=[EasySeleniumPlugin()])
+    sys.exit(main(plugins=[EasySeleniumPlugin()]))
