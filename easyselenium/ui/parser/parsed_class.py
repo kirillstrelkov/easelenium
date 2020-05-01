@@ -99,7 +99,7 @@ class ParsedClass(object):
         return inspect.getsource(method)
 
     def get_arg_spec(self, name_or_method):
-        if inspect.ismethod(name_or_method):
+        if inspect.ismethod(name_or_method) or inspect.isfunction(name_or_method):
             method = name_or_method
         else:
             method = self.get_value(name_or_method)

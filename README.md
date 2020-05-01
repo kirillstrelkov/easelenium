@@ -19,7 +19,7 @@ Supportive classes:
 - [base_page_object.py](/easyselenium/base_page_object.py)
 - [base_test.py](/easyselenium/base_test.py)
 
-GUI [easy_selenium_ui.py](/easyselenium/scripts/easy_selenium_ui.py):
+GUI [easyselenium_ui.py](/easyselenium/scripts/easyselenium_ui.py):
 
 - Generator
 - Editor
@@ -61,7 +61,7 @@ Check [browser_test.py](/easyselenium/test/browser_test.py) for more examples.
 
 ## Continuous Integration
 
-Done via command line script [easy_selenium_cli.py](/easyselenium/scripts/easy_selenium_cli.py)
+Done via command line script [easyselenium_cli.py](/easyselenium/scripts/easyselenium_cli.py)
 
 ## Installation
 

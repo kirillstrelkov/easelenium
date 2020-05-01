@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from distutils.core import setup
 
@@ -20,8 +20,8 @@ setup(
         "easyselenium.ui.parser",
     ],
     scripts=[
-        "easyselenium/scripts/easy_selenium_cli.py",
-        "easyselenium/scripts/easy_selenium_ui.py",
+        "easyselenium/scripts/easyselenium_cli.py",
+        "easyselenium/scripts/easyselenium_ui.py",
     ],
     requires=["selenium", "wxPython", "pytest", "pytest-html"],
 )

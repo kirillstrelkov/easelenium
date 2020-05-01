@@ -49,7 +49,7 @@ class PageObjectClassField(object):
         self.dimensions = dimensions
 
     def __eq__(self, other):
-        return (
+        return (other is not None) and (
             self.name == other.name
             and self.by == other.by
             and self.selector == other.selector

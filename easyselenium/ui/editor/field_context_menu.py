@@ -22,8 +22,6 @@ class FieldContextMenu(ContextMenu):
             if is_asserts or is_mouse or not is_browser:
                 if is_mouse:
                     name = u"Mouse"
-                elif is_asserts:
-                    name = u"Asserts"
                 else:
                     name = pc.name
                 data.append((name, self.__prepare_context_data(pc.methods)))
@@ -33,6 +31,9 @@ class FieldContextMenu(ContextMenu):
                 browser_data = self.__prepare_context_data(pc.methods)
                 for name, method in browser_data:
                     data.append((name, method))
+
+        if not parsed_classes:
+            data.append(("assert", None))
         return data
 
     def __prepare_context_data(self, initial_data):
@@ -75,9 +76,14 @@ class FieldContextMenu(ContextMenu):
                     if method in pc.methods.values():
                         arg_spec = pc.get_arg_spec(method)
                         self.__txt_ctrl_ui.append_method_call(
-                            self.__field, method_name, method, arg_spec
+                            field=self.__field,
+                            method_name=method_name,
+                            method=method,
+                            arg_spec=arg_spec,
                         )
                         break
+                if method_name == "assert":
+                    self.__txt_ctrl_ui.append_method_call(method_name=method_name)
             else:
                 show_dialog(
                     self.GetParent(),

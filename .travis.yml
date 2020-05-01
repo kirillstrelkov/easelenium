@@ -2,15 +2,15 @@ sudo: required
 dist: trusty
 language: python
 python:
-  - '2.7'
-  - '3.6'
+  - "3.6"
+  - "3.7"
+  - "3.8"
 before_install:
   - sudo apt-get update
   - sudo apt-get install -y chromium-chromedriver
 install:
-  - pip install nose
-  - pip install nose-pathmunge
-  - pip install nose-htmloutput
+  - pip install pytest
+  - pip install pytest-html
   - pip install selenium
   - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython
 before_script:
@@ -19,4 +19,4 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - "sleep 3"
 script:
-  - easyselenium/scripts/easy_selenium_cli.py --logging-level=INFO -b gc
+  - easyselenium/scripts/easyselenium_cli.py -b gc

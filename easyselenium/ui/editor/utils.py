@@ -15,6 +15,7 @@ from wx import (
     TE_READONLY,
     FONTFAMILY_TELETYPE,
     NORMAL,
+    CallAfter,
     Font,
     EVT_KEY_DOWN,
     WXK_TAB,
@@ -55,8 +56,8 @@ from easyselenium.utils import is_windows, get_class_name_from_file, LINESEP
 
 
 class PyFileUI(Panel):
-    CHANGED_PREFIX = u"*"
-    METHOD_TEMPLATE = u"""
+    CHANGED_PREFIX = "*"
+    METHOD_TEMPLATE = """
     def {method_name}(self):
         pass
 
@@ -108,7 +109,7 @@ class PyFileUI(Panel):
             save_file(self.__file_path, self.txt_content.GetValue())
             formatted_exc = check_file_for_errors(self.__file_path, root_folder)
             if formatted_exc:
-                show_error_dialog(self, formatted_exc, u"File contains errors")
+                show_error_dialog(self, formatted_exc, "File contains errors")
 
     def set_file_was_changed(self):
         text = self.__get_selected_tab_text()
@@ -119,7 +120,7 @@ class PyFileUI(Panel):
         key = evt.GetUnicodeKey()
         ctrl_s_pressed = key == 83 and evt.ControlDown()
         if key == WXK_TAB:
-            indent = u"    "
+            indent = "    "
             self.txt_content.WriteText(indent)
         elif ctrl_s_pressed:
             self.save_file()
@@ -129,9 +130,9 @@ class PyFileUI(Panel):
 
     def append_text(self, text):
         content = self.txt_content.GetValue()
-        pass_with_tab = u"    pass"
+        pass_with_tab = "    pass"
         if pass_with_tab in content:
-            content = content.replace(pass_with_tab, u"").rstrip() + LINESEP
+            content = content.replace(pass_with_tab, "").rstrip() + LINESEP
             self.txt_content.SetValue(content)
 
         self.txt_content.AppendText(text)
@@ -150,7 +151,18 @@ class PyFileUI(Panel):
     def has_one_or_more_methods_or_test_cases(self):
         return len(re.findall("def [a-z_]+\(self.+:", self.txt_content.GetValue())) > 0
 
-    def append_method_call(self, field, method_name, method, arg_spec):
+    def append_method_call(
+        self, field=None, method_name=None, method=None, arg_spec=None
+    ):
+        # TODO: simplify
+        assert field or method_name
+        if method_name == "assert":
+            var = "expression"
+            dialog = MultipleTextEntry(self, "Please enter values", [var])
+            if dialog.ShowModal() == ID_OK:
+                self.append_text(f"\n        assert {dialog.values[var]}")
+            return
+
         is_po_class_file_selected = type(self) == PyFileUI
         # removing arguments with default value
         args = arg_spec.args
@@ -182,9 +194,9 @@ class PyFileUI(Panel):
         if element_txt in args:
             element_index = args.index(element_txt)
             if is_po_class_file_selected:
-                args[element_index] = u"self.%s" % field.name
+                args[element_index] = "self.%s" % field.name
             else:
-                args[element_index] = u"self.%s.%s" % (lowered_class_name, field.name)
+                args[element_index] = "self.%s.%s" % (lowered_class_name, field.name)
 
         if is_browser_method:
             caller = "self.browser"
@@ -203,13 +215,13 @@ class PyFileUI(Panel):
         if is_getter_method_and_no_args:
             var = method_name.replace(get_prefix, "")
             method_call_template = (
-                u"        {var} = {caller}.{method}({method_args})" + LINESEP
+                "        {var} = {caller}.{method}({method_args})" + LINESEP
             )
             method_kwargs["var"] = var
         elif caller is None:
-            method_call_template = u"        {method}({method_args})" + LINESEP
+            method_call_template = "        {method}({method_args})" + LINESEP
         else:
-            method_call_template = u"        {caller}.{method}({method_args})" + LINESEP
+            method_call_template = "        {caller}.{method}({method_args})" + LINESEP
 
         if (
             len(args) > 1
@@ -228,7 +240,7 @@ class PyFileUI(Panel):
                     {
                         "caller": caller,
                         "method": method_name,
-                        "method_args": u", ".join(args),
+                        "method_args": ", ".join(args),
                     }
                 )
                 code_line = method_call_template.format(**method_kwargs)
@@ -238,14 +250,14 @@ class PyFileUI(Panel):
 
                 if formatted_exception:
                     show_dialog(
-                        self, formatted_exception, u"Values are not Python expressions"
+                        self, formatted_exception, "Values are not Python expressions"
                     )
                 else:
                     method_kwargs.update(
                         {
                             "caller": caller,
                             "method": method_name,
-                            "method_args": u", ".join(args),
+                            "method_args": ", ".join(args),
                         }
                     )
                     self.append_text(method_call_template.format(**method_kwargs))
@@ -254,14 +266,14 @@ class PyFileUI(Panel):
                 {
                     "caller": caller,
                     "method": method_name,
-                    "method_args": u", ".join(args),
+                    "method_args": ", ".join(args),
                 }
             )
             self.append_text(method_call_template.format(**method_kwargs))
 
 
 class TestFileUI(PyFileUI):
-    TEST_FILE_TEMPLATE = u"""# coding=utf8
+    TEST_FILE_TEMPLATE = """# coding=utf8
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
@@ -295,14 +307,14 @@ class {class_name}(BaseTest):
         path, _ = os.path.splitext(po_class.file_path)
         path = path.replace(root_folder, "").strip()
         paths = [p for p in os.path.normpath(path).split(os.sep) if len(p) > 0]
-        correct_import = u".".join(paths)
+        correct_import = ".".join(paths)
         class_name = po_class.name
-        import_line = u"from {relative_import} import {class_name}".format(
+        import_line = "from {relative_import} import {class_name}".format(
             relative_import=correct_import, class_name=class_name
         )
         text = self.txt_content.GetValue()
         if import_line not in text:
-            base_test_import = u"import BaseTest"
+            base_test_import = "import BaseTest"
             shift = 6 if is_windows() else len(LINESEP)  # windows hack
             pos = text.index(base_test_import) + len(base_test_import) + shift
             self.insert_text(import_line, pos)
@@ -310,24 +322,30 @@ class {class_name}(BaseTest):
     def __fix_class_initialization(self, po_class):
         class_name = po_class.name
         field_name = class_name.lower()
-        field_line = u"        cls.{field_name} = {class_name}(cls.browser, cls.logger)".format(
+        field_line = "        cls.{field_name} = {class_name}(cls.browser, cls.logger)".format(
             field_name=field_name, class_name=class_name
         )
 
         text = self.txt_content.GetValue()
         if field_line not in text:
-            class_def_end = u"cls).setUpClass()"
+            class_def_end = "cls).setUpClass()"
             shift = 13 if is_windows() else len(LINESEP)  # windows hack
             pos = text.index(class_def_end) + len(class_def_end) + shift
             self.insert_text(field_line, pos)
 
-    def append_method_call(self, field, method_name, method, arg_spec):
-        po_class = self.grandparent.get_current_pageobject_class()
+    def append_method_call(
+        self, field=None, method_name=None, method=None, arg_spec=None
+    ):
+        assert field or method_name
+        if method_name != "assert":
+            po_class = self.grandparent.get_current_pageobject_class()
 
-        self.__fix_class_initialization(po_class)
-        self.__fix_imports(po_class)
+            self.__fix_class_initialization(po_class)
+            self.__fix_imports(po_class)
 
-        PyFileUI.append_method_call(self, field, method_name, method, arg_spec)
+        PyFileUI.append_method_call(
+            self, field=field, method_name=method_name, method=method, arg_spec=arg_spec
+        )
 
     def create_new_test_case(self, test_case_name):
         self.create_method(test_case_name)
@@ -348,21 +366,21 @@ class FieldsTableAndTestFilesTabs(Panel):
 
         row = 0
         inner_sizer = BoxSizer(HORIZONTAL)
-        self.btn_open_test_file = Button(self, label=u"Open test file")
+        self.btn_open_test_file = Button(self, label="Open test file")
         self.btn_open_test_file.Bind(EVT_BUTTON, self.__on_open_test_file)
         inner_sizer.Add(self.btn_open_test_file)
 
-        self.btn_create_test_file = Button(self, label=u"Create test file")
+        self.btn_create_test_file = Button(self, label="Create test file")
         self.btn_create_test_file.Bind(EVT_BUTTON, self.__on_create_test_file)
         inner_sizer.Add(self.btn_create_test_file)
 
-        self.btn_save_test_file = Button(self, label=u"Save current file")
+        self.btn_save_test_file = Button(self, label="Save current file")
         self.btn_save_test_file.Bind(EVT_BUTTON, self.__on_save_test_file)
         inner_sizer.Add(self.btn_save_test_file)
 
         inner_sizer.AddStretchSpacer(1)
 
-        self.btn_create_test = Button(self, label=u"Create new method/test case")
+        self.btn_create_test = Button(self, label="Create new method/test case")
         self.btn_create_test.Bind(EVT_BUTTON, self.__create_method_or_test)
         inner_sizer.Add(self.btn_create_test)
         sizer.Add(inner_sizer, pos=(row, 0), span=full_span, flag=FLAG_ALL_AND_EXPAND)
@@ -427,20 +445,20 @@ class FieldsTableAndTestFilesTabs(Panel):
             else:
                 show_dialog(
                     self,
-                    u"Selected tab is not supported"
+                    "Selected tab is not supported"
                     + LINESEP
-                    + u"Please selected test file or page object class",
+                    + "Please selected test file or page object class",
                     "Bad selected tab",
                 )
         else:
             show_dialog(
                 self,
-                u"Test file was not created." + LINESEP + "Please create a test file.",
-                u"Test file was not created",
+                "Test file was not created." + LINESEP + "Please create a test file.",
+                "Test file was not created",
             )
 
     def __create_method(self, page):
-        modal = TextEntryDialog(self, u"Enter method name", u"Create method")
+        modal = TextEntryDialog(self, "Enter method name", "Create method")
         if modal.ShowModal() == ID_OK:
             method_name = modal.GetValue()
             if StringUtils.is_method_name_correct(method_name):
@@ -449,7 +467,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                 show_dialog_bad_name(self, method_name, "search", "login", "fill_data")
 
     def __create_test(self, page):
-        modal = TextEntryDialog(self, u"Enter test case name", u"Create new test case")
+        modal = TextEntryDialog(self, "Enter test case name", "Create new test case")
         if modal.ShowModal() == ID_OK:
             test_case_name = modal.GetValue()
             if StringUtils.is_test_case_name_correct(test_case_name):
@@ -463,7 +481,7 @@ class FieldsTableAndTestFilesTabs(Panel):
             page = self.tabs.GetPage(self.tabs.GetSelection())
             page.save_file()
         else:
-            show_dialog(self, u"Please create/open test file.", u"Nothing to save")
+            show_dialog(self, "Please create/open test file.", "Nothing to save")
 
     def __open_or_create_test_file(self, style):
         if self.__cur_po_class:
@@ -491,9 +509,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                 else:
                     show_dialog_bad_name(self, filename, "my_first_test.py")
         else:
-            show_dialog(
-                self, u"Please select class file.", u"Class file was not opened"
-            )
+            show_dialog(self, "Please select class file.", "Class file was not opened")
 
     def __on_open_test_file(self, evt):
         self.__open_or_create_test_file(FD_OPEN)
@@ -532,11 +548,11 @@ class MultipleTextEntry(Dialog):
             sizer.Add(txtctrl, pos=(row, 1), flag=FLAG_ALL_AND_EXPAND)
             row += 1
 
-        self.btn_cancel = Button(self, label=u"Cancel")
+        self.btn_cancel = Button(self, label="Cancel")
         self.btn_cancel.Bind(EVT_BUTTON, self.__on_btn)
         sizer.Add(self.btn_cancel, pos=(row, 0), flag=FLAG_ALL_AND_EXPAND)
 
-        self.btn_ok = Button(self, label=u"OK")
+        self.btn_ok = Button(self, label="OK")
         self.btn_ok.Bind(EVT_BUTTON, self.__on_btn)
         sizer.Add(self.btn_ok, pos=(row, 1), flag=FLAG_ALL_AND_EXPAND)
 
@@ -555,9 +571,7 @@ class MultipleTextEntry(Dialog):
                 value = txt_ctrl.GetValue()
                 self.values[label] = value
                 if len(value) == 0:
-                    errors.append(
-                        u"Variable '%s' has empty value '%s'" % (label, value)
-                    )
+                    errors.append("Variable '%s' has empty value '%s'" % (label, value))
 
             return_code = ID_OK
         else:
@@ -567,4 +581,4 @@ class MultipleTextEntry(Dialog):
         if len(errors) > 0:
             show_dialog(self, LINESEP.join(errors), "Bad entered data")
         else:
-            self.EndModal(return_code)
+            CallAfter(self.EndModal, ID_OK)

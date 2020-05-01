@@ -23,11 +23,18 @@ class Table(Grid):
 
         self.__data = data
         count = len(self.__data)
-        new_table = GridStringTable(count, len(self.__data_attrs))
+
+        if not self.GetTable():
+            self.CreateGrid(count, len(self.__data_attrs))
+            table = self.GetTable()
+        else:
+            table = self.GetTable()
+            table.AppendRows(count)
+            table.AppendCols(len(self.__data_attrs))
 
         # filling headers
         for attr in self.__data_attrs:
-            new_table.SetColLabelValue(self.__data_attrs.index(attr), attr.capitalize())
+            table.SetColLabelValue(self.__data_attrs.index(attr), attr.capitalize())
 
         # filling data
         for d in self.__data:
@@ -42,9 +49,8 @@ class Table(Grid):
                 elif is_location_or_dimensions:
                     value = str(value)
 
-                new_table.SetValue(j, i, value)
+                table.SetValue(j, i, value)
 
-        self.SetTable(new_table, takeOwnership=True)
         self.AutoSizeColumns()
 
     def clear_table(self):

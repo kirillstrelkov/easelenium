@@ -54,7 +54,7 @@ class ContextMenu(Menu):
                 for _text, _ in func:
                     _id = self.__text_and_item_data[_text].id
                     sitem = MenuItem(submenu, _id, _text)
-                    submenu.AppendItem(sitem)
+                    submenu.Append(sitem)
                 self.AppendSubMenu(submenu, text)
             else:
                 if text == self.SEPARATOR_TEXT:
@@ -62,7 +62,7 @@ class ContextMenu(Menu):
                 else:
                     data = self.__text_and_item_data[text]
                     item = MenuItem(self, data.id, text)
-                    self.AppendItem(item)
+                    self.Append(item)
 
     def _get_menu_item_data(self, menu_item_id):
         return self.__id_and_item_data.get(menu_item_id)

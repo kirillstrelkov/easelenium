@@ -2,6 +2,7 @@ import os
 import traceback
 from subprocess import check_output
 
+from pytest import main
 from wx import (
     Panel,
     GridBagSizer,
@@ -64,6 +65,9 @@ class RedirectText(object):
     def write(self, string):
         CallAfter(self.out.WriteText, string)
 
+    def isatty(self):
+        return False
+
     def flush(self):
         pass
 
@@ -75,7 +79,7 @@ class TestRunnerTab(Panel):
 
         row = 0
         col = 0
-        self.cb_html_output = CheckBox(self, label=u"Report in HTML")
+        self.cb_html_output = CheckBox(self, label="Report in HTML")
         self.cb_html_output.Bind(EVT_CHECKBOX, self.__on_check)
         sizer.Add(self.cb_html_output, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -87,14 +91,14 @@ class TestRunnerTab(Panel):
         )
 
         col += 3
-        self.btn_select_html = Button(self, label=u"Select HTML file")
+        self.btn_select_html = Button(self, label="Select HTML file")
         self.btn_select_html.Disable()
         self.btn_select_html.Bind(EVT_BUTTON, self.__on_select_file)
         sizer.Add(self.btn_select_html, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        self.cb_xml_output = CheckBox(self, label=u"Report in XML")
+        self.cb_xml_output = CheckBox(self, label="Report in XML")
         self.cb_xml_output.Bind(EVT_CHECKBOX, self.__on_check)
         sizer.Add(self.cb_xml_output, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -106,14 +110,14 @@ class TestRunnerTab(Panel):
         )
 
         col += 3
-        self.btn_select_xml = Button(self, label=u"Select XML file")
+        self.btn_select_xml = Button(self, label="Select XML file")
         self.btn_select_xml.Disable()
         self.btn_select_xml.Bind(EVT_BUTTON, self.__on_select_file)
         sizer.Add(self.btn_select_xml, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        self.cb_options = CheckBox(self, label=u"Additional options")
+        self.cb_options = CheckBox(self, label="Additional options")
         self.cb_options.Bind(EVT_CHECKBOX, self.__on_check)
         sizer.Add(self.cb_options, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -125,20 +129,20 @@ class TestRunnerTab(Panel):
         )
 
         col += 3
-        self.btn_nose_help = Button(self, label=u"Show help")
+        self.btn_nose_help = Button(self, label="Show help")
         self.btn_nose_help.Bind(EVT_BUTTON, self.__on_show_help)
         sizer.Add(self.btn_nose_help, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        self.btn_load_tests_from_files = Button(self, label=u"Load tests from files")
+        self.btn_load_tests_from_files = Button(self, label="Load tests from files")
         self.btn_load_tests_from_files.Bind(EVT_BUTTON, self.__load_tests_from_files)
         sizer.Add(
             self.btn_load_tests_from_files, pos=(row, col), flag=FLAG_ALL_AND_EXPAND
         )
 
         col += 1
-        self.btn_load_tests_from_dir = Button(self, label=u"Load tests from directory")
+        self.btn_load_tests_from_dir = Button(self, label="Load tests from directory")
         self.btn_load_tests_from_dir.Bind(EVT_BUTTON, self.__load_tests_from_directory)
         sizer.Add(
             self.btn_load_tests_from_dir, pos=(row, col), flag=FLAG_ALL_AND_EXPAND
@@ -154,7 +158,7 @@ class TestRunnerTab(Panel):
         sizer.Add(self.cb_browser, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.btn_run = Button(self, label=u"Run test cases")
+        self.btn_run = Button(self, label="Run test cases")
         self.btn_run.Bind(EVT_BUTTON, self.__run_tests)
         sizer.Add(self.btn_run, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -187,21 +191,32 @@ class TestRunnerTab(Panel):
         self.SetSizerAndFit(sizer)
 
     def __on_show_help(self, evt):
-        text = check_output(["nosetests", "--help"])
-        DialogWithText(self, u"Help for nosetests", text).ShowModal()
+        # TODO: simplify
+        text = check_output(
+            [
+                os.sys.executable,
+                os.path.abspath(
+                    os.path.join(
+                        os.path.dirname(__file__), "../scripts/easyselenium_cli.py"
+                    )
+                ),
+                "--help",
+            ]
+        )
+        DialogWithText(self, "Help for nosetests", text).ShowModal()
 
     def __on_select_file(self, evt):
         folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
         obj = evt.GetEventObject()
         txt_ctrl = None
         if obj == self.btn_select_html:
-            wildcard = u"*.html"
+            wildcard = "*.html"
             txt_ctrl = self.txt_html_report
         elif obj == self.btn_select_xml:
-            wildcard = u"*.xml"
+            wildcard = "*.xml"
             txt_ctrl = self.txt_xml_report
         else:
-            wildcard = u"*.*"
+            wildcard = "*.*"
         dialog = FileDialog(
             self,
             defaultDir=folder,
@@ -324,14 +339,14 @@ class TestRunnerTab(Panel):
                 self,
                 defaultDir=folder,
                 style=FD_OPEN | FD_FILE_MUST_EXIST | FD_MULTIPLE,
-                wildcard=u"*.py",
+                wildcard="*.py",
             )
             if dialog.ShowModal() == ID_OK:
                 self.__load_tests_to_tree(file_paths=dialog.GetPaths())
         else:
             show_dialog_path_doesnt_exist(self, folder)
 
-    def __get_nose_command(self):
+    def __get_command(self):
         root = self.tree_ctrl.GetRootItem()
         tests = []
         for _file in root.GetChildren():
@@ -339,13 +354,18 @@ class TestRunnerTab(Panel):
                 for test_case in _class.GetChildren():
                     if test_case.IsChecked():
                         # TODO: fix for files that contain spaces
-                        tests.append(
-                            u"%s:%s.%s"
-                            % (_file.GetText(), _class.GetText(), test_case.GetText())
-                        )
+                        test_path = _file.GetText()
+                        test_class = _class.GetText()
+                        test_method = test_case.GetText()
+                        tests.append(f"{test_path}")
+                        tests.append(f"-k")
+                        tests.append(f"{test_class} and {test_method}")
+
+        if not tests:
+            return
+
         args = [
-            '--with-path="%s"' % self.__get_safe_path_from_root_folder(),
-            "--logging-level=INFO",
+            f"--rootdir={self.__get_safe_path_from_root_folder()}",
         ]
 
         use_html_report = (
@@ -353,14 +373,14 @@ class TestRunnerTab(Panel):
         )
         if use_html_report:
             report_path = self.txt_html_report.GetValue()
-            args.append('--with-html --html-file="%s"' % report_path)
+            args.append(f"--html={report_path}")
 
         use_xml_report = (
             self.cb_xml_output.IsChecked() and len(self.txt_xml_report.GetValue()) > 0
         )
         if use_xml_report:
             report_path = self.txt_xml_report.GetValue()
-            args.append('--with-xunit --xunit-file="%s"' % report_path)
+            args.append(f"--junitxml={report_path}")
 
         use_options = (
             self.cb_options.IsChecked() and len(self.txt_options.GetValue()) > 0
@@ -369,7 +389,7 @@ class TestRunnerTab(Panel):
             report_path = self.txt_options.GetValue()
             args.append(report_path)
 
-        nose_cmd = [u"nosetests"] + args + tests
+        nose_cmd = ["easyselenium_cli.py"] + args + tests
         return nose_cmd
 
     def __run_tests(self, evt):
@@ -377,9 +397,7 @@ class TestRunnerTab(Panel):
         self.txt_ctrl.Clear()
 
         dialog = InfiniteProgressBarDialog(
-            self,
-            u"Running test cases",
-            u"Running selected test cases... Please wait...",
+            self, "Running test cases", "Running selected test cases... Please wait...",
         )
 
         def wrap_func():
@@ -389,7 +407,7 @@ class TestRunnerTab(Panel):
             os.sys.stdout = redirected
             os.sys.stderr = redirected
             try:
-                nose_cmd = self.__get_nose_command()
+                cmd = self.__get_command()
                 browser_name = self.cb_browser.GetStringSelection()
                 Browser.DEFAULT_BROWSER = browser_name
                 report_folder = self.__get_safe_path_from_root_folder(
@@ -397,13 +415,13 @@ class TestRunnerTab(Panel):
                 )
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 
-                easy_selenium_cmd = u" ".join(nose_cmd).replace(
-                    "nosetests", "easy_selenium_cli.py -b " + browser_name
+                easyselenium_cmd = " ".join(cmd).replace(
+                    "easyselenium_cli.py",
+                    "easyselenium_cli.py --browser " + browser_name,
                 )
-                print(u"Executing command:\n%s" % easy_selenium_cmd)
-                print(u"Nose output:")
+                print(f"Executing command:\n{easyselenium_cmd}")
 
-                run(argv=nose_cmd[1:])
+                main(cmd[1:])
             finally:
                 dialog.close_event.set()
                 os.sys.stdout = stdout

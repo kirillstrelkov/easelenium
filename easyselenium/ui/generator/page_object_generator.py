@@ -16,6 +16,9 @@ from easyselenium.ui.generator.page_object_class import (
 from easyselenium.ui.file_utils import check_if_path_exists
 
 
+# TODO: when generating link_text - escape new lines
+
+
 class PageObjectGenerator(object):
     # js code ref. -
     # https://code.google.com/p/fbug/source/browse/branches/firebug1.7/content/firebug/lib.js?r=8828

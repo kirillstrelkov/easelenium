@@ -159,7 +159,7 @@ class MainFrame(Frame):
     def __on_close(self, evt):
         self.__close_browser(evt)
 
-        shutil.rmtree(self.__tmp_dir)
+        shutil.rmtree(self.__tmp_dir, ignore_errors=True)
         self.Destroy()
 
     def get_url(self):

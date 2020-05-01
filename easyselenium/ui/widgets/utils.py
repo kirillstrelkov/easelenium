@@ -115,7 +115,7 @@ class DialogWithText(Dialog):
         self.SetSizer(sizer)
 
     def __close(self, evt):
-        self.EndModal(ID_OK)
+        CallAfter(self.EndModal, ID_OK)
         self.Hide()
 
 
@@ -136,7 +136,7 @@ class InfiniteProgressBarDialog(Dialog):
             while not self.close_event.is_set():
                 sleep(0.05)
                 self.gauge.Pulse()
-            self.EndModal(ID_OK)
+            CallAfter(self.EndModal, ID_OK)
 
         self.SetSizerAndFit(sizer)
 
