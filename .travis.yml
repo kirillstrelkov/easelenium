@@ -18,4 +18,4 @@ services:
 before_script:
   - "export PATH=$PATH:/usr/lib/chromium-browser/"
 script:
-  - easyselenium/scripts/easyselenium_cli.py -b gc
+  - easyselenium/scripts/easyselenium_cli.py -b gc .
