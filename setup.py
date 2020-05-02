@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name="easyselenium",
-    version="0.5",
+    version="0.4",
     description="Easy Selenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",
@@ -19,9 +19,10 @@ setup(
         "easyselenium.ui.selector_finder",
         "easyselenium.ui.parser",
     ],
+    python_requires=">=3.6",
     scripts=[
         "easyselenium/scripts/easyselenium_cli.py",
         "easyselenium/scripts/easyselenium_ui.py",
     ],
-    requires=["selenium", "wxPython", "pytest", "pytest-html"],
+    requires=["selenium", "wxPython", "pytest", "pytest_html"],
 )
