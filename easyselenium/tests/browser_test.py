@@ -7,7 +7,7 @@ from easyselenium.base_test import BaseTest
 
 # TODO: fix failing tests
 class BrowserTest(BaseTest):
-    BROWSER_NAME = "gc"
+    BROWSER_NAME = "ff"
 
     def test_switch_to_frame(self):
         frame = (By.CSS_SELECTOR, "iframe[src*=default]")

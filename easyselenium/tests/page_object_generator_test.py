@@ -126,7 +126,7 @@ class PageObjectGeneratorTest(BaseTest):
         name = "DuckDuckGo"
         area = (50, 156, 615, 244)
         po_class = self.generator.get_po_class_for_url(
-            u"https://duckduckgo.com/?q=selenium+web&ia=web", name, folder, area
+            u"https://duckduckgo.com/?q=selenium+web+driver&ia=web", name, folder, area
         )
         for f in po_class.fields:
             x, y = f.location
