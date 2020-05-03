@@ -126,7 +126,7 @@ class PageObjectGeneratorTest(BaseTest):
         name = "DuckDuckGo"
         area = (50, 156, 715, 344)
         po_class = self.generator.get_po_class_for_url(
-            u"https://duckduckgo.com/?q=selenium+web+driver&ia=web", name, folder, area
+            u"https://duckduckgo.com/?q=selenium+webdriver&ia=web", name, folder, area
         )
         for f in po_class.fields:
             x, y = f.location
@@ -137,7 +137,7 @@ class PageObjectGeneratorTest(BaseTest):
         selectors = [f.selector for f in po_class.fields]
         bys = [f.by for f in po_class.fields]
         assert "link text" in bys
-        assert u"WebDriver :: Documentation for Selenium" in selectors
+        assert "https://www.selenium.dev" in selectors
 
     def test_get_po_class_for_url_with_frames(self):
         folder = tempfile.gettempdir()
