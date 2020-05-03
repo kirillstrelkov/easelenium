@@ -15,4 +15,4 @@ install:
   - pip install selenium
   - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
 script:
-  - xvfb-run --server-args="-screen 0 1366x768x24" easyselenium/scripts/easyselenium_cli.py --browser ff easyselenium/tests
+  - xvfb-run --server-args="-screen 0 1366x768x24" easelenium/scripts/easelenium_cli.py --browser ff easelenium/tests

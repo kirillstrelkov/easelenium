@@ -1,6 +1,6 @@
-# easyselenium
+# easelenium
 
-[![Build Status](https://travis-ci.org/kirillstrelkov/easyselenium.svg?branch=master)](https://travis-ci.org/kirillstrelkov/easyselenium)
+[![Build Status](https://travis-ci.org/kirillstrelkov/easelenium.svg?branch=master)](https://travis-ci.org/kirillstrelkov/easelenium)
 
 Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
 
@@ -15,11 +15,11 @@ Features:
 Framework can be used as standalone framework with UI and/or as a library.
 Supportive classes:
 
-- [browser.py](/easyselenium/browser.py)
-- [base_page_object.py](/easyselenium/base_page_object.py)
-- [base_test.py](/easyselenium/base_test.py)
+- [browser.py](/easelenium/browser.py)
+- [base_page_object.py](/easelenium/base_page_object.py)
+- [base_test.py](/easelenium/base_test.py)
 
-GUI [easyselenium_ui.py](/easyselenium/scripts/easyselenium_ui.py):
+GUI [easelenium_ui.py](/easelenium/scripts/easelenium_ui.py):
 
 - Generator
 - Editor
@@ -42,7 +42,7 @@ Here is simple example:
 
 ```python
 >>> from selenium.webdriver.common.by import By
->>> from easyselenium.browser import Browser
+>>> from easelenium.browser import Browser
 >>> browser = Browser('ff') # initilizing browser
 >>> browser.get('http://www.google.com') # going to google
 >>> # creating variables for page elements:
@@ -57,18 +57,18 @@ u'Selenium - Web Browser Automation'
 >>> browser.quit() # closing browser
 ```
 
-Check [browser_test.py](/easyselenium/test/browser_test.py) for more examples.
+Check [browser_test.py](/easelenium/test/browser_test.py) for more examples.
 
 ## Continuous Integration
 
-Done via command line script [easyselenium_cli.py](/easyselenium/scripts/easyselenium_cli.py)
+Done via command line script [easelenium_cli.py](/easelenium/scripts/easelenium_cli.py)
 
 ## Installation
 
 ### Using `pip`
 
 ```shell
-pip install easyselenium
+pip install easelenium
 ```
 
 ### Manual
@@ -83,7 +83,7 @@ pip install easyselenium
 python -m pip install -r requirements.txt
 ```
 
-6. Go to `easyselenium` folder and install with command:
+6. Go to `easelenium` folder and install with command:
 
 ```shell
 python setup.py install
@@ -91,7 +91,7 @@ python setup.py install
 
 ## License
 
-MIT License [easyselenium_license.txt](/easyselenium/licenses/easyselenium_license.txt)
+MIT License [easelenium_license.txt](/easelenium/licenses/easelenium_license.txt)
 
 ## Tutorial
 
