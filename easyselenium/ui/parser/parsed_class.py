@@ -1,81 +1,11 @@
 import os
-import imp
 import inspect
 from pprint import pformat
 from unittest.case import TestCase
 
 from easyselenium.browser import Browser, Mouse
 from easyselenium.utils import is_string
-
-
-class ParsedModule(object):
-    PROTECTED_PREFIX = "_"
-    PRIVATE_PREFIX = "__"
-
-    def __init__(self, name, module_odj, fields, methods):
-        self.name = name
-        self.module_obj = module_odj
-        self.fields = fields
-        self.methods = methods
-
-    def get_value(self, name):
-        return self.fields.get(name) or self.methods.get(name)
-
-    def get_code(self, name_or_method):
-        if inspect.ismethod(name_or_method):
-            method = name_or_method
-        else:
-            method = self.get_value(name_or_method)
-        return inspect.getsource(method)
-
-    def get_arg_spec(self, name_or_method):
-        if inspect.ismethod(name_or_method):
-            method = name_or_method
-        else:
-            method = self.get_value(name_or_method)
-        return inspect.getargspec(method)
-
-    def get_module(self):
-        return inspect.getmodule(self.module_obj)
-
-    def get_source_file(self):
-        return inspect.getsourcefile(self.module_obj)
-
-    def __str__(self):
-        return pformat(self.__dict__)
-
-    def __repr__(self):
-        return str(self)
-
-    @classmethod
-    def get_parsed_module(cls, module_or_path):
-        module_name = None
-        module_obj = None
-
-        is_path = is_string(module_or_path)
-        if inspect.ismodule(module_or_path) or is_path:
-            if is_path:
-                module_name = os.path.splitext(os.path.basename(module_or_path))[0]
-                module_or_path = imp.load_source(module_name, module_or_path)
-
-            module_obj = inspect.getmodule(module_or_path)
-            module_name = module_obj.__name__
-        else:
-            raise NotImplementedError
-
-        def filter_private_members(members):
-            return [
-                m
-                for m in members
-                if cls.PROTECTED_PREFIX not in m[0] or cls.PRIVATE_PREFIX not in m[0]
-            ]
-
-        methods = inspect.getmembers(module_obj, inspect.ismethod)
-        methods = filter_private_members(methods)
-        fields = inspect.getmembers(module_obj, lambda o: not inspect.isroutine(o))
-        fields = filter_private_members(fields)
-
-        return ParsedModule(module_name, module_obj, dict(fields), dict(methods))
+from importlib.machinery import SourceFileLoader
 
 
 class ParsedClass(object):
@@ -103,7 +33,7 @@ class ParsedClass(object):
             method = name_or_method
         else:
             method = self.get_value(name_or_method)
-        return inspect.getargspec(method)
+        return inspect.getfullargspec(method)
 
     def get_module(self):
         return inspect.getmodule(self.class_obj)
@@ -125,9 +55,9 @@ class ParsedClass(object):
                 module_name = os.path.splitext(
                     os.path.basename(module_or_class_or_path)
                 )[0]
-                module_or_class_or_path = imp.load_source(
+                module_or_class_or_path = SourceFileLoader(
                     module_name, module_or_class_or_path
-                )
+                ).load_module()
 
             cur_module = inspect.getmodule(module_or_class_or_path)
             classes = inspect.getmembers(

@@ -11,7 +11,6 @@ from easyselenium.ui.parser.parsed_class import (
     ParsedBrowserClass,
     ParsedMouseClass,
     ParsedPageObjectClass,
-    ParsedModule,
 )
 
 
@@ -68,53 +67,6 @@ class ParsedBrowserClassTest(TestCase):
         assert "get_current_url" in parsed_class.methods
         assert "switch_to_frame" in parsed_class.methods
         assert "switch_to_default_content" in parsed_class.methods
-
-
-# TODO: fix me
-@mark.skip
-class ParseNoseToolsModuleTest(TestCase):
-    def test_methods_parsed_tools_module(self):
-        # parsed_module = ParsedModule.get_parsed_module(tools)
-        # assert "nose.tools" == parsed_module.name
-        # assert parsed_module.module_obj is tools
-        good_methods = [
-            "assert_almost_equal",
-            "assert_almost_equals",
-            "assert_dict_contains_subset",
-            "assert_dict_equal",
-            "assert_equal",
-            "assert_equals",
-            "assert_false",
-            "assert_greater",
-            "assert_greater_equal",
-            "assert_in",
-            "assert_is",
-            "assert_is_instance",
-            "assert_is_none",
-            "assert_is_not",
-            "assert_is_not_none",
-            "assert_less",
-            "assert_less_equal",
-            "assert_list_equal",
-            "assert_multi_line_equal",
-            "assert_not_almost_equal",
-            "assert_not_almost_equals",
-            "assert_not_equal",
-            "assert_not_equals",
-            "assert_not_in",
-            "assert_not_is_instance",
-            "assert_not_regexp_matches",
-            "assert_raises",
-            "assert_raises_regexp",
-            "assert_regexp_matches",
-            "assert_sequence_equal",
-            "assert_set_equal",
-            "assert_true",
-            "assert_tuple_equal",
-        ]
-
-        # for m in good_methods:
-        #     assert m in parsed_module.methods
 
 
 class ParsedMouseClassTest(TestCase):

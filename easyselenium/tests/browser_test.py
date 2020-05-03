@@ -31,14 +31,13 @@ class BrowserTest(BaseTest):
         search_btn = (By.ID, "search_button_homepage")
         results = (By.CSS_SELECTOR, "#links a.result__a")
 
-        self.browser.type(text_field, "selenium web")
+        self.browser.type(text_field, "selenium python")
         self.browser.click(search_btn)
 
         self.browser.wait_for_visible(results)
-        assert "WebDriver :: Documentation for Selenium" in [
-            self.browser.get_text(self.browser.find_elements(results)[0]),
-            self.browser.get_text(self.browser.find_elements(results)[1]),
-        ]
+        assert "Selenium with Python" in self.browser.get_text(
+            self.browser.find_elements(results)[0]
+        )
 
     def test_mouse_left_right_clicks(self):
         self.browser.get("https://maps.openrouteservice.org/")
@@ -141,12 +140,12 @@ class BrowserTest(BaseTest):
 
     def test_alerts(self):
         self.browser.get("https://duckduckgo.com/")
-        js_statement = "value = window.confirm('Confirm dialog');"
+        js_statement = "window.alert_val = window.confirm('Confirm dialog');"
 
         self.browser.execute_js(js_statement)
         self.browser.alert_accept()
-        assert self.browser.execute_js("return value;")
+        assert self.browser.execute_js("return window.alert_val;")
 
         self.browser.execute_js(js_statement)
         self.browser.alert_dismiss()
-        assert not self.browser.execute_js("return value;")
+        assert not self.browser.execute_js("return window.alert_val;")

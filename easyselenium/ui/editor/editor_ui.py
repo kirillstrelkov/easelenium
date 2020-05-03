@@ -38,7 +38,6 @@ from easyselenium.ui.parser.parsed_class import (
     ParsedMouseClass,
     ParsedBrowserClass,
     ParsedPageObjectClass,
-    ParsedModule,
 )
 from easyselenium.ui.generator.page_object_class import PageObjectClass
 from easyselenium.ui.file_utils import read_file, is_correct_python_file
@@ -100,8 +99,6 @@ class EditorTab(Panel):
         )
         if len(classes) > 0 and len(classes[0].methods) == 0:
             classes = []
-        # TODO: fix
-        # classes += [ParsedModule.get_parsed_module(tools)]
         if field:
             classes += ParsedMouseClass.get_parsed_classes()
             classes += ParsedBrowserClass.get_parsed_classes()

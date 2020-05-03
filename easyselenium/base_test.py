@@ -38,7 +38,7 @@ class BaseTest(TestCase):
         failed = True
         if hasattr(self, "_outcome"):
             # python3
-            failed = not self._outcome.success
+            failed = self._outcome and not self._outcome.success
         elif hasattr(self, "_resultForDoCleanups") and hasattr(
             self._resultForDoCleanups, "result"
         ):
