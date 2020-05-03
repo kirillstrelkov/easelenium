@@ -7,7 +7,7 @@ python:
   - "3.8"
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -y chromium-chromedriver libsdl2-dev
+  - sudo apt-get install -y firefox-geckodriver libsdl2-dev
 install:
   - pip install pytest
   - pip install pytest-html
@@ -17,4 +17,4 @@ install:
 services:
   - xvfb
 script:
-  - easyselenium/scripts/easyselenium_cli.py --browser gc .
+  - easyselenium/scripts/easyselenium_cli.py --browser ff .
