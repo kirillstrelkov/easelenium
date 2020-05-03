@@ -10,7 +10,7 @@ Features:
 - Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 - Supports Continuous Integration
 - Suits for novice users.
-- Supports only Python 3.6+(for older python versions check `master_nose` branch)
+- Supports only Python 3.6+(for older python versions check `v0.3` tag)
 
 Framework can be used as standalone framework with UI and/or as a library.
 Supportive classes:
@@ -64,6 +64,14 @@ Check [browser_test.py](/easyselenium/test/browser_test.py) for more examples.
 Done via command line script [easyselenium_cli.py](/easyselenium/scripts/easyselenium_cli.py)
 
 ## Installation
+
+### Using `pip`
+
+```shell
+pip install easyselenium
+```
+
+### Manual
 
 1. Download latest code from GitHub
 2. Extract it

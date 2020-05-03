@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 
-from distutils.core import setup
+from os import path
+from setuptools import setup
+
+
+with open(
+    path.join(path.abspath(path.dirname(__file__)), "README.md"), encoding="utf-8"
+) as f:
+    long_description = f.read()
 
 setup(
     name="easyselenium",
-    version="0.4",
-    description="Easy Selenium - Selenium-based Test Automation Framework",
+    version="0.4.1",
+    description="easyselenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",
     url="https://github.com/kirillstrelkov/easyselenium",
@@ -25,4 +32,6 @@ setup(
         "easyselenium/scripts/easyselenium_ui.py",
     ],
     requires=["selenium", "wxPython", "pytest", "pytest_html"],
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 )
