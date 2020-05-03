@@ -14,7 +14,5 @@ install:
   - pip install pytest-dotenv
   - pip install selenium
   - pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
-services:
-  - xvfb
 script:
-  - easyselenium/scripts/easyselenium_cli.py --browser ff easyselenium/tests
+  - xvfb-run --server-args="-screen 0 1366x768x24" easyselenium/scripts/easyselenium_cli.py --browser ff easyselenium/tests
