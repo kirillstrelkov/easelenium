@@ -9,7 +9,7 @@ from easyselenium.ui.generator.page_object_generator import PageObjectGenerator
 
 
 class PageObjectGeneratorTest(BaseTest):
-    BROWSER_NAME = "gc"
+    BROWSER_NAME = "ff"
     logger = False
 
     @classmethod
@@ -124,7 +124,7 @@ class PageObjectGeneratorTest(BaseTest):
     def test_duckduckgo_search_results_area(self):
         folder = tempfile.gettempdir()
         name = "DuckDuckGo"
-        area = (50, 156, 615, 244)
+        area = (50, 156, 715, 344)
         po_class = self.generator.get_po_class_for_url(
             u"https://duckduckgo.com/?q=selenium+web+driver&ia=web", name, folder, area
         )
@@ -144,10 +144,13 @@ class PageObjectGeneratorTest(BaseTest):
         name = "Iframe"
         area = None
         po_class = self.generator.get_po_class_for_url(
-            u"https://www.w3schools.com/html/html_iframe.asp", name, folder, area,
+            u"https://mdn.mozillademos.org/en-US/docs/Web/HTML/Element/iframe$samples/Example1?revision=1617428",
+            name,
+            folder,
+            area,
         )
 
         selectors = [f.selector for f in po_class.fields]
 
-        assert len(selectors) >= 5
-        assert u"/html/body/div[6]/div/div/div[3]/iframe" in selectors
+        assert len(selectors) >= 2
+        assert u"/html/body/iframe" in selectors

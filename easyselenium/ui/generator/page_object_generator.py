@@ -243,7 +243,7 @@ return getElementXPath(arguments[0]);"""
 
     def _get_id_selector(self, element):
         _id = self.browser.get_id(element)
-        if len(self.browser.find_elements((By.ID, _id))) == 1:
+        if _id and len(self.browser.find_elements((By.ID, _id))) == 1:
             return By.ID, _id
         else:
             return None

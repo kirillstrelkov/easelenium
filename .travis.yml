@@ -17,4 +17,4 @@ install:
 services:
   - xvfb
 script:
-  - easyselenium/scripts/easyselenium_cli.py --browser ff .
+  - easyselenium/scripts/easyselenium_cli.py --browser ff easyselenium/tests
