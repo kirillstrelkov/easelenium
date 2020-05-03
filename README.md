@@ -10,7 +10,7 @@ Features:
 - Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 - Supports Continuous Integration
 - Suits for novice users.
-- Supports only Python 3.6+(for older python versions check `v0.3` tag)
+- Supports only Python 3.6+(for older python versions check `0.3` tag)
 
 Framework can be used as standalone framework with UI and/or as a library.
 Supportive classes:
