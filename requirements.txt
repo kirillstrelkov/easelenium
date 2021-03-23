@@ -1,3 +1,4 @@
+wheel
 pytest
 pytest-html
 pytest-dotenv
