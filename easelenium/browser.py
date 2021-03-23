@@ -1,22 +1,23 @@
 # coding=utf8
 import os
 import tempfile
+import traceback
 from functools import wraps
-from tempfile import tempdir, gettempdir
+from tempfile import gettempdir, tempdir
 
 from selenium import webdriver
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    StaleElementReferenceException,
+    TimeoutException,
+    WebDriverException,
+)
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import (
-    WebDriverException,
-    TimeoutException,
-    StaleElementReferenceException,
-    NoSuchElementException,
-)
 
 from easelenium.utils import get_random_value, get_timestamp, is_windows
 
@@ -111,17 +112,28 @@ class Browser(object):
 
     __BROWSERS = [FF, GC, IE, OP, PHANTOMJS]
 
-    def __init__(self, browser_name=None, logger=None, timeout=5, **kwargs):
-        if browser_name:
-            self.__browser_name = browser_name
-        else:
-            self.__browser_name = self.DEFAULT_BROWSER or self.FF
-        self.logger = logger
-        self.__timeout = timeout
-        self._driver = self.__create_driver(self.__browser_name, **kwargs)
+    def __init__(self, browser_name=None, webdriver_kwargs=None, **browser_kwargs):
+        if webdriver_kwargs is None:
+            webdriver_kwargs = {}
+
+        browser_name = browser_kwargs.get("name", browser_name)
+        self.__browser_name = browser_name or self.DEFAULT_BROWSER or self.FF
+
+        self.logger = browser_kwargs.get("logger", None)
+        self.__timeout = browser_kwargs.get("timeout", 5)
+
+        if self.__browser_name == "gc":
+            if browser_kwargs.get("headless"):
+                options = webdriver_kwargs.get("options", webdriver.ChromeOptions())
+                options.add_argument("--headless")
+                webdriver_kwargs["options"] = options
+
+        self._driver = self.__create_driver(self.__browser_name, webdriver_kwargs)
         self.__screenshot_path = os.path.join(gettempdir(), "easelenium_screenshots")
+
         if not os.path.exists(self.__screenshot_path):
             os.makedirs(self.__screenshot_path)
+
         self.mouse = Mouse(self)
 
     @classmethod
@@ -131,7 +143,7 @@ class Browser(object):
     def get_browser_initials(self):
         return self.__browser_name
 
-    def __create_driver(self, name, *args, **kwargs):
+    def __create_driver(self, name, webdriver_kwargs):
         driver_and_constructor = {
             self.FF: ("geckodriver", webdriver.Firefox),
             self.IE: ("IEDriverServer", webdriver.Ie),
@@ -153,7 +165,7 @@ class Browser(object):
         home_dir = os.path.expanduser("~")
         driver_in_home = os.path.join(home_dir, driver)
         if os.path.exists(driver_in_home):
-            driver = constructor(executable_path=driver_in_home, **kwargs)
+            webdriver_kwargs["executable_path"] = driver_in_home
         else:
             if self.logger:
                 self.logger.warn(
@@ -162,7 +174,8 @@ class Browser(object):
                     name,
                     driver_in_home,
                 )
-            driver = constructor(**kwargs)
+
+        driver = constructor(**webdriver_kwargs)
 
         if driver and not self.is_gc() and not self.is_op():
             driver.maximize_window()

@@ -11,14 +11,17 @@ class BaseTest(TestCase):
     TC_NAME_WIDTH = 100
     BROWSER_NAME = None
     FAILED_SCREENSHOT_FOLDER = None
-    logger = Logger(name="easyselenim.base_test.BaseTest")
+    LOGGER = Logger(name="easyselenim.base_test.BaseTest")
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, **kwargs):
         super(BaseTest, cls).setUpClass()
-        if cls.BROWSER_NAME and not Browser.DEFAULT_BROWSER:
-            Browser.DEFAULT_BROWSER = cls.BROWSER_NAME
-        cls.browser = Browser(logger=cls.logger)
+
+        kwargs["browser_name"] = kwargs.get("browser_name") or cls.BROWSER_NAME
+        kwargs["logger"] = kwargs.get("logger") or cls.LOGGER
+
+        cls.logger = kwargs["logger"]
+        cls.browser = Browser(**kwargs)
 
     @classmethod
     def tearDownClass(cls):
