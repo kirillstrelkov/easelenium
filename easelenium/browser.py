@@ -122,11 +122,13 @@ class Browser(object):
         self.logger = browser_kwargs.get("logger", None)
         self.__timeout = browser_kwargs.get("timeout", 5)
 
-        if self.__browser_name == "gc":
-            if browser_kwargs.get("headless"):
-                options = webdriver_kwargs.get("options", webdriver.ChromeOptions())
-                options.add_argument("--headless")
-                webdriver_kwargs["options"] = options
+        headless = browser_kwargs.get("headless", True)
+        if self.is_gc():
+            self.__set_chrome_kwargs(headless, webdriver_kwargs)
+        elif self.is_ff():
+            self.__set_firefox_kwargs(headless, webdriver_kwargs)
+
+        print(webdriver_kwargs)
 
         self._driver = self.__create_driver(self.__browser_name, webdriver_kwargs)
         self.__screenshot_path = os.path.join(gettempdir(), "easelenium_screenshots")
@@ -135,6 +137,18 @@ class Browser(object):
             os.makedirs(self.__screenshot_path)
 
         self.mouse = Mouse(self)
+
+    def __set_chrome_kwargs(self, headless, webdriver_kwargs):
+        options = webdriver_kwargs.get("options", webdriver.ChromeOptions())
+        if headless:
+            options.add_argument("--headless")
+        webdriver_kwargs["options"] = options
+
+    def __set_firefox_kwargs(self, headless, webdriver_kwargs):
+        options = webdriver_kwargs.get("options", webdriver.FirefoxOptions())
+        if headless:
+            options.add_argument("--headless")
+        webdriver_kwargs["options"] = options
 
     @classmethod
     def get_supported_browsers(cls):

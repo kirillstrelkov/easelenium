@@ -15,22 +15,28 @@ class BrowserConstrutorTest(TestCase):
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
     def test_constructor_ff(self):
-        self.browser = Browser("ff")
+        self.browser = Browser("ff", headless=False)
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
+    def test_constructor_ff_headless(self):
+        self.browser = Browser("ff", headless=True)
+        assert self.browser.is_ff()
+        assert self.browser.execute_js("return typeof InstallTrigger") == "object"
+        # TODO: add check if is headless
+
     def test_constructor_ff_by_name(self):
-        self.browser = Browser(name="ff")
+        self.browser = Browser(name="ff", headless=False)
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
     def test_constructor_gc(self):
-        self.browser = Browser("gc")
+        self.browser = Browser("gc", headless=False)
         assert self.browser.is_gc()
         assert type(self.browser.execute_js("return window.chrome")) == dict
 
     def test_constructor_gc_by_name(self):
-        self.browser = Browser(name="gc")
+        self.browser = Browser(name="gc", headless=False)
         assert self.browser.is_gc()
         assert type(self.browser.execute_js("return window.chrome")) == dict
 
@@ -43,7 +49,9 @@ class BrowserConstrutorTest(TestCase):
         options = webdriver.ChromeOptions()
         options.add_argument("window-size=1366,768")
 
-        self.browser = Browser(name="gc", webdriver_kwargs={"options": options})
+        self.browser = Browser(
+            name="gc", headless=False, webdriver_kwargs={"options": options}
+        )
         assert self.browser.is_gc()
         assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
 
@@ -56,6 +64,7 @@ class BrowserConstrutorTest(TestCase):
         )
         assert self.browser.is_gc()
         assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
+        assert self.browser.execute_js("return window.chrome") is None
 
     def tearDown(self):
         if self.browser:
