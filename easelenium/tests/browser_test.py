@@ -7,7 +7,7 @@ from easelenium.base_test import BaseTest
 
 # TODO: fix failing tests
 class BrowserTest(BaseTest):
-    BROWSER_NAME = "ff"
+    BROWSER_NAME = "gc"
 
     def test_switch_to_frame(self):
         frame = (By.CSS_SELECTOR, "iframe[src*=default]")
@@ -40,23 +40,22 @@ class BrowserTest(BaseTest):
         )
 
     def test_mouse_left_right_clicks(self):
-        self.browser.get("https://maps.openrouteservice.org/")
+        self.browser.get("https://www.openstreetmap.org/")
 
-        zoom_controls = (By.CLASS_NAME, "leaflet-control-zoom")
         map_element = (By.ID, "map")
-        context_menu = (By.CLASS_NAME, "leaflet-popup-content")
-        close_box = (By.CLASS_NAME, "fa-close")
+        context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmenu")
+        welcome_close = (By.CSS_SELECTOR, ".welcome.visible .geolink .close")
 
-        self.browser.wait_for_visible(zoom_controls)
+        self.browser.wait_for_visible(welcome_close)
 
         assert not self.browser.is_visible(context_menu)
-        if self.browser.is_visible(close_box):
-            self.browser.click(close_box)
+        if self.browser.is_visible(welcome_close):
+            self.browser.click(welcome_close)
 
         self.browser.mouse.right_click(map_element)
         self.browser.wait_for_visible(context_menu)
 
-        self.browser.mouse.left_click(map_element)
+        self.browser.mouse.left_click_by_offset(map_element, -50, -50)
         self.browser.wait_for_not_visible(context_menu)
 
         self.browser.mouse.right_click_by_offset(map_element, 100, 100)
@@ -116,12 +115,10 @@ class BrowserTest(BaseTest):
 
     def test_js_script(self):
         self.browser.get("https://duckduckgo.com/")
-        js_statement = (
-            "return document.getElementsByClassName('tag-home')[0]" ".textContent;"
-        )
+        js_statement = "return document.getElementsByClassName('badge-link__title')[0].textContent;"
         value = self.browser.execute_js(js_statement)
 
-        assert "The search engine that doesn't track you." in value.strip()
+        assert "We can help" in value
 
     def test_open_close_new_window(self):
         self.browser.get("https://html.com/attributes/a-target/")

@@ -104,13 +104,15 @@ class Mouse(object):
 
 class Browser(object):
     FF = "ff"
+    FF_HEADLESS = "ff_headless"
     GC = "gc"
+    GC_HEADLESS = "gc_headless"
     IE = "ie"
     OP = "op"
     PHANTOMJS = "phantomjs"
     DEFAULT_BROWSER = None
 
-    __BROWSERS = [FF, GC, IE, OP, PHANTOMJS]
+    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, OP, PHANTOMJS]
 
     def __init__(self, browser_name=None, webdriver_kwargs=None, **browser_kwargs):
         if webdriver_kwargs is None:
@@ -122,13 +124,11 @@ class Browser(object):
         self.logger = browser_kwargs.get("logger", None)
         self.__timeout = browser_kwargs.get("timeout", 5)
 
-        headless = browser_kwargs.get("headless", True)
+        headless = browser_kwargs.get("headless", "headless" in self.__browser_name)
         if self.is_gc():
             self.__set_chrome_kwargs(headless, webdriver_kwargs)
         elif self.is_ff():
             self.__set_firefox_kwargs(headless, webdriver_kwargs)
-
-        print(webdriver_kwargs)
 
         self._driver = self.__create_driver(self.__browser_name, webdriver_kwargs)
         self.__screenshot_path = os.path.join(gettempdir(), "easelenium_screenshots")
@@ -160,8 +160,10 @@ class Browser(object):
     def __create_driver(self, name, webdriver_kwargs):
         driver_and_constructor = {
             self.FF: ("geckodriver", webdriver.Firefox),
+            self.FF_HEADLESS: ("geckodriver", webdriver.Firefox),
             self.IE: ("IEDriverServer", webdriver.Ie),
             self.GC: ("chromedriver", webdriver.Chrome),
+            self.GC_HEADLESS: ("chromedriver", webdriver.Chrome),
             self.OP: ("operadriver", webdriver.Opera),
             self.PHANTOMJS: ("phantomjs", webdriver.PhantomJS),
         }.get(name, None)
