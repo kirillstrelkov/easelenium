@@ -114,6 +114,16 @@ class Browser(object):
 
     __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, OP, PHANTOMJS]
 
+    __DRIVERS_AND_CONSTUCTORS = driver_and_constructor = {
+        FF: ("geckodriver", webdriver.Firefox),
+        FF_HEADLESS: ("geckodriver", webdriver.Firefox),
+        IE: ("IEDriverServer", webdriver.Ie),
+        GC: ("chromedriver", webdriver.Chrome),
+        GC_HEADLESS: ("chromedriver", webdriver.Chrome),
+        OP: ("operadriver", webdriver.Opera),
+        PHANTOMJS: ("phantomjs", webdriver.PhantomJS),
+    }
+
     def __init__(self, browser_name=None, webdriver_kwargs=None, **browser_kwargs):
         if webdriver_kwargs is None:
             webdriver_kwargs = {}
@@ -151,6 +161,24 @@ class Browser(object):
         webdriver_kwargs["options"] = options
 
     @classmethod
+    def _find_driver_path(cls, browser_name):
+        # NOTE: This method is only used in tests:
+        # `__init__` supports `webdriver_kwargs` which might contain `executable_path`
+        # this `executable_path` is NOT evaulated here,
+        assert browser_name in cls.__BROWSERS
+        driver = cls.__DRIVERS_AND_CONSTUCTORS[browser_name][0]
+        possible_path = os.path.join(os.path.expanduser("~"), driver)
+        if os.path.exists(possible_path):
+            return possible_path
+        else:
+            for folder in os.getenv("PATH", "").split(os.pathsep):
+                possible_path = os.path.join(folder, driver)
+                if os.path.exists(possible_path):
+                    return possible_path
+
+        return None
+
+    @classmethod
     def get_supported_browsers(cls):
         return cls.__BROWSERS
 
@@ -158,15 +186,7 @@ class Browser(object):
         return self.__browser_name
 
     def __create_driver(self, name, webdriver_kwargs):
-        driver_and_constructor = {
-            self.FF: ("geckodriver", webdriver.Firefox),
-            self.FF_HEADLESS: ("geckodriver", webdriver.Firefox),
-            self.IE: ("IEDriverServer", webdriver.Ie),
-            self.GC: ("chromedriver", webdriver.Chrome),
-            self.GC_HEADLESS: ("chromedriver", webdriver.Chrome),
-            self.OP: ("operadriver", webdriver.Opera),
-            self.PHANTOMJS: ("phantomjs", webdriver.PhantomJS),
-        }.get(name, None)
+        driver_and_constructor = self.__DRIVERS_AND_CONSTUCTORS.get(name, None)
 
         if driver_and_constructor is None:
             raise ValueError(
@@ -178,8 +198,8 @@ class Browser(object):
         if is_windows():
             driver += ".exe"
 
-        home_dir = os.path.expanduser("~")
-        driver_in_home = os.path.join(home_dir, driver)
+        driver_in_home = os.path.join(os.path.expanduser("~"), driver)
+
         if os.path.exists(driver_in_home):
             webdriver_kwargs["executable_path"] = driver_in_home
         else:
