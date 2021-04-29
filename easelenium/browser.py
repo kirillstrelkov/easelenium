@@ -119,7 +119,7 @@ class Browser(object):
             webdriver_kwargs = {}
 
         browser_name = browser_kwargs.get("name", browser_name)
-        self.__browser_name = browser_name or self.DEFAULT_BROWSER or self.FF
+        self.__browser_name = self.DEFAULT_BROWSER or browser_name or self.FF
 
         self.logger = browser_kwargs.get("logger", None)
         self.__timeout = browser_kwargs.get("timeout", 5)
