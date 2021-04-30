@@ -51,7 +51,7 @@ class Mouse(object):
             element = self.browser.find_element(element)
 
         self.browser._safe_log(
-            u"Click at '%s' by offset(%s,%s)", element, xoffset, yoffset
+            "Click at '%s' by offset(%s,%s)", element, xoffset, yoffset
         )
 
         actions.move_to_element(element).move_by_offset(
@@ -59,7 +59,7 @@ class Mouse(object):
         ).click().perform()
 
     def hover(self, element):
-        self.browser._safe_log(u"Hover at '%s'", element)
+        self.browser._safe_log("Hover at '%s'", element)
 
         self.hover_by_offset(element, 0, 0)
 
@@ -70,7 +70,7 @@ class Mouse(object):
         element = self.browser.find_element(element)
 
         self.browser._safe_log(
-            u"Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset
+            "Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset
         )
 
         actions.move_to_element(element).move_by_offset(xoffset, yoffset).perform()
@@ -82,7 +82,7 @@ class Mouse(object):
         if type(element) == tuple:
             element = self.browser.find_element(element)
 
-        self.browser._safe_log(u"Right click at '%s'", self.browser._to_string(element))
+        self.browser._safe_log("Right click at '%s'", self.browser._to_string(element))
 
         actions.context_click(element).perform()
 
@@ -94,7 +94,7 @@ class Mouse(object):
             element = self.browser.find_element(element)
 
         self.browser._safe_log(
-            u"Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset
+            "Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset
         )
 
         actions.move_to_element(element).move_by_offset(
@@ -161,18 +161,19 @@ class Browser(object):
         webdriver_kwargs["options"] = options
 
     @classmethod
-    def _find_driver_path(cls, browser_name):
-        # NOTE: This method is only used in tests:
-        # `__init__` supports `webdriver_kwargs` which might contain `executable_path`
-        # this `executable_path` is NOT evaulated here,
+    def _find_driver_path(cls, browser_name, **webdriver_kwargs):
         assert browser_name in cls.__BROWSERS
-        driver = cls.__DRIVERS_AND_CONSTUCTORS[browser_name][0]
-        possible_path = os.path.join(os.path.expanduser("~"), driver)
+
+        driver_filename = cls.__DRIVERS_AND_CONSTUCTORS[browser_name][0]
+        if is_windows():
+            driver_filename += ".exe"
+
+        possible_path = os.path.join(os.path.expanduser("~"), driver_filename)
         if os.path.exists(possible_path):
             return possible_path
         else:
             for folder in os.getenv("PATH", "").split(os.pathsep):
-                possible_path = os.path.join(folder, driver)
+                possible_path = os.path.join(folder, driver_filename)
                 if os.path.exists(possible_path):
                     return possible_path
 
@@ -186,30 +187,21 @@ class Browser(object):
         return self.__browser_name
 
     def __create_driver(self, name, webdriver_kwargs):
-        driver_and_constructor = self.__DRIVERS_AND_CONSTUCTORS.get(name, None)
+        driver_filename_and_constructor = self.__DRIVERS_AND_CONSTUCTORS.get(name, None)
 
-        if driver_and_constructor is None:
+        if driver_filename_and_constructor is None:
+            browsers = "', '".join(self.__BROWSERS)
             raise ValueError(
-                "Unsupported browser '%s', "
-                "supported browsers: ['%s']" % (name, "', '".join(self.__BROWSERS))
+                f"Unsupported browser '{name}', supported browsers: ['{browsers}']"
             )
 
-        driver, constructor = driver_and_constructor
-        if is_windows():
-            driver += ".exe"
+        driver_filename, constructor = driver_filename_and_constructor
 
-        driver_in_home = os.path.join(os.path.expanduser("~"), driver)
+        driver_path = self._find_driver_path(name, **webdriver_kwargs)
+        if driver_path is None:
+            raise FileNotFoundError(f"Failed to find {driver_filename}")
 
-        if os.path.exists(driver_in_home):
-            webdriver_kwargs["executable_path"] = driver_in_home
-        else:
-            if self.logger:
-                self.logger.warn(
-                    "Driver for '%s' wasn't found in %s.\n"
-                    "Using driver from PATH environment variable.",
-                    name,
-                    driver_in_home,
-                )
+        webdriver_kwargs["executable_path"] = driver_path
 
         driver = constructor(**webdriver_kwargs)
 
@@ -292,10 +284,10 @@ class Browser(object):
         try:
             element.clear()
         except WebDriverException as e:
-            if u"Element must be user-editable in order to clear it." != e.msg:
+            if "Element must be user-editable in order to clear it." != e.msg:
                 raise e
 
-        self._safe_log(u"Typing '%s' at '%s'", text, element)
+        self._safe_log("Typing '%s' at '%s'", text, element)
 
         element.send_keys(text)
 
@@ -303,7 +295,7 @@ class Browser(object):
         self.wait_for_visible(element)
         element = self.find_element(element)
 
-        self._safe_log(u"Clicking at '%s'", element)
+        self._safe_log("Clicking at '%s'", element)
 
         element.click()
 
@@ -313,14 +305,14 @@ class Browser(object):
         if isinstance(parent, WebElement):
             return parent
         else:
-            return self.find_descendant(element, (By.XPATH, u"./.."))
+            return self.find_descendant(element, (By.XPATH, "./.."))
 
     def get_text(self, element):
         self.wait_for_visible(element)
         element = self.find_element(element)
         text = element.text
 
-        self._safe_log(u"Getting text from '%s' -> '%s'", element, text)
+        self._safe_log("Getting text from '%s' -> '%s'", element, text)
 
         return text
 
@@ -329,9 +321,7 @@ class Browser(object):
         element = self.find_elements(element)[0]
         value = element.get_attribute(attr)
 
-        self._safe_log(
-            u"Getting attribute '%s' from '%s' -> '%s'", attr, element, value
-        )
+        self._safe_log("Getting attribute '%s' from '%s' -> '%s'", attr, element, value)
 
         return value
 
@@ -351,7 +341,7 @@ class Browser(object):
         """Return tuple like (x, y)."""
         location = self.find_element(element).location
 
-        self._safe_log(u"Getting location from '%s' -> '%s'", element, str(location))
+        self._safe_log("Getting location from '%s' -> '%s'", element, str(location))
 
         return int(location["x"]), int(location["y"])
 
@@ -359,7 +349,7 @@ class Browser(object):
         """Return tuple like (width, height)."""
         size = self.find_element(element).size
 
-        self._safe_log(u"Getting dimensions from '%s' -> '%s'", element, str(size))
+        self._safe_log("Getting dimensions from '%s' -> '%s'", element, str(size))
 
         return size["width"], size["height"]
 
@@ -373,7 +363,7 @@ class Browser(object):
         element = self.find_element(element)
         value = Select(element).first_selected_option.get_attribute("value")
 
-        self._safe_log(u"Getting selected value from '%s' -> '%s'", element, value)
+        self._safe_log("Getting selected value from '%s' -> '%s'", element, value)
 
         return value
 
@@ -384,7 +374,7 @@ class Browser(object):
 
         text = Select(element).first_selected_option.text
 
-        self._safe_log(u"Getting selected text from '%s' -> '%s'", element, text)
+        self._safe_log("Getting selected text from '%s' -> '%s'", element, text)
 
         return text
 
@@ -394,7 +384,7 @@ class Browser(object):
         element = self.find_element(element)
         select = Select(element)
 
-        self._safe_log(u"Selecting by value '%s' from '%s'", value, element)
+        self._safe_log("Selecting by value '%s' from '%s'", value, element)
 
         select.select_by_value(value)
 
@@ -404,7 +394,7 @@ class Browser(object):
         element = self.find_element(element)
         select = Select(element)
 
-        self._safe_log(u"Selecting by text '%s' from '%s'", text, element)
+        self._safe_log("Selecting by text '%s' from '%s'", text, element)
 
         select.select_by_visible_text(text)
 
@@ -414,7 +404,7 @@ class Browser(object):
         element = self.find_element(element)
         select = Select(element)
 
-        self._safe_log(u"Selecting by index '%s' from '%s'", index, element)
+        self._safe_log("Selecting by index '%s' from '%s'", index, element)
 
         select.select_by_index(index)
 
@@ -434,7 +424,7 @@ class Browser(object):
         for option in Select(element).options:
             texts.append(option.text)
 
-        self._safe_log(u"Getting texts from '%s' -> '%s'", element, str(texts))
+        self._safe_log("Getting texts from '%s' -> '%s'", element, str(texts))
 
         return texts
 
@@ -446,7 +436,7 @@ class Browser(object):
         for option in Select(element).options:
             values.append(option.get_attribute("value"))
 
-        self._safe_log(u"Getting values from '%s' -> '%s'", element, str(values))
+        self._safe_log("Getting values from '%s' -> '%s'", element, str(values))
 
         return values
 
@@ -567,7 +557,7 @@ class Browser(object):
             filename = get_timestamp() + ".png"
         path_to_file = os.path.abspath(os.path.join(saving_dir, filename))
 
-        self._safe_log(u"Saving screenshot to '%s'", path_to_file)
+        self._safe_log("Saving screenshot to '%s'", path_to_file)
 
         self._driver.save_screenshot(path_to_file)
         return path_to_file
@@ -578,7 +568,7 @@ class Browser(object):
     def switch_to_frame(self, element):
         element = self.find_element(element)
 
-        self._safe_log(u"Switching to '%s' frame", element)
+        self._safe_log("Switching to '%s' frame", element)
 
         self._driver.switch_to.frame(element)
 
@@ -596,10 +586,10 @@ class Browser(object):
 
         self._driver.switch_to.window(new_handles[0])
 
-        self._safe_log(u"Switching to '%s' window", self._driver.title)
+        self._safe_log("Switching to '%s' window", self._driver.title)
 
     def switch_to_default_content(self):
-        self._safe_log(u"Switching to default content")
+        self._safe_log("Switching to default content")
 
         self._driver.switch_to.default_content()
 
@@ -627,12 +617,12 @@ class Browser(object):
         self._driver.delete_all_cookies()
 
     def alert_accept(self):
-        self._safe_log(u"Clicking Accept/OK in alert box")
+        self._safe_log("Clicking Accept/OK in alert box")
 
         self._driver.switch_to.alert.accept()
 
     def alert_dismiss(self):
-        self._safe_log(u"Clicking Dismiss/Cancel in alert box")
+        self._safe_log("Clicking Dismiss/Cancel in alert box")
 
         self._driver.switch_to.alert.dismiss()
 
