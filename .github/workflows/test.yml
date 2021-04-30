@@ -18,6 +18,9 @@ jobs:
         run: |
           pip install pytest pytest-html pytest-dotenv selenium
           pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
+      - name: Set PYTHONPATH
+        run: |
+          echo "PYTHONPATH=." >> $GITHUB_ENV
       - name: Run tests
         run: |
           xvfb-run --server-args="-screen 0 1366x768x24" pytest easelenium/tests
