@@ -1,6 +1,5 @@
 # easelenium
 
-[![Build Status](https://travis-ci.org/kirillstrelkov/easelenium.svg?branch=master)](https://travis-ci.org/kirillstrelkov/easelenium)
 ![Test workflow](https://github.com/kirillstrelkov/easelenium/actions/workflows/test.yml/badge.svg)
 
 Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
