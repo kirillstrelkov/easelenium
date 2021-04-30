@@ -3,12 +3,11 @@ name: Test
 on: [push]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -17,13 +16,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y firefox-geckodriver libsdl2-dev
-          pip install pytest
-          pip install pytest-html
-          pip install pytest-dotenv
-          pip install selenium
+          pip install pytest pytest-html pytest-dotenv selenium
           pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
       - name: Run tests
         run: |
-          xvfb-run --server-args="-screen 0 1366x768x24" easelenium/scripts/easelenium_cli.py --browser ff easelenium/tests
+          xvfb-run --server-args="-screen 0 1366x768x24" pytest easelenium/tests
