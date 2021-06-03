@@ -1,20 +1,15 @@
 # coding=utf8
 import os
 import re
-from time import sleep
-from wx import Point, Rect
 
+from easelenium.ui.file_utils import check_if_path_exists
+from easelenium.ui.generator.page_object_class import (PageObjectClass,
+                                                       PageObjectClassField)
+from easelenium.ui.root_folder import RootFolder
+from easelenium.utils import get_py_file_name_from_class_name, unicode_str
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-
-from easelenium.utils import unicode_str, get_py_file_name_from_class_name
-from easelenium.ui.root_folder import RootFolder
-from easelenium.ui.generator.page_object_class import (
-    PageObjectClass,
-    PageObjectClassField,
-)
-from easelenium.ui.file_utils import check_if_path_exists
-
+from wx import Point, Rect
 
 # TODO: when generating link_text - escape new lines
 
@@ -90,7 +85,7 @@ return getElementXPath(arguments[0]);"""
         return name
 
     def __is_correct_element(self, element, area, location_offset):
-        bad_element_tags = ["option", "script"]
+        bad_element_tags = ("option", "script")
 
         if area:
             if type(area) not in (tuple, list) or len(area) != 4:
@@ -140,10 +135,9 @@ return getElementXPath(arguments[0]);"""
         self.__log(u"Number of fields:", len(fields))
         return fields
 
-    def get_all_po_fields(self, url, area):
+    def get_all_po_fields(self, url, area=None):
         if self.browser.get_current_url() != url:
             self.browser.get(url)
-            sleep(3)
 
         fields = []
         self.browser.switch_to_default_content()
