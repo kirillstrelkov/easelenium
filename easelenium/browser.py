@@ -247,7 +247,6 @@ class Browser(object):
         if isinstance(element, WebElement):
             return [element]
         elif type(element) in [list, tuple] and len(element) == 2:
-            parent = parent
             if parent:
                 return parent.find_elements(*element)
             else:
@@ -434,11 +433,7 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        parent = element.parent
-        if isinstance(parent, WebElement):
-            return parent
-        else:
-            return self.find_descendant(element, (By.XPATH, "./.."))
+        return self.find_descendant(parent=element, by_xpath="./..")
 
     def get_text(
         self,

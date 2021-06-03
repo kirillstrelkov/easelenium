@@ -3,8 +3,19 @@
 from easelenium.base_test import BaseTest
 
 
-class BrowserNewAPITest(BaseTest):
+class BrowserTest(BaseTest):
     BROWSER_NAME = "gc"
+
+    def test_get_parent(self):
+        self.browser.get("https://duckduckgo.com/")
+        element = self.browser.find_element(by_id="content_homepage")
+
+        parent_tags = set()
+        for _ in range(3):
+            element = self.browser.get_parent(element)
+            parent_tags.add(element.tag_name)
+
+        assert "body" in parent_tags
 
     def test_switch_to_frame(self):
         frame = "iframe[src*=default]"
@@ -50,10 +61,14 @@ class BrowserNewAPITest(BaseTest):
         self.browser.mouse.right_click(by_id=map_element)
         self.browser.wait_for_visible(by_css=context_menu)
 
-        self.browser.mouse.left_click_by_offset(xoffset=-50, yoffset=-50, by_id=map_element)
+        self.browser.mouse.left_click_by_offset(
+            xoffset=-50, yoffset=-50, by_id=map_element
+        )
         self.browser.wait_for_not_visible(by_css=context_menu)
 
-        self.browser.mouse.right_click_by_offset(xoffset=100, yoffset=100, by_id=map_element)
+        self.browser.mouse.right_click_by_offset(
+            xoffset=100, yoffset=100, by_id=map_element
+        )
         self.browser.wait_for_visible(by_css=context_menu)
 
     def test_mouse_hover(self):
