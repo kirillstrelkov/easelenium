@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from os import path
-from setuptools import setup
 
+from setuptools import setup
 
 with open(
     path.join(path.abspath(path.dirname(__file__)), "README.md"), encoding="utf-8"
@@ -31,7 +31,7 @@ setup(
         "easelenium/scripts/easelenium_cli.py",
         "easelenium/scripts/easelenium_ui.py",
     ],
-    requires=["selenium", "wxPython", "pytest", "pytest_html", "wheel"],
+    requires=["wheel", "selenium", "wxPython", "pytest", "pytest_html"],
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
