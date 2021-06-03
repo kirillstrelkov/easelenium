@@ -10,7 +10,7 @@ Features:
 - Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
 - Supports Continuous Integration
 - Suits for novice users.
-- Supports only Python 3.6+(for older python versions check `0.3` tag)
+- Supports only Python 3.6+(for older python versions check [0.3](https://github.com/kirillstrelkov/easelenium/releases/tag/0.3) tag)
 
 Framework can be used as standalone framework with UI and/or as a library.
 Supportive classes:
@@ -43,17 +43,18 @@ Here is simple example:
 ```python
 >>> from selenium.webdriver.common.by import By
 >>> from easelenium.browser import Browser
+
 >>> browser = Browser('ff') # initilizing browser
+
 >>> browser.get('http://www.google.com') # going to google
->>> # creating variables for page elements:
->>> input = (By.NAME, 'q') # input element
->>> search_btn = (By.NAME, 'btnG') # search button element
->>> result = (By.CSS_SELECTOR, '.r') # found results titles' elements
->>> # back to action
->>> browser.type(input, u'selenium') # typing 'selenium' into search field
->>> browser.click(search_btn) # clicking search button
->>> browser.get_text(result) # getting first found title
-u'Selenium - Web Browser Automation'
+
+>>> browser.type('selenium', by_name='q') # typing 'selenium' into search field
+
+>>> browser.click(search_btn, by_name='btnG') # clicking search button
+
+>>> browser.get_text(by_css='.r') # getting first found title
+'Selenium - Web Browser Automation'
+
 >>> browser.quit() # closing browser
 ```
 
@@ -79,15 +80,15 @@ pip install easelenium
 4. Navigate to extracted folder
 5. Install all required libraries
 
-```shell
-python -m pip install -r requirements.txt
-```
+   ```shell
+   python -m pip install -r requirements.txt
+   ```
 
 6. Go to `easelenium` folder and install with command:
 
-```shell
-python setup.py install
-```
+   ```shell
+   python setup.py install
+   ```
 
 ## License
 
