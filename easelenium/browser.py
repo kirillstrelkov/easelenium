@@ -19,6 +19,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 
+from easelenium.mouse import Mouse
 from easelenium.utils import get_random_value, get_timestamp, is_windows
 
 
@@ -34,72 +35,6 @@ def stale_exception_wrapper(func):
             return return_value
 
     return wrapper
-
-
-class Mouse(object):
-    def __init__(self, browser):
-        self.browser = browser
-
-    def left_click(self, element):
-        self.left_click_by_offset(element, 0, 0)
-
-    def left_click_by_offset(self, element, xoffset, yoffset):
-        actions = self.browser.get_action_chains()
-        self.browser.wait_for_visible(element)
-
-        if type(element) == tuple:
-            element = self.browser.find_element(element)
-
-        self.browser._safe_log(
-            "Click at '%s' by offset(%s,%s)", element, xoffset, yoffset
-        )
-
-        actions.move_to_element(element).move_by_offset(
-            xoffset, yoffset
-        ).click().perform()
-
-    def hover(self, element):
-        self.browser._safe_log("Hover at '%s'", element)
-
-        self.hover_by_offset(element, 0, 0)
-
-    def hover_by_offset(self, element, xoffset, yoffset):
-        actions = self.browser.get_action_chains()
-        self.browser.wait_for_visible(element)
-
-        element = self.browser.find_element(element)
-
-        self.browser._safe_log(
-            "Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset
-        )
-
-        actions.move_to_element(element).move_by_offset(xoffset, yoffset).perform()
-
-    def right_click(self, element):
-        actions = self.browser.get_action_chains()
-        self.browser.wait_for_visible(element)
-
-        if type(element) == tuple:
-            element = self.browser.find_element(element)
-
-        self.browser._safe_log("Right click at '%s'", self.browser._to_string(element))
-
-        actions.context_click(element).perform()
-
-    def right_click_by_offset(self, element, xoffset, yoffset):
-        actions = self.browser.get_action_chains()
-        self.browser.wait_for_visible(element)
-
-        if type(element) == tuple:
-            element = self.browser.find_element(element)
-
-        self.browser._safe_log(
-            "Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset
-        )
-
-        actions.move_to_element(element).move_by_offset(
-            xoffset, yoffset
-        ).context_click().perform()
 
 
 class Browser(object):
@@ -122,6 +57,16 @@ class Browser(object):
         GC_HEADLESS: ("chromedriver", webdriver.Chrome),
         OP: ("operadriver", webdriver.Opera),
         PHANTOMJS: ("phantomjs", webdriver.PhantomJS),
+    }
+    __LOCATOR_MAPPINGS = {
+        "by_name": By.NAME,
+        "by_id": By.ID,
+        "by_xpath": By.XPATH,
+        "by_link": By.LINK_TEXT,
+        "by_partial_link": By.PARTIAL_LINK_TEXT,
+        "by_tag": By.TAG_NAME,
+        "by_class": By.CLASS_NAME,
+        "by_css": By.CSS_SELECTOR,
     }
 
     def __init__(self, browser_name=None, webdriver_kwargs=None, **browser_kwargs):
@@ -210,10 +155,99 @@ class Browser(object):
 
         return driver
 
-    def __get_webelements(self, element, parent=None):
+    def get_by_query(
+        self,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        # TODO: move outside
+        for locator, value in (
+            ("by_id", by_id),
+            ("by_xpath", by_xpath),
+            ("by_tag", by_tag),
+            ("by_name", by_name),
+            ("by_css", by_css),
+            ("by_class", by_class),
+            ("by_link", by_link),
+            ("by_partial_link", by_partial_link),
+        ):
+            if value is not None:
+                return (self.__LOCATOR_MAPPINGS[locator], value)
+        else:
+            raise ValueError("Failed to find element")
+
+    def _get_element(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        assert (
+            element is not None
+            or by_id is not None
+            or by_xpath is not None
+            or by_link is not None
+            or by_partial_link is not None
+            or by_name is not None
+            or by_tag is not None
+            or by_css is not None
+            or by_class is not None
+        ), "'element' or 'by_*' not specified"
+
+        if element:
+            return element
+        else:
+            return self.get_by_query(
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            )
+
+    def __get_webelements(
+        self,
+        element=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         if isinstance(element, WebElement):
             return [element]
         elif type(element) in [list, tuple] and len(element) == 2:
+            parent = parent
             if parent:
                 return parent.find_elements(*element)
             else:
@@ -222,13 +256,37 @@ class Browser(object):
             raise Exception("Unsupported element - %s" % str(element))
 
     def __get_by_and_locator(self, element):
+        # TODO: remove not needed
         if (type(element) == list or type(element) == tuple) and len(element) == 2:
             by, locator = element
             return by, locator
         else:
             return None
 
-    def _to_string(self, element):
+    def _to_string(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        # TODO: move outside
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         by_and_locator = self.__get_by_and_locator(element)
         if by_and_locator:
             return "Element {By: '%s', value: '%s'}" % (
@@ -278,9 +336,37 @@ class Browser(object):
         WebElement's wrapped functions
     """
 
-    def type(self, element, text):
-        self.wait_for_visible(element)
-        element = self.find_element(element)
+    def type(
+        self,
+        element=None,
+        text=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+
+        self.wait_for_visible(
+            element=element,
+        )
+        element = self.find_element(
+            element=element,
+        )
         try:
             element.clear()
         except WebDriverException as e:
@@ -291,65 +377,295 @@ class Browser(object):
 
         element.send_keys(text)
 
-    def click(self, element):
-        self.wait_for_visible(element)
-        element = self.find_element(element)
+    def click(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
+        element = self.find_element(
+            element=element,
+        )
 
         self._safe_log("Clicking at '%s'", element)
 
         element.click()
 
-    def get_parent(self, element):
-        element = self.find_element(element)
+    def get_parent(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self.find_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         parent = element.parent
         if isinstance(parent, WebElement):
             return parent
         else:
             return self.find_descendant(element, (By.XPATH, "./.."))
 
-    def get_text(self, element):
-        self.wait_for_visible(element)
-        element = self.find_element(element)
+    def get_text(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
+        element = self.find_element(
+            element=element,
+        )
         text = element.text
 
         self._safe_log("Getting text from '%s' -> '%s'", element, text)
 
         return text
 
-    def get_attribute(self, element, attr):
-        self.wait_for_visible(element)
-        element = self.find_elements(element)[0]
+    def get_attribute(
+        self,
+        element=None,
+        attr=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        assert attr is not None, "attr is not specified"
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
+        element = self.find_elements(
+            element=element,
+        )[0]
         value = element.get_attribute(attr)
 
-        self._safe_log("Getting attribute '%s' from '%s' -> '%s'", attr, element, value)
+        self._safe_log(f"Getting attribute {attr} from {element} -> {value}")
 
         return value
 
-    def get_tag_name(self, element):
-        return self.find_element(element).tag_name
+    def get_tag_name(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return self.find_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        ).tag_name
 
-    def get_id(self, element):
-        return self.get_attribute(element, "id")
+    def get_id(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return self.get_attribute(
+            element=element,
+            attr="id",
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
-    def get_class(self, element):
-        return self.get_attribute(element, "class")
+    def get_class(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return self.get_attribute(
+            element=element,
+            attr="class",
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
-    def get_value(self, element):
-        return self.get_attribute(element, "value")
+    def get_value(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return self.get_attribute(
+            element=element,
+            attr="value",
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
-    def get_location(self, element):
+    def get_location(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
         """Return tuple like (x, y)."""
-        location = self.find_element(element).location
+        location = self.find_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        ).location
 
-        self._safe_log("Getting location from '%s' -> '%s'", element, str(location))
+        self._safe_log(f"Getting location from {element} -> {location}")
 
         return int(location["x"]), int(location["y"])
 
-    def get_dimensions(self, element):
+    def get_dimensions(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
         """Return tuple like (width, height)."""
-        size = self.find_element(element).size
+        size = self.find_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        ).size
 
-        self._safe_log("Getting dimensions from '%s' -> '%s'", element, str(size))
+        self._safe_log(f"Getting dimensions from {element} -> {size}")
 
         return size["width"], size["height"]
 
@@ -357,20 +673,72 @@ class Browser(object):
         Dropdown list related methods
     """
 
-    def get_selected_value_from_dropdown(self, element):
-        self.wait_for_visible(element)
+    def get_selected_value_from_dropdown(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
 
-        element = self.find_element(element)
+        element = self.find_element(
+            element=element,
+        )
         value = Select(element).first_selected_option.get_attribute("value")
 
         self._safe_log("Getting selected value from '%s' -> '%s'", element, value)
 
         return value
 
-    def get_selected_text_from_dropdown(self, element):
-        self.wait_for_visible(element)
+    def get_selected_text_from_dropdown(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
 
-        element = self.find_element(element)
+        element = self.find_element(
+            element=element,
+        )
 
         text = Select(element).first_selected_option.text
 
@@ -378,49 +746,189 @@ class Browser(object):
 
         return text
 
-    def select_option_by_value_from_dropdown(self, element, value):
-        self.wait_for_visible(element)
+    def select_option_by_value_from_dropdown(
+        self,
+        element=None,
+        value=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
 
-        element = self.find_element(element)
+        element = self.find_element(
+            element=element,
+        )
         select = Select(element)
+        assert value is not None, "value not specified"
 
-        self._safe_log("Selecting by value '%s' from '%s'", value, element)
+        self._safe_log(f"Selecting by value {value} from {element}")
 
         select.select_by_value(value)
 
-    def select_option_by_text_from_dropdown(self, element, text):
-        self.wait_for_visible(element)
+    def select_option_by_text_from_dropdown(
+        self,
+        element=None,
+        text=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
 
-        element = self.find_element(element)
+        element = self.find_element(
+            element=element,
+        )
         select = Select(element)
 
-        self._safe_log("Selecting by text '%s' from '%s'", text, element)
+        self._safe_log(f"Selecting by text {text} from {element}")
 
         select.select_by_visible_text(text)
 
-    def select_option_by_index_from_dropdown(self, element, index):
-        self.wait_for_visible(element)
+    def select_option_by_index_from_dropdown(
+        self,
+        element=None,
+        index=0,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
-        element = self.find_element(element)
+        self.wait_for_visible(
+            element=element,
+        )
+
+        element = self.find_element(
+            element=element,
+        )
         select = Select(element)
 
-        self._safe_log("Selecting by index '%s' from '%s'", index, element)
+        self._safe_log(f"Selecting by index {index} from {element}")
 
         select.select_by_index(index)
 
-    def select_random_option_from_dropdown(self, element, *texts_to_skip):
-        self.wait_for_visible(element)
+    def select_random_option_from_dropdown(
+        self,
+        element=None,
+        texts_to_skip=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
+        texts_to_skip = texts_to_skip or []
 
-        options = self.get_texts_from_dropdown(element)
+        options = self.get_texts_from_dropdown(
+            element=element,
+        )
         option_to_select = get_random_value(options, *texts_to_skip)
 
-        self.select_option_by_text_from_dropdown(element, option_to_select)
+        self.select_option_by_text_from_dropdown(
+            element=element,
+            text=option_to_select,
+        )
 
-    def get_texts_from_dropdown(self, element):
-        self.wait_for_visible(element)
+    def get_texts_from_dropdown(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
 
         texts = []
-        element = self.find_element(element)
+        element = self.find_element(
+            element=element,
+        )
         for option in Select(element).options:
             texts.append(option.text)
 
@@ -428,11 +936,37 @@ class Browser(object):
 
         return texts
 
-    def get_values_from_dropdown(self, element):
-        self.wait_for_visible(element)
+    def get_values_from_dropdown(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+        self.wait_for_visible(
+            element=element,
+        )
 
         values = []
-        element = self.find_element(element)
+        element = self.find_element(
+            element=element,
+        )
         for option in Select(element).options:
             values.append(option.get_attribute("value"))
 
@@ -456,11 +990,55 @@ class Browser(object):
     def execute_js(self, js_script, *args):
         return self._driver.execute_script(js_script, *args)
 
-    def find_element(self, element):
-        return self.find_descendant(None, element)
+    def find_element(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return self.find_descendant(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
-    def find_descendant(self, parent, element):
-        found_elements = self.find_descendants(parent, element)
+    def find_descendant(
+        self,
+        element=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        found_elements = self.find_descendants(
+            element=element,
+            parent=parent,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         if len(found_elements) == 0:
             raise NoSuchElementException(
                 "Didn't find any elements for selector - %s" % str(element)
@@ -468,17 +1046,63 @@ class Browser(object):
         else:
             return found_elements[0]
 
-    def find_elements(self, element):
-        elements = self.__get_webelements(element)
+    def find_elements(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        elements = self.__get_webelements(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         if type(elements) == list:
             return elements
         else:
             return [elements]
 
-    def find_descendants(self, parent, element):
-        return self.__get_webelements(element, parent)
+    def find_descendants(
+        self,
+        parent=None,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return self.__get_webelements(
+            parent=parent,
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
-    def wait_for_text_is_changed(self, element, old_text, msg=None, timeout=None):
+    def wait_for_text_is_changed(
+        self, element=None, old_text=None, msg=None, timeout=None
+    ):
         if not timeout:
             timeout = self.__timeout
         if not msg:
@@ -489,7 +1113,7 @@ class Browser(object):
         )
 
     def wait_for_attribute_is_changed(
-        self, element, attr, old_value, msg=None, timeout=None
+        self, element=None, attr=None, old_value=None, msg=None, timeout=None
     ):
         if not timeout:
             timeout = self.__timeout
@@ -502,50 +1126,192 @@ class Browser(object):
             timeout,
         )
 
-    def wait_for_visible(self, element, msg=None, timeout=None, parent=None):
+    def wait_for_visible(
+        self,
+        element=None,
+        msg=None,
+        timeout=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         if not timeout:
             timeout = self.__timeout
         if not msg:
             msg = "%s is not visible for %s seconds" % (element, timeout)
-
         self.webdriver_wait(
-            lambda driver: self.is_visible(element, parent), msg, timeout
+            lambda driver: self.is_visible(element=element, parent=parent),
+            msg,
+            timeout,
         )
 
-    def wait_for_not_visible(self, element, msg=None, timeout=None):
+    def wait_for_not_visible(
+        self,
+        element=None,
+        msg=None,
+        timeout=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         if not timeout:
             timeout = self.__timeout
         if not msg:
             msg = "%s is visible for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: not self.is_visible(element), msg, timeout)
+        self.webdriver_wait(
+            lambda driver: not self.is_visible(element=element, parent=parent),
+            msg,
+            timeout,
+        )
 
-    def wait_for_present(self, element, msg=None, timeout=None):
+    def wait_for_present(
+        self,
+        element=None,
+        msg=None,
+        timeout=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
         if not timeout:
             timeout = self.__timeout
             msg = "%s is not present for %s seconds" % (element, timeout)
 
         self.webdriver_wait(lambda driver: self.is_present(element), msg, timeout)
 
-    def wait_for_not_present(self, element, msg=None, timeout=None):
+    def wait_for_not_present(
+        self,
+        element=None,
+        msg=None,
+        timeout=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
         if not timeout:
             timeout = self.__timeout
             msg = "%s is present for %s seconds" % (element, timeout)
 
         self.webdriver_wait(lambda driver: not self.is_present(element), msg, timeout)
 
-    def is_visible(self, element, parent=None):
+    def is_visible(
+        self,
+        element=None,
+        parent=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
         try:
             if parent:
-                elements = self.find_descendants(parent, element)
+                elements = self.find_descendants(
+                    element=element,
+                    parent=parent,
+                    by_id=by_id,
+                    by_xpath=by_xpath,
+                    by_link=by_link,
+                    by_partial_link=by_partial_link,
+                    by_name=by_name,
+                    by_tag=by_tag,
+                    by_css=by_css,
+                    by_class=by_class,
+                )
             else:
-                elements = self.find_elements(element)
+                elements = self.find_elements(
+                    element=element,
+                    by_id=by_id,
+                    by_xpath=by_xpath,
+                    by_link=by_link,
+                    by_partial_link=by_partial_link,
+                    by_name=by_name,
+                    by_tag=by_tag,
+                    by_css=by_css,
+                    by_class=by_class,
+                )
             return len(elements) > 0 and elements[0].is_displayed()
         except WebDriverException:
             return False
 
-    def is_present(self, element):
-        return len(self.find_elements(element)) > 0
+    def is_present(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return (
+            len(
+                self.find_elements(
+                    element=element,
+                    by_id=by_id,
+                    by_xpath=by_xpath,
+                    by_link=by_link,
+                    by_partial_link=by_partial_link,
+                    by_name=by_name,
+                    by_tag=by_tag,
+                    by_css=by_css,
+                    by_class=by_class,
+                )
+            )
+            > 0
+        )
 
     def get_screenshot_as_png(self):
         return self._driver.get_screenshot_as_png()
@@ -562,20 +1328,86 @@ class Browser(object):
         self._driver.save_screenshot(path_to_file)
         return path_to_file
 
-    def get_elements_count(self, element):
-        return len(self.find_elements(element))
+    def get_elements_count(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        return len(
+            self.find_elements(
+                element=element,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            )
+        )
 
-    def switch_to_frame(self, element):
-        element = self.find_element(element)
+    def switch_to_frame(
+        self,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
+        element = self.find_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
         self._safe_log("Switching to '%s' frame", element)
 
         self._driver.switch_to.frame(element)
 
-    def switch_to_new_window(self, function, *args):
+    def switch_to_new_window(
+        self,
+        function,
+        element=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
+    ):
         initial_handles = self._driver.window_handles
 
-        function(*args)
+        function(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
 
         self.webdriver_wait(
             lambda driver: len(initial_handles) < len(driver.window_handles)

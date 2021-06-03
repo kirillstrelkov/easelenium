@@ -1,8 +1,7 @@
 # coding=utf8
 
-from selenium.webdriver.common.by import By
-
 from easelenium.base_test import BaseTest
+from selenium.webdriver.common.by import By
 
 
 # TODO: fix failing tests
@@ -79,7 +78,9 @@ class BrowserTest(BaseTest):
         select_element = (By.CSS_SELECTOR, "select[name]")
 
         old_option = self.browser.get_selected_text_from_dropdown(select_element)
-        self.browser.select_random_option_from_dropdown(select_element, old_option)
+        self.browser.select_random_option_from_dropdown(
+            select_element, texts_to_skip=(old_option,)
+        )
         new_option = self.browser.get_selected_text_from_dropdown(select_element)
         new_option_value = self.browser.get_selected_value_from_dropdown(select_element)
 

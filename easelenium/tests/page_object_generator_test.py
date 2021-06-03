@@ -1,11 +1,10 @@
 # coding=utf8
 import tempfile
-from wx import Rect, Point
-
-from selenium.webdriver.common.by import By
 
 from easelenium.base_test import BaseTest
 from easelenium.ui.generator.page_object_generator import PageObjectGenerator
+from selenium.webdriver.common.by import By
+from wx import Point, Rect
 
 
 class PageObjectGeneratorTest(BaseTest):

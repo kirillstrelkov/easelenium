@@ -1,17 +1,15 @@
-import os
 import inspect
-
-from pytest import mark
-
+import os
 from unittest.case import TestCase
 
 from easelenium import browser
 from easelenium.ui.parser.parsed_class import (
-    ParsedClass,
     ParsedBrowserClass,
+    ParsedClass,
     ParsedMouseClass,
     ParsedPageObjectClass,
 )
+from pytest import mark
 
 
 class ParsedClassTest(TestCase):
@@ -23,28 +21,28 @@ class ParsedClassTest(TestCase):
         assert "FF" in _class.fields
         assert _class.get_value("FF") == "ff"
         assert _class.get_code("type") == inspect.getsource(browser.Browser.type)
-        assert _class.get_arg_spec("type").args == ["self", "element", "text"]
+        assert _class.get_arg_spec("type").args[:3] == ["self", "element", "text"]
 
     def test_parsed_py_file_by_module(self):
         classes = ParsedClass.get_parsed_classes(browser)
-        assert len(classes) > 1
+        assert len(classes) == 1
 
         _class = classes[0]
         assert "FF" in _class.fields
         assert _class.get_value("FF") == "ff"
         assert _class.get_code("type") == inspect.getsource(browser.Browser.type)
-        assert _class.get_arg_spec("type").args == ["self", "element", "text"]
+        assert _class.get_arg_spec("type").args[:3] == ["self", "element", "text"]
 
     def test_parsed_py_file_by_path(self):
         path = os.path.abspath(os.path.join(__file__, "..", "..", "browser.py"))
         classes = ParsedClass.get_parsed_classes(path)
-        assert len(classes) > 1
+        assert len(classes) == 1
 
         _class = classes[0]
         assert "FF" in _class.fields
         assert _class.get_value("FF") == "ff"
         assert _class.get_code("type") == inspect.getsource(browser.Browser.type)
-        assert _class.get_arg_spec("type").args == ["self", "element", "text"]
+        assert _class.get_arg_spec("type").args[:3] == ["self", "element", "text"]
 
         assert path == _class.get_source_file()
 
