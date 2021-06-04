@@ -1,35 +1,35 @@
 import logging
 from threading import Event
 from time import sleep
-from wx import (
-    Notebook,
-    TextCtrl,
-    TE_MULTILINE,
-    TE_READONLY,
-    Button,
-    StaticText,
-    Gauge,
-    GA_SMOOTH,
-    GA_HORIZONTAL,
-    CallAfter,
-    BoxSizer,
-    VERTICAL,
-    HSCROLL,
-    EVT_BUTTON,
-    CENTER,
-    CAPTION,
-    ID_OK,
-    Dialog,
-    STAY_ON_TOP,
-    DEFAULT_DIALOG_STYLE,
-    RESIZE_BORDER,
-    OK,
-    MessageDialog,
-)
 
 from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
-from easelenium.utils import LINESEP
 from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
+from easelenium.utils import LINESEP
+from wx import (
+    CAPTION,
+    CENTER,
+    DEFAULT_DIALOG_STYLE,
+    EVT_BUTTON,
+    GA_HORIZONTAL,
+    GA_SMOOTH,
+    HSCROLL,
+    ID_OK,
+    OK,
+    RESIZE_BORDER,
+    STAY_ON_TOP,
+    TE_MULTILINE,
+    TE_READONLY,
+    VERTICAL,
+    BoxSizer,
+    Button,
+    CallAfter,
+    Dialog,
+    Gauge,
+    MessageDialog,
+    Notebook,
+    StaticText,
+    TextCtrl,
+)
 
 
 def show_error_dialog(parent, message, caption):

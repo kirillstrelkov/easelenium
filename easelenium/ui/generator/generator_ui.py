@@ -1,24 +1,23 @@
 import os
 import re
 from threading import Thread
-from wx import Panel, StaticText, TextCtrl, Button, EVT_BUTTON, GridBagSizer, EVT_MOTION
 
-from selenium.webdriver.common.by import By
-
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easelenium.ui.widgets.utils import (
-    show_dialog,
-    show_dialog_path_doesnt_exist,
-    show_dialog_bad_name,
-    show_dialog_path_does_exist,
-)
+from easelenium.ui.generator.page_object_generator import PageObjectGenerator
 from easelenium.ui.root_folder import RootFolder
 from easelenium.ui.string_utils import StringUtils
-from easelenium.ui.widgets.utils import DialogWithText
-from easelenium.ui.widgets.utils import WxTextCtrlHandler
-from easelenium.utils import Logger, get_py_file_name_from_class_name, LINESEP
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
 from easelenium.ui.widgets.image.selectable_image import SelectableImagePanel
-from easelenium.ui.generator.page_object_generator import PageObjectGenerator
+from easelenium.ui.widgets.utils import (
+    DialogWithText,
+    WxTextCtrlHandler,
+    show_dialog,
+    show_dialog_bad_name,
+    show_dialog_path_does_exist,
+    show_dialog_path_doesnt_exist,
+)
+from easelenium.utils import LINESEP, Logger, get_py_file_name_from_class_name
+from selenium.webdriver.common.by import By
+from wx import EVT_BUTTON, EVT_MOTION, Button, GridBagSizer, Panel, StaticText, TextCtrl
 
 
 class GeneratorTab(Panel):
@@ -107,7 +106,7 @@ class GeneratorTab(Panel):
             show_dialog(self, msg, caption)
             return False
         elif not re.match(
-            "\(\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*\)", area
+            r"\(\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*\)", area
         ):
             msg = "Selected area is not correct: '%s'" % area
             caption = "Bad selected area"

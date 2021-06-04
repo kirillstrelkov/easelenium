@@ -1,19 +1,6 @@
 import shutil
 import traceback
 from tempfile import mkdtemp
-from wx import (
-    Panel,
-    Frame,
-    GridBagSizer,
-    StaticText,
-    TextCtrl,
-    Button,
-    EVT_BUTTON,
-    DirDialog,
-    ID_OK,
-    Choice,
-    EVT_CLOSE,
-)
 
 from easelenium.browser import Browser
 from easelenium.ui.editor.editor_ui import EditorTab
@@ -23,8 +10,20 @@ from easelenium.ui.selector_finder.finder_ui import SelectorFinderTab
 from easelenium.ui.string_utils import StringUtils
 from easelenium.ui.test_runner_ui import TestRunnerTab
 from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easelenium.ui.widgets.utils import Tabs
-from easelenium.ui.widgets.utils import show_dialog, show_error_dialog
+from easelenium.ui.widgets.utils import Tabs, show_dialog, show_error_dialog
+from wx import (
+    EVT_BUTTON,
+    EVT_CLOSE,
+    ID_OK,
+    Button,
+    Choice,
+    DirDialog,
+    Frame,
+    GridBagSizer,
+    Panel,
+    StaticText,
+    TextCtrl,
+)
 
 
 class MainFrame(Frame):

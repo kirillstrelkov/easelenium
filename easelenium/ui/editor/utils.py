@@ -1,58 +1,58 @@
 import os
 import re
-from wx import (
-    Panel,
-    GridBagSizer,
-    Button,
-    EVT_BUTTON,
-    TextCtrl,
-    TE_MULTILINE,
-    FileDialog,
-    FD_SAVE,
-    ID_OK,
-    BoxSizer,
-    VERTICAL,
-    TE_READONLY,
-    FONTFAMILY_TELETYPE,
-    NORMAL,
-    CallAfter,
-    Font,
-    EVT_KEY_DOWN,
-    WXK_TAB,
-    TextEntryDialog,
-    FD_OPEN,
-    HSCROLL,
-    Dialog,
-    StaticText,
-    DEFAULT_DIALOG_STYLE,
-    RESIZE_BORDER,
-    ID_CANCEL,
-    ALIGN_RIGHT,
-    HORIZONTAL,
-)
-from wx.grid import EVT_GRID_SELECT_CELL, EVT_GRID_CELL_RIGHT_CLICK
 
-from easelenium.ui.widgets.utils import (
-    show_dialog,
-    show_error_dialog,
-    show_dialog_bad_name,
+from easelenium.ui.file_utils import save_file
+from easelenium.ui.parser.parsed_class import (
+    ParsedBrowserClass,
+    ParsedMouseClass,
+    ParsedPageObjectClass,
 )
+from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.string_utils import StringUtils
 from easelenium.ui.utils import (
     FLAG_ALL_AND_EXPAND,
     check_file_for_errors,
     check_py_code_for_errors,
 )
-from easelenium.ui.root_folder import RootFolder
-from easelenium.ui.string_utils import StringUtils
-from easelenium.ui.parser.parsed_class import (
-    ParsedMouseClass,
-    ParsedBrowserClass,
-    ParsedPageObjectClass,
-)
-from easelenium.ui.file_utils import save_file
 from easelenium.ui.widgets.table import Table
-from easelenium.ui.widgets.utils import Tabs
-from easelenium.utils import is_windows, get_class_name_from_file, LINESEP
+from easelenium.ui.widgets.utils import (
+    Tabs,
+    show_dialog,
+    show_dialog_bad_name,
+    show_error_dialog,
+)
+from easelenium.utils import LINESEP, get_class_name_from_file, is_windows
+from wx import (
+    ALIGN_RIGHT,
+    DEFAULT_DIALOG_STYLE,
+    EVT_BUTTON,
+    EVT_KEY_DOWN,
+    FD_OPEN,
+    FD_SAVE,
+    FONTFAMILY_TELETYPE,
+    HORIZONTAL,
+    HSCROLL,
+    ID_CANCEL,
+    ID_OK,
+    NORMAL,
+    RESIZE_BORDER,
+    TE_MULTILINE,
+    TE_READONLY,
+    VERTICAL,
+    WXK_TAB,
+    BoxSizer,
+    Button,
+    CallAfter,
+    Dialog,
+    FileDialog,
+    Font,
+    GridBagSizer,
+    Panel,
+    StaticText,
+    TextCtrl,
+    TextEntryDialog,
+)
+from wx.grid import EVT_GRID_CELL_RIGHT_CLICK, EVT_GRID_SELECT_CELL
 
 
 class PyFileUI(Panel):
@@ -149,7 +149,7 @@ class PyFileUI(Panel):
         self.append_text(test_case)
 
     def has_one_or_more_methods_or_test_cases(self):
-        return len(re.findall("def [a-z_]+\(self.+:", self.txt_content.GetValue())) > 0
+        return len(re.findall(r"def [a-z_]+\(self.+:", self.txt_content.GetValue())) > 0
 
     def append_method_call(
         self, field=None, method_name=None, method=None, arg_spec=None
@@ -322,8 +322,10 @@ class {class_name}(BaseTest):
     def __fix_class_initialization(self, po_class):
         class_name = po_class.name
         field_name = class_name.lower()
-        field_line = "        cls.{field_name} = {class_name}(cls.browser, cls.logger)".format(
-            field_name=field_name, class_name=class_name
+        field_line = (
+            "        cls.{field_name} = {class_name}(cls.browser, cls.logger)".format(
+                field_name=field_name, class_name=class_name
+            )
         )
 
         text = self.txt_content.GetValue()
@@ -582,3 +584,4 @@ class MultipleTextEntry(Dialog):
             show_dialog(self, LINESEP.join(errors), "Bad entered data")
         else:
             CallAfter(self.EndModal, ID_OK)
+        return return_code

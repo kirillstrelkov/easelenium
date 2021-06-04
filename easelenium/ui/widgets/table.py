@@ -1,6 +1,5 @@
-from wx.grid import Grid, GridStringTable
-
 from easelenium.ui.generator.page_object_class import get_by_as_code_str
+from wx.grid import Grid
 
 
 class Table(Grid):

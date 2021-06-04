@@ -1,11 +1,11 @@
-import os
 import inspect
+import os
+from importlib.machinery import SourceFileLoader
 from pprint import pformat
 from unittest.case import TestCase
 
 from easelenium.browser import Browser, Mouse
 from easelenium.utils import is_string
-from importlib.machinery import SourceFileLoader
 
 
 class ParsedClass(object):
@@ -99,7 +99,8 @@ class ParsedBrowserClass(ParsedClass):
         "get_attribute",
         "get_current_url",
     )
-    # NOTE: methods which are wrapped(ex. 'stale_exception_wrapper') should be added to __GOOD_METHODS
+    # NOTE: methods which are wrapped(ex. 'stale_exception_wrapper')
+    # should be added to __GOOD_METHODS
     # otherwise they won't be added to ParsedClass object
 
     @classmethod

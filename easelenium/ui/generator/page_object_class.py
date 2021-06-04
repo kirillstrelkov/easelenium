@@ -142,12 +142,12 @@ class {name}(BasePageObject):
         # Url: {url}
         # Area: {area}
         # Image path: {img_path}
-        name_regexp = "class (\w+)\(BasePageObject\):"
-        url_regexp = "Url: (.+)"
-        area_regexp = "Area: \(?([\w, ]+)\)?"
-        img_path_regexp = "Image path: (.+)"
-        file_path_regexp = "File path: (.+)"
-        fields_regexp = "\s+(\w+) = (.+) # location: (.+) dimensions: (.+)"
+        name_regexp = r"class (\w+)\(BasePageObject\):"
+        url_regexp = r"Url: (.+)"
+        area_regexp = r"Area: \(?([\w, ]+)\)?"
+        img_path_regexp = r"Image path: (.+)"
+        file_path_regexp = r"File path: (.+)"
+        fields_regexp = r"\s+(\w+) = (.+) # location: (.+) dimensions: (.+)"
 
         name = get_match(name_regexp, string)
         url = get_match(url_regexp, string)

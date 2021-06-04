@@ -1,48 +1,44 @@
 import os
 import traceback
-from wx import (
-    GridBagSizer,
-    Panel,
-    StaticText,
-    ComboBox,
-    CB_READONLY,
-    ALL,
-    EVT_COMBOBOX,
-    Button,
-    EVT_BUTTON,
-    SplitterWindow,
-    EVT_MOTION,
-    EVT_RIGHT_DOWN,
-    FileDialog,
-    ID_OK,
-    SP_LIVE_UPDATE,
-    SP_3D,
-    BoxSizer,
-    HORIZONTAL,
-)
 
-from easelenium.ui.editor.utils import (
-    FieldsTableAndTestFilesTabs,
-    TestFileUI,
-    PyFileUI,
+from easelenium.ui.editor.field_context_menu import FieldContextMenu
+from easelenium.ui.editor.utils import FieldsTableAndTestFilesTabs, PyFileUI, TestFileUI
+from easelenium.ui.file_utils import is_correct_python_file, read_file
+from easelenium.ui.generator.page_object_class import PageObjectClass
+from easelenium.ui.parser.parsed_class import (
+    ParsedBrowserClass,
+    ParsedMouseClass,
+    ParsedPageObjectClass,
 )
 from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
+from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
 from easelenium.ui.widgets.utils import (
+    ImageAndTableHelper,
     show_dialog,
     show_dialog_path_doesnt_exist,
     show_error_dialog,
 )
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easelenium.ui.editor.field_context_menu import FieldContextMenu
-from easelenium.ui.parser.parsed_class import (
-    ParsedMouseClass,
-    ParsedBrowserClass,
-    ParsedPageObjectClass,
+from wx import (
+    ALL,
+    CB_READONLY,
+    EVT_BUTTON,
+    EVT_COMBOBOX,
+    EVT_MOTION,
+    EVT_RIGHT_DOWN,
+    HORIZONTAL,
+    ID_OK,
+    SP_3D,
+    SP_LIVE_UPDATE,
+    BoxSizer,
+    Button,
+    ComboBox,
+    FileDialog,
+    GridBagSizer,
+    Panel,
+    SplitterWindow,
+    StaticText,
 )
-from easelenium.ui.generator.page_object_class import PageObjectClass
-from easelenium.ui.file_utils import read_file, is_correct_python_file
-from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
-from easelenium.ui.widgets.utils import ImageAndTableHelper
 
 
 class EditorTab(Panel):

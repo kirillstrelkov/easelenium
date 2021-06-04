@@ -1,6 +1,5 @@
-import os
 import codecs
-
+import os
 
 __ENCODING = "utf8"
 __WRITE_MODE = "wb"

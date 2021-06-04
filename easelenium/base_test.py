@@ -1,6 +1,5 @@
 # coding=utf8
 import traceback
-
 from unittest.case import TestCase
 
 from easelenium.browser import Browser

@@ -2,60 +2,59 @@ import os
 import traceback
 from subprocess import check_output
 
-from pytest import main
-from wx import (
-    Panel,
-    GridBagSizer,
-    Button,
-    TR_SINGLE,
-    TR_HAS_BUTTONS,
-    SplitterWindow,
-    SP_3D,
-    SP_LIVE_UPDATE,
-    CallAfter,
-    TextCtrl,
-    VSCROLL,
-    TE_MULTILINE,
-    TE_READONLY,
-    HSCROLL,
-    StaticText,
-    EVT_BUTTON,
-    FileDialog,
-    ID_OK,
-    FD_OPEN,
-    DirDialog,
-    DD_DIR_MUST_EXIST,
-    FD_FILE_MUST_EXIST,
-    FD_MULTIPLE,
-    CheckBox,
-    EVT_CHECKBOX,
-    FD_SAVE,
-    FD_OVERWRITE_PROMPT,
-    Font,
-    FONTFAMILY_TELETYPE,
-    NORMAL,
-)
-from wx import Choice
-from wx.lib.agw.customtreectrl import (
-    CustomTreeCtrl,
-    TR_AUTO_CHECK_CHILD,
-    TR_AUTO_CHECK_PARENT,
-    EVT_TREE_ITEM_CHECKED,
-    TR_AUTO_TOGGLE_CHILD,
-)
-
+from easelenium.base_test import BaseTest
 from easelenium.browser import Browser
-from easelenium.ui.utils import run_in_separate_thread, FLAG_ALL_AND_EXPAND
+from easelenium.ui.file_utils import get_list_of_files
+from easelenium.ui.parser.parsed_class import ParsedClass
+from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
 from easelenium.ui.widgets.utils import (
+    DialogWithText,
+    InfiniteProgressBarDialog,
     show_dialog_path_doesnt_exist,
     show_error_dialog,
 )
-from easelenium.ui.parser.parsed_class import ParsedClass
-from easelenium.ui.file_utils import get_list_of_files
-from easelenium.ui.root_folder import RootFolder
-from easelenium.base_test import BaseTest
-from easelenium.ui.widgets.utils import DialogWithText
-from easelenium.ui.widgets.utils import InfiniteProgressBarDialog
+from pytest import main
+from wx import (
+    DD_DIR_MUST_EXIST,
+    EVT_BUTTON,
+    EVT_CHECKBOX,
+    FD_FILE_MUST_EXIST,
+    FD_MULTIPLE,
+    FD_OPEN,
+    FD_OVERWRITE_PROMPT,
+    FD_SAVE,
+    FONTFAMILY_TELETYPE,
+    HSCROLL,
+    ID_OK,
+    NORMAL,
+    SP_3D,
+    SP_LIVE_UPDATE,
+    TE_MULTILINE,
+    TE_READONLY,
+    TR_HAS_BUTTONS,
+    TR_SINGLE,
+    VSCROLL,
+    Button,
+    CallAfter,
+    CheckBox,
+    Choice,
+    DirDialog,
+    FileDialog,
+    Font,
+    GridBagSizer,
+    Panel,
+    SplitterWindow,
+    StaticText,
+    TextCtrl,
+)
+from wx.lib.agw.customtreectrl import (
+    EVT_TREE_ITEM_CHECKED,
+    TR_AUTO_CHECK_CHILD,
+    TR_AUTO_CHECK_PARENT,
+    TR_AUTO_TOGGLE_CHILD,
+    CustomTreeCtrl,
+)
 
 
 class RedirectText(object):
@@ -249,8 +248,10 @@ class TestRunnerTab(Panel):
                 btn.Enable()
 
     def __on_tree_check(self, evt):
-        # styles doesn't work: TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD
-        # TODO: fix if all children are check then one child is uncheck - parent is checked
+        # styles doesn't work:
+        # TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD
+        # TODO: fix if all children are checked
+        # then one child is unchecked - parent is checked
         item = evt.GetItem()
         checked = item.IsChecked()
         parent = item.GetParent()
@@ -358,7 +359,7 @@ class TestRunnerTab(Panel):
                         test_class = _class.GetText()
                         test_method = test_case.GetText()
                         tests.append(f"{test_path}")
-                        tests.append(f"-k")
+                        tests.append("-k")
                         tests.append(f"{test_class} and {test_method}")
 
         if not tests:
@@ -397,7 +398,9 @@ class TestRunnerTab(Panel):
         self.txt_ctrl.Clear()
 
         dialog = InfiniteProgressBarDialog(
-            self, "Running test cases", "Running selected test cases... Please wait...",
+            self,
+            "Running test cases",
+            "Running selected test cases... Please wait...",
         )
 
         def wrap_func():
@@ -416,7 +419,8 @@ class TestRunnerTab(Panel):
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 
                 easelenium_cmd = " ".join(cmd).replace(
-                    "easelenium_cli.py", "easelenium_cli.py --browser " + browser_name,
+                    "easelenium_cli.py",
+                    "easelenium_cli.py --browser " + browser_name,
                 )
                 print(f"Executing command:\n{easelenium_cmd}")
 

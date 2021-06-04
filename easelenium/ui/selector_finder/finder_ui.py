@@ -1,26 +1,28 @@
 from threading import Thread
-from wx import (
-    Panel,
-    GridBagSizer,
-    Button,
-    EVT_BUTTON,
-    EVT_MOTION,
-    SplitterWindow,
-    SP_3D,
-    SP_LIVE_UPDATE,
-)
-from wx.grid import EVT_GRID_SELECT_CELL
 
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easelenium.ui.widgets.utils import show_dialog
+from easelenium.ui.generator.page_object_generator import PageObjectGenerator
 from easelenium.ui.string_utils import StringUtils
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
 from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
 from easelenium.ui.widgets.table import Table
-from easelenium.ui.widgets.utils import ImageAndTableHelper
-from easelenium.ui.widgets.utils import DialogWithText
-from easelenium.ui.widgets.utils import WxTextCtrlHandler
+from easelenium.ui.widgets.utils import (
+    DialogWithText,
+    ImageAndTableHelper,
+    WxTextCtrlHandler,
+    show_dialog,
+)
 from easelenium.utils import Logger
-from easelenium.ui.generator.page_object_generator import PageObjectGenerator
+from wx import (
+    EVT_BUTTON,
+    EVT_MOTION,
+    SP_3D,
+    SP_LIVE_UPDATE,
+    Button,
+    GridBagSizer,
+    Panel,
+    SplitterWindow,
+)
+from wx.grid import EVT_GRID_SELECT_CELL
 
 
 class SelectorFinderTab(Panel):
