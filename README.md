@@ -1,6 +1,6 @@
 # easelenium
 
-![Test workflow](https://github.com/kirillstrelkov/easelenium/actions/workflows/test.yml/badge.svg)
+[![Test](https://github.com/kirillstrelkov/easelenium/actions/workflows/test.yml/badge.svg?branch=master&event=push)](https://github.com/kirillstrelkov/easelenium/actions/workflows/test.yml)
 
 Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
 
