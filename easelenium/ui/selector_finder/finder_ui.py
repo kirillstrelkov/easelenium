@@ -91,7 +91,7 @@ class SelectorFinderTab(Panel):
         if browser:
             url = self.main_frame.get_url()
             if not StringUtils.is_url_correct(url):
-                show_dialog(self, u"Bad url: %s" % url, u"Bad url")
+                show_dialog(self, "Bad url: %s" % url, "Bad url")
             else:
                 dialog = DialogWithText(self, "Finding selectors...")
                 handler = WxTextCtrlHandler(dialog.txt_ctrl)

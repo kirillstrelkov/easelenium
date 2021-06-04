@@ -142,8 +142,8 @@ class BrowserTest(BaseTest):
         texts = self.browser.get_texts_from_dropdown(by_css=select_element)
         values = self.browser.get_values_from_dropdown(by_css=select_element)
         assert len(texts) == len(values)
-        assert texts == [u"First Value", u"Second Value", u"Third Value"]
-        assert values == [u"first", u"second", u"third"]
+        assert texts == [u"First Value", "Second Value", "Third Value"]
+        assert values == [u"first", "second", "third"]
 
     def test_js_script(self):
         self.browser.get("https://duckduckgo.com/")

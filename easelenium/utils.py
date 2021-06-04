@@ -5,12 +5,7 @@ import sys
 from datetime import datetime
 from random import choice
 
-
-def unicode_str(string):
-    return u"%s" % string
-
-
-LINESEP = unicode_str(os.linesep)
+LINESEP = os.linesep
 
 
 def get_match(regexp, string, single_match=True):
@@ -19,10 +14,6 @@ def get_match(regexp, string, single_match=True):
         return found[0] if single_match else found
     else:
         return None
-
-
-def is_python2():
-    return sys.version_info.major == 2
 
 
 def is_windows():
@@ -36,7 +27,7 @@ def get_timestamp():
 
 
 def is_string(obj):
-    return type(obj) in ((str, unicode) if is_python2() else (str,))
+    return type(obj) == str
 
 
 def get_random_value(_list, *val_to_skip):

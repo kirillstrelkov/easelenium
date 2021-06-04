@@ -121,14 +121,14 @@ class EditorTab(Panel):
             else:
                 show_dialog(
                     self,
-                    u"Please select tab with test file.",
-                    u"Tab with test file was not selected",
+                    "Please select tab with test file.",
+                    "Tab with test file was not selected",
                 )
         else:
             show_dialog(
                 self,
-                u"Please create/open test file.",
-                u"Test file was not created/opened",
+                "Please create/open test file.",
+                "Test file was not created/opened",
             )
 
     def __on_load_po_class(self, evt):
@@ -169,7 +169,7 @@ class EditorTab(Panel):
         if not os.path.exists(path):
             show_dialog_path_doesnt_exist(self, path)
         if not is_correct_python_file(path):
-            show_dialog(self, u"File name is incorrect: %s" % path, u"Bad file name")
+            show_dialog(self, "File name is incorrect: %s" % path, "Bad file name")
         else:
             folder = os.path.dirname(path)
             files = [
@@ -194,5 +194,5 @@ class EditorTab(Panel):
             except Exception:
                 self.__cur_po_class = None
                 show_error_dialog(
-                    self, traceback.format_exc(), u"Failed to open file %s" % path
+                    self, traceback.format_exc(), "Failed to open file %s" % path
                 )

@@ -1,6 +1,4 @@
-from wx import Menu, MenuItem, EVT_MENU, NewId
-
-from easelenium.utils import unicode_str
+from wx import EVT_MENU, Menu, MenuItem, NewId
 
 
 class MenuItemData(object):
@@ -10,14 +8,14 @@ class MenuItemData(object):
         self.id = NewId()
 
     def __str__(self):
-        return u"MenuItemData(%s)" % unicode_str(self.__dict__)
+        return f"MenuItemData({self.__dict__})"
 
     def __repr__(self):
         return str(self)
 
 
 class ContextMenu(Menu):
-    SEPARATOR_TEXT = u"------"
+    SEPARATOR_TEXT = "------"
 
     def __init__(self, data):
         Menu.__init__(self)

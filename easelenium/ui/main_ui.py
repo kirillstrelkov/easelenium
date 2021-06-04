@@ -140,7 +140,7 @@ class MainFrame(Frame):
                     self.__browser = Browser(name)
             except Exception:
                 show_error_dialog(
-                    self, traceback.format_exc(), u"Failed to open browser"
+                    self, traceback.format_exc(), "Failed to open browser"
                 )
                 self.__browser = None
 
@@ -149,7 +149,7 @@ class MainFrame(Frame):
             # TODO: if generator or selector -> load image
             self.bth_open_url.Enable()
         else:
-            show_dialog(self, u"Bad url: %s" % url, u"Bad url")
+            show_dialog(self, "Bad url: %s" % url, "Bad url")
 
     def __close_browser(self, evt):
         if self.__browser:

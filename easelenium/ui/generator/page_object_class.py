@@ -1,40 +1,38 @@
 # coding=utf8
 import os
 
-from selenium.webdriver.common.by import By
-
-from easelenium.utils import unicode_str, get_match
-from easelenium.utils import LINESEP
 from easelenium.ui.file_utils import safe_create_path, save_file
+from easelenium.utils import LINESEP, get_match
+from selenium.webdriver.common.by import By
 
 # TODO: move to f string and get rid of u strings
 
 
 def get_by_as_code_str(by):
     if by == By.LINK_TEXT:
-        return u"By.LINK_TEXT"
+        return "By.LINK_TEXT"
     elif by == By.CLASS_NAME:
-        return u"By.CLASS_NAME"
+        return "By.CLASS_NAME"
     elif by == By.CSS_SELECTOR:
-        return u"By.CSS_SELECTOR"
+        return "By.CSS_SELECTOR"
     elif by == By.XPATH:
-        return u"By.XPATH"
+        return "By.XPATH"
     elif by == By.ID:
-        return u"By.ID"
+        return "By.ID"
     else:
         raise NotImplementedError
 
 
 def get_by_from_code_str(by_as_string):
-    if by_as_string == u"By.LINK_TEXT":
+    if by_as_string == "By.LINK_TEXT":
         return By.LINK_TEXT
-    elif by_as_string == u"By.CLASS_NAME":
+    elif by_as_string == "By.CLASS_NAME":
         return By.CLASS_NAME
-    elif by_as_string == u"By.CSS_SELECTOR":
+    elif by_as_string == "By.CSS_SELECTOR":
         return By.CSS_SELECTOR
-    elif by_as_string == u"By.XPATH":
+    elif by_as_string == "By.XPATH":
         return By.XPATH
-    elif by_as_string == u"By.ID":
+    elif by_as_string == "By.ID":
         return By.ID
     else:
         raise NotImplementedError
@@ -59,12 +57,12 @@ class PageObjectClassField(object):
         return str(self)
 
     def __str__(self):
-        return u"PageObjectClassField(%s)" % unicode_str(self.__dict__)
+        return f"PageObjectClassField({self.__dict__})"
 
 
 class PageObjectClass(object):
     IMAGE_FOLDER = "img"
-    TEMPLATE = u"""# coding=utf8
+    TEMPLATE = """# coding=utf8
 from selenium.webdriver.common.by import By
 
 from easelenium.base_page_object import BasePageObject
@@ -115,12 +113,12 @@ class {name}(BasePageObject):
         kwargs = self.__dict__.copy()
         fields_as_code = self._get_fields_as_code()
         if len(fields_as_code.strip()) == 0:
-            fields_as_code = u"    pass" + LINESEP
-        kwargs[u"fields_as_code"] = fields_as_code
+            fields_as_code = "    pass" + LINESEP
+        kwargs["fields_as_code"] = fields_as_code
         return self.TEMPLATE.format(**kwargs)
 
     def _get_fields_as_code(self):
-        single_line = u"    {name} = ({by_as_code}, u'{selector}') # {comment}"
+        single_line = "    {name} = ({by_as_code}, u'{selector}') # {comment}"
         lines = []
         for field in self.fields:
             lines.append(
@@ -129,7 +127,7 @@ class {name}(BasePageObject):
                         "name": field.name,
                         "by_as_code": get_by_as_code_str(field.by),
                         "selector": field.selector.replace("'", "\\'"),
-                        "comment": u"location: %s dimensions: %s"
+                        "comment": "location: %s dimensions: %s"
                         % (field.location, field.dimensions),
                     }
                 )
@@ -144,12 +142,12 @@ class {name}(BasePageObject):
         # Url: {url}
         # Area: {area}
         # Image path: {img_path}
-        name_regexp = u"class (\w+)\(BasePageObject\):"
-        url_regexp = u"Url: (.+)"
-        area_regexp = u"Area: \(?([\w, ]+)\)?"
-        img_path_regexp = u"Image path: (.+)"
-        file_path_regexp = u"File path: (.+)"
-        fields_regexp = u"\s+(\w+) = (.+) # location: (.+) dimensions: (.+)"
+        name_regexp = "class (\w+)\(BasePageObject\):"
+        url_regexp = "Url: (.+)"
+        area_regexp = "Area: \(?([\w, ]+)\)?"
+        img_path_regexp = "Image path: (.+)"
+        file_path_regexp = "File path: (.+)"
+        fields_regexp = "\s+(\w+) = (.+) # location: (.+) dimensions: (.+)"
 
         name = get_match(name_regexp, string)
         url = get_match(url_regexp, string)
@@ -190,4 +188,4 @@ class {name}(BasePageObject):
         return str(self)
 
     def __str__(self):
-        return u"PageObjectClass(%s)" % unicode_str(self.__dict__)
+        return f"PageObjectClass({self.__dict__})"

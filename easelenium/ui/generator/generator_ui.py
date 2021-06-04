@@ -102,23 +102,23 @@ class GeneratorTab(Panel):
         class_name = self.txt_class_name.GetValue()
         area = self.txt_selected_area.GetValue()
         if not self.main_frame.get_browser():
-            msg = u"Browser is not opened." + LINESEP + "Please open url."
-            caption = u"Browser is not opened"
+            msg = "Browser is not opened." + LINESEP + "Please open url."
+            caption = "Browser is not opened"
             show_dialog(self, msg, caption)
             return False
         elif not re.match(
             "\(\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*\)", area
         ):
-            msg = u"Selected area is not correct: '%s'" % area
-            caption = u"Bad selected area"
+            msg = "Selected area is not correct: '%s'" % area
+            caption = "Bad selected area"
             show_dialog(self, msg, caption)
             return False
         elif root_folder is None or not os.path.exists(root_folder):
             show_dialog_path_doesnt_exist(self, root_folder)
             return False
         elif len(class_name) == 0:  # if bad class_name
-            msg = u"Unsupported name for class: '%s'" % class_name
-            caption = u"Bad name for class"
+            msg = "Unsupported name for class: '%s'" % class_name
+            caption = "Bad name for class"
             show_dialog(self, msg, caption)
             return False
         return True
@@ -153,10 +153,10 @@ class GeneratorTab(Panel):
                 show_dialog_bad_name(self, class_name, "Header", "ContextMenu")
             elif not StringUtils.is_area_correct(area_as_text):
                 show_dialog(
-                    self, u"Bad selected area: %s" % area_as_text, u"Bad selected area"
+                    self, "Bad selected area: %s" % area_as_text, "Bad selected area"
                 )
             elif not StringUtils.is_url_correct(url):
-                show_dialog(self, u"Bad url: %s" % url, u"Bad url")
+                show_dialog(self, "Bad url: %s" % url, "Bad url")
             else:
                 dialog = DialogWithText(self, "Generating page object class...")
                 handler = WxTextCtrlHandler(dialog.txt_ctrl)

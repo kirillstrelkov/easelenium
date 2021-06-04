@@ -1,18 +1,17 @@
 # coding=utf8
+import codecs
 import os
 import pickle
-import codecs
 from unittest.case import TestCase
 
-from selenium.webdriver.common.by import By
-
-from easelenium.utils import is_windows, is_python2
-from easelenium.ui.file_utils import safe_remove_path, check_if_path_exists, read_file
+from easelenium.ui.file_utils import check_if_path_exists, read_file, safe_remove_path
 from easelenium.ui.generator.page_object_class import (
+    PageObjectClass,
     get_by_as_code_str,
     get_by_from_code_str,
-    PageObjectClass,
 )
+from easelenium.utils import is_windows
+from selenium.webdriver.common.by import By
 
 
 class PageObjectClassTest(TestCase):
@@ -26,19 +25,13 @@ class PageObjectClassTest(TestCase):
         cls.expected_duckduckgo_class_path = os.path.join(
             cur_path, "data", "expected_duckduckgo_class_py"
         )
-        if is_python2():
-            with codecs.open(cls.pickled_object_path) as f:
-                cls.po_class_object = pickle.load(f)
-        else:
-            cls.po_class_object = pickle.load(
-                codecs.open(cls.pickled_object_path, mode="rb"),
-                encoding="utf8",
-                errors="replace",
-            )
-            # Fixing bytes read as string because of Python2 pickling
-            cls.po_class_object.img_as_png = cls.po_class_object.img_as_png.encode(
-                "utf8"
-            )
+        cls.po_class_object = pickle.load(
+            codecs.open(cls.pickled_object_path, mode="rb"),
+            encoding="utf8",
+            errors="replace",
+        )
+        # Fixing bytes read as string because of Python2 pickling
+        cls.po_class_object.img_as_png = cls.po_class_object.img_as_png.encode("utf8")
 
         cls.maxDiff = None
 
@@ -64,7 +57,7 @@ class PageObjectClassTest(TestCase):
                 "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object."
             )
         else:
-            expected_fields = u"""
+            expected_fields = """
     BAD_NAME = (By.LINK_TEXT, u'⇶') # location: (1261, 23) dimensions: (33, 33)
     LOGO_HOMEPAGE_LINK = (By.ID, u'logo_homepage_link') # location: (526, 117) dimensions: (250, 200)
     SEARCH_FORM_INPUT_HOMEPAGE = (By.ID, u'search_form_input_homepage') # location: (347, 347) dimensions: (562, 46)
@@ -93,11 +86,11 @@ class PageObjectClassTest(TestCase):
             )
 
     def test_get_by_as_code_str(self):
-        assert u"By.ID" == get_by_as_code_str(By.ID)
-        assert u"By.CLASS_NAME" == get_by_as_code_str(By.CLASS_NAME)
-        assert u"By.XPATH" == get_by_as_code_str(By.XPATH)
-        assert u"By.CSS_SELECTOR" == get_by_as_code_str(By.CSS_SELECTOR)
-        assert u"By.LINK_TEXT" == get_by_as_code_str(By.LINK_TEXT)
+        assert "By.ID" == get_by_as_code_str(By.ID)
+        assert "By.CLASS_NAME" == get_by_as_code_str(By.CLASS_NAME)
+        assert "By.XPATH" == get_by_as_code_str(By.XPATH)
+        assert "By.CSS_SELECTOR" == get_by_as_code_str(By.CSS_SELECTOR)
+        assert "By.LINK_TEXT" == get_by_as_code_str(By.LINK_TEXT)
 
     def test_get_by_from_code_str(self):
         assert By.ID == get_by_from_code_str(u"By.ID")

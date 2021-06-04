@@ -21,7 +21,7 @@ class FieldContextMenu(ContextMenu):
             is_browser = "click" in pc.methods
             if is_asserts or is_mouse or not is_browser:
                 if is_mouse:
-                    name = u"Mouse"
+                    name = "Mouse"
                 else:
                     name = pc.name
                 data.append((name, self.__prepare_context_data(pc.methods)))
@@ -87,12 +87,12 @@ class FieldContextMenu(ContextMenu):
             else:
                 show_dialog(
                     self.GetParent(),
-                    u"Please create method or test case.",
-                    u"Class doesn't have any methods or test cases",
+                    "Please create method or test case.",
+                    "Class doesn't have any methods or test cases",
                 )
         else:
             show_dialog(
                 self.GetParent(),
-                u"Please select or create test file.",
-                u"Test file was not selected",
+                "Please select or create test file.",
+                "Test file was not selected",
             )

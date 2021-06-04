@@ -9,7 +9,6 @@ from easelenium.ui.parser.parsed_class import (
     ParsedMouseClass,
     ParsedPageObjectClass,
 )
-from pytest import mark
 
 
 class ParsedClassTest(TestCase):

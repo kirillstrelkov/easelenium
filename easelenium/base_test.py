@@ -32,7 +32,7 @@ class BaseTest(TestCase):
         TestCase.setUp(self)
         if self.browser.logger:
             name = self.id()
-            symbols_before = u"-" * int((self.TC_NAME_WIDTH - len(name) - 2) / 2)
+            symbols_before = "-" * int((self.TC_NAME_WIDTH - len(name) - 2) / 2)
             self.browser.logger.info(
                 "{} {} {}".format(symbols_before, name, symbols_before)
             )
@@ -55,12 +55,12 @@ class BaseTest(TestCase):
 
         if failed:
             name = self.id()
-            filename = u"_".join(
+            filename = "_".join(
                 [name, self.browser.get_browser_initials(), get_timestamp()]
             )
             try:
                 self.browser.save_screenshot(
-                    self.FAILED_SCREENSHOT_FOLDER, filename + u".png"
+                    self.FAILED_SCREENSHOT_FOLDER, filename + ".png"
                 )
             except Exception:
                 formatted_exc = traceback.format_exc()

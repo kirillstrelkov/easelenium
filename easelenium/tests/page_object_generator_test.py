@@ -8,8 +8,8 @@ from wx import Point, Rect
 
 
 class PageObjectGeneratorTest(BaseTest):
-    BROWSER_NAME = "ff"
-    logger = False
+    BROWSER_NAME = "gc"
+    LOGGER = None
 
     @classmethod
     def setUpClass(cls):
@@ -70,67 +70,67 @@ class PageObjectGeneratorTest(BaseTest):
             assert field.dimensions != (0, 0)
 
     def test_get_id_selector_for_element(self):
-        by_and_selector = By.ID, u"search_form_input_homepage"
+        by_and_selector = By.ID, "search_form_input_homepage"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_id_selector(element)
         assert by_and_selector == self.generator._get_selector(element)
-        assert u"SEARCH_FORM_INPUT_HOMEPAGE" == self.generator._get_name_for_field(
+        assert "SEARCH_FORM_INPUT_HOMEPAGE" == self.generator._get_name_for_field(
             element
         )
 
     def test_get_class_name_selector_for_element(self):
-        by_and_selector = By.CLASS_NAME, u"logo-wrap--home"
+        by_and_selector = By.CLASS_NAME, "logo-wrap--home"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_class_name_selector(element)
-        assert (By.LINK_TEXT, u"About DuckDuckGo") == self.generator._get_selector(
+        assert (By.LINK_TEXT, "About DuckDuckGo") == self.generator._get_selector(
             element
         )
-        assert u"ABOUT_DUCKDUCKGO" == self.generator._get_name_for_field(element)
+        assert "ABOUT_DUCKDUCKGO" == self.generator._get_name_for_field(element)
 
     def test_get_link_text_selector_for_element(self):
-        by_and_selector = By.LINK_TEXT, u"About DuckDuckGo"
+        by_and_selector = By.LINK_TEXT, "About DuckDuckGo"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_link_text_selector(element)
-        assert (By.ID, u"logo_homepage_link") == self.generator._get_selector(element)
-        assert u"LOGO_HOMEPAGE_LINK" == self.generator._get_name_for_field(element)
+        assert (By.ID, "logo_homepage_link") == self.generator._get_selector(element)
+        assert "LOGO_HOMEPAGE_LINK" == self.generator._get_name_for_field(element)
 
     def test_get_xpath_selector_for_element(self):
         by_and_selector = By.XPATH, u'//*[@id="search_form_input_homepage"]'
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector, self.generator._get_xpath_selector(element)
-        assert (By.ID, u"search_form_input_homepage") == self.generator._get_selector(
+        assert (By.ID, "search_form_input_homepage") == self.generator._get_selector(
             element
         )
-        assert u"SEARCH_FORM_INPUT_HOMEPAGE" == self.generator._get_name_for_field(
+        assert "SEARCH_FORM_INPUT_HOMEPAGE" == self.generator._get_name_for_field(
             element
         )
 
     def test_get_css_selector_for_element(self):
-        by_and_selector = By.CSS_SELECTOR, u"#logo_homepage_link"
+        by_and_selector = By.CSS_SELECTOR, "#logo_homepage_link"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector, self.generator._get_css_selector(element)
-        assert (By.ID, u"logo_homepage_link") == self.generator._get_selector(element)
-        assert u"LOGO_HOMEPAGE_LINK" == self.generator._get_name_for_field(element)
+        assert (By.ID, "logo_homepage_link") == self.generator._get_selector(element)
+        assert "LOGO_HOMEPAGE_LINK" == self.generator._get_name_for_field(element)
 
-        by_and_selector = By.CSS_SELECTOR, u".logo-wrap--home"
+        by_and_selector = By.CSS_SELECTOR, ".logo-wrap--home"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector, self.generator._get_css_selector(element)
-        assert (By.LINK_TEXT, u"About DuckDuckGo") == self.generator._get_selector(
+        assert (By.LINK_TEXT, "About DuckDuckGo") == self.generator._get_selector(
             element
         )
-        assert u"ABOUT_DUCKDUCKGO", self.generator._get_name_for_field(element)
+        assert "ABOUT_DUCKDUCKGO", self.generator._get_name_for_field(element)
 
     def test_duckduckgo_search_results_area(self):
         folder = tempfile.gettempdir()
         name = "DuckDuckGo"
         area = (50, 156, 815, 444)
         po_class = self.generator.get_po_class_for_url(
-            u"https://duckduckgo.com/?q=selenium+webdriver&ia=web", name, folder, area
+            "https://duckduckgo.com/?q=selenium+webdriver&ia=web", name, folder, area
         )
         for f in po_class.fields:
             x, y = f.location
             w, d = f.dimensions
-            p = Point(x + w / 2, y + d / 2)
+            p = Point(int(x + w / 2), int(y + d / 2))
             assert Rect(*area).Contains(p)
 
         selectors = [f.selector for f in po_class.fields]
@@ -143,7 +143,7 @@ class PageObjectGeneratorTest(BaseTest):
         name = "Iframe"
         area = None
         po_class = self.generator.get_po_class_for_url(
-            u"https://mdn.mozillademos.org/en-US/docs/Web/HTML/Element/iframe$samples/Example1?revision=1617428",
+            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/iframe/_sample_.Example1.html",
             name,
             folder,
             area,
@@ -152,4 +152,4 @@ class PageObjectGeneratorTest(BaseTest):
         selectors = [f.selector for f in po_class.fields]
 
         assert len(selectors) >= 2
-        assert u"/html/body/iframe" in selectors
+        assert "/html/body/iframe" in selectors

@@ -43,24 +43,24 @@ def show_dialog(parent, message, caption, style=OK | CENTER):
 def show_dialog_path_does_exist(parent, path):
     if path is None:
         path = ""
-    msg = u"Path already exists: '%s'" % path
-    caption = u"Bad path"
+    msg = "Path already exists: '%s'" % path
+    caption = "Bad path"
     return show_dialog(parent, msg, caption)
 
 
 def show_dialog_path_doesnt_exist(parent, path):
     if path is None:
         path = ""
-    msg = u"Path doesn't exist: '%s'" % path
-    caption = u"Bad path"
+    msg = "Path doesn't exist: '%s'" % path
+    caption = "Bad path"
     return show_dialog(parent, msg, caption)
 
 
 def show_dialog_bad_name(parent, name, *expected_names):
-    msg = u"Bad name: '%s'" % name
+    msg = "Bad name: '%s'" % name
     if len(expected_names) > 0:
         msg += LINESEP + "Expected names like:" + LINESEP + LINESEP.join(expected_names)
-    caption = u"Bad name"
+    caption = "Bad name"
     return show_dialog(parent, msg, caption)
 
 

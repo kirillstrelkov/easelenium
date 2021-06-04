@@ -1,20 +1,14 @@
 # coding=utf8
 import os
-import tempfile
-import traceback
 from functools import wraps
-from tempfile import gettempdir, tempdir
+from tempfile import gettempdir
 
 from selenium import webdriver
-from selenium.common.exceptions import (
-    NoSuchElementException,
-    StaleElementReferenceException,
-    TimeoutException,
-    WebDriverException,
-)
+from selenium.common.exceptions import (NoSuchElementException,
+                                        StaleElementReferenceException,
+                                        TimeoutException, WebDriverException)
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
@@ -1461,7 +1455,7 @@ class Browser(object):
             timeout = self.__timeout
         try:
             WebDriverWait(self._driver, timeout).until(function, msg)
-        except:
+        except Exception:
             raise TimeoutException(msg)
 
     def close(self):

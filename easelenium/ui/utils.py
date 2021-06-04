@@ -2,11 +2,10 @@ import os
 import tempfile
 import traceback
 from threading import Thread
-from wx import ALL, EXPAND
 
-from easelenium.utils import unicode_str
-from easelenium.ui.parser.parsed_class import ParsedClass
 from easelenium.ui.file_utils import save_file
+from easelenium.ui.parser.parsed_class import ParsedClass
+from wx import ALL, EXPAND
 
 FLAG_ALL_AND_EXPAND = ALL | EXPAND
 
