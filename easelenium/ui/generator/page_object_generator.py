@@ -2,11 +2,13 @@
 import os
 import re
 
-from easelenium.ui.file_utils import check_if_path_exists
-from easelenium.ui.generator.page_object_class import (PageObjectClass,
-                                                       PageObjectClassField)
+from easelenium.ui.file_utils import check_if_path_exists, read_file
+from easelenium.ui.generator.page_object_class import (
+    PageObjectClass,
+    PageObjectClassField,
+)
 from easelenium.ui.root_folder import RootFolder
-from easelenium.utils import get_py_file_name_from_class_name, unicode_str
+from easelenium.utils import get_py_file_name_from_class_name
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from wx import Point, Rect
@@ -15,45 +17,9 @@ from wx import Point, Rect
 
 
 class PageObjectGenerator(object):
-    # js code ref. -
-    # https://code.google.com/p/fbug/source/browse/branches/firebug1.7/content/firebug/lib.js?r=8828
-    # Next code was taken from Firebug project, credits to them
-    # Check license file - ../../licenses/firebug_license.txt
-    GET_XPATH_USING_JS = """
-function getElementXPath(element)
-{
-    if (element && element.id)
-        return '//*[@id="' + element.id + '"]';
-    else
-        return getElementTreeXPath(element);
-};
-
-function getElementTreeXPath(element)
-{
-    var paths = [];
-
-    // Use nodeName (instead of localName) so namespace prefix is included (if any).
-    for (; element && element.nodeType == 1; element = element.parentNode)
-    {
-        var index = 0;
-        for (var sibling = element.previousSibling; sibling; sibling = sibling.previousSibling)
-        {
-            // Ignore document type declaration.
-            if (sibling.nodeType == Node.DOCUMENT_TYPE_NODE)
-                continue;
-
-            if (sibling.nodeName == element.nodeName)
-                ++index;
-        }
-
-        var tagName = element.nodeName.toLowerCase();
-        var pathIndex = (index ? "[" + (index+1) + "]" : "");
-        paths.splice(0, 0, tagName + pathIndex);
-    }
-
-    return paths.length ? "/" + paths.join("/") : null;
-};
-return getElementXPath(arguments[0]);"""
+    GET_XPATH_USING_JS = read_file(
+        os.path.join(os.path.dirname(__file__), "get_xpath.js")
+    )
     ELEMENTS_SELECTOR = (
         By.CSS_SELECTOR,
         "[onclick], [jsaction], a, select, button, input, "
@@ -68,7 +34,7 @@ return getElementXPath(arguments[0]);"""
 
     def __log(self, *msgs):
         if self.logger:
-            self.logger.info(u" ".join([unicode_str(msg) for msg in msgs]))
+            self.logger.info(u" ".join(msgs))
 
     def _get_name_for_field(self, element_or_by_and_selector):
         max_length = 30
@@ -76,12 +42,12 @@ return getElementXPath(arguments[0]);"""
             by_and_selector = self._get_selector(element_or_by_and_selector)
         else:
             by_and_selector = element_or_by_and_selector
-        name = u"_".join(
+        name = "_".join(
             [w.upper()[:max_length] for w in re.findall(r"\w+", by_and_selector[1])]
         )
-        name = re.sub(r"_+", u"_", name)
+        name = re.sub(r"_+", "_", name)
         if len(name) == 0:
-            name = u"BAD_NAME"
+            name = "BAD_NAME"
         return name
 
     def __is_correct_element(self, element, area, location_offset):
@@ -97,14 +63,14 @@ return getElementXPath(arguments[0]);"""
                 x += location_offset[0]
                 y += location_offset[1]
             w, h = self.browser.get_dimensions(element)
-            element_center = Point(x + w / 2, y + h / 2)
+            element_center = Point(int(x + w / 2), int(y + h / 2))
             is_element_inside = area.Contains(element_center)
         else:
             is_element_inside = True
 
         return (
             self.browser.is_visible(element)
-            and not element.tag_name in bad_element_tags
+            and element.tag_name not in bad_element_tags
             and is_element_inside
         )
 
@@ -112,23 +78,23 @@ return getElementXPath(arguments[0]);"""
         fields = []
         elements = self.browser.find_elements(self.ELEMENTS_SELECTOR)
         i = 1
-        log_prefix = u" " * 10
+        log_prefix = " " * 10
         for e in elements:
             self.__log(
-                u"%5d/%d Trying to get PageObjectField for element %s"
+                "%5d/%d Trying to get PageObjectField for element %s"
                 % (i, len(elements), self.browser._to_string(e))
             )
             if self.__is_correct_element(e, area, location_offset):
                 field = self.__get_pageobject_field(e, location_offset)
                 if field:
-                    self.__log(log_prefix, u"PageObjectField:", field)
+                    self.__log(log_prefix, "PageObjectField:", field)
                     fields.append(field)
                 else:
-                    self.__log(log_prefix, u"Failed to unique selector")
+                    self.__log(log_prefix, "Failed to unique selector")
             else:
                 self.__log(
                     log_prefix,
-                    u"Skipped - element is not supported/visible or is outside of area",
+                    "Skipped - element is not supported/visible or is outside of area",
                 )
             i += 1
 
@@ -160,7 +126,7 @@ return getElementXPath(arguments[0]);"""
                 uniq_name = False
                 i = 0
                 while not uniq_name:
-                    new_name = u"_".join([field.name, str(i)])
+                    new_name = "_".join([field.name, str(i)])
                     if new_name not in names:
                         uniq_name = True
                         field.name = new_name
@@ -177,7 +143,7 @@ return getElementXPath(arguments[0]);"""
         check_if_path_exists(folder_path)
 
         self.__log(
-            u"Generating PageObjectClass for url %s with area %s" % (url, str(area))
+            "Generating PageObjectClass for url %s with area %s" % (url, str(area))
         )
         fields = self.get_all_po_fields(url, area)
         img_as_png = self.browser.get_screenshot_as_png()
@@ -202,9 +168,9 @@ return getElementXPath(arguments[0]);"""
             ]
             if is_frame:
                 name = "FRAME_" + name
-            name_starts_with_number = re.match("^\d+.+$", name)
+            name_starts_with_number = re.match(r"^\d+.+$", name)
             if name_starts_with_number:
-                name = u"N" + name
+                name = "N" + name
 
             location = self.browser.get_location(element)
             if location_offset:
@@ -246,7 +212,7 @@ return getElementXPath(arguments[0]);"""
         class_name = self.browser.get_class(element)
         if (
             len(class_name) > 0
-            and u" " not in class_name
+            and " " not in class_name
             and len(self.browser.find_elements((By.CLASS_NAME, class_name))) == 1
         ):
             return By.CLASS_NAME, class_name
@@ -260,16 +226,16 @@ return getElementXPath(arguments[0]);"""
         doesn't find unique selector returns None.
 
         """
-        cur_css_selector = u""
+        cur_css_selector = ""
         _id = self.browser.get_id(element)
 
         if _id:
-            cur_css_selector += u"#%s" % _id
+            cur_css_selector += "#%s" % _id
         else:
             class_name = self.browser.get_class(element)
             if class_name:
                 class_name = re.sub(r"\s+", ".", class_name)
-                cur_css_selector += u".%s" % class_name
+                cur_css_selector += ".%s" % class_name
 
         cur_el_tag = self.browser.get_tag_name(element)
         if cur_el_tag in ("body", "html") or len(cur_css_selector) == 0:
@@ -283,7 +249,7 @@ return getElementXPath(arguments[0]);"""
                 parent = self.browser.get_parent(element)
                 css_parent_selector = self._get_css_selector(parent)
                 if css_parent_selector:
-                    new_css_selector = u" > ".join(
+                    new_css_selector = " > ".join(
                         (css_parent_selector[1], cur_css_selector)
                     )
                     return By.CSS_SELECTOR, new_css_selector
