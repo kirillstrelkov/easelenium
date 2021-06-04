@@ -17,7 +17,7 @@ def run_in_separate_thread(target, name=None, args=(), kwargs=None):
 
 
 def check_py_code_for_errors(code, *additional_python_paths):
-    tmp_file = tempfile.mktemp()
+    tmp_file = tempfile.mkstemp()
     save_file(tmp_file, code)
     formatted_exception = check_file_for_errors(tmp_file, *additional_python_paths)
     os.remove(tmp_file)
