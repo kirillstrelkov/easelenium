@@ -11,7 +11,7 @@ with open(
 
 setup(
     name="easelenium",
-    version="0.5",
+    version="0.6",
     description="easelenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",
