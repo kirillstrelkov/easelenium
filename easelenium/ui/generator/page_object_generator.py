@@ -34,7 +34,7 @@ class PageObjectGenerator(object):
 
     def __log(self, *msgs):
         if self.logger:
-            self.logger.info(" ".join(msgs))
+            self.logger.info(" ".join([str(m) for m in msgs]))
 
     def _get_name_for_field(self, element_or_by_and_selector):
         max_length = 30
