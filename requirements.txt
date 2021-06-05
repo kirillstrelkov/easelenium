@@ -7,3 +7,5 @@ wxPython
 black
 flake8
 loguru
+pytest-profiling
+pytest-cov

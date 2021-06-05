@@ -47,7 +47,7 @@ class FirefoxTest(BrowserConstrutorTest):
     def test_constructor_with_executable_path(self):
         new_driver_path = os.path.join(gettempdir(), "geckodriver")
         shutil.copy(Browser._find_driver_path("ff"), new_driver_path)
-        self.browser = Browser(executable_path=new_driver_path)
+        self.browser = Browser(webdriver_kwargs={"executable_path": new_driver_path})
 
 
 @mark.skipif(not Browser.supports("gc"), reason="Browser not supported")

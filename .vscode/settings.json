@@ -1,6 +1,9 @@
 {
     "python.pythonPath": ".venv/bin/python3",
     "python.testing.pytestArgs": [
+        "-s",
+        "--profile",
+        "--cov=easelenium",
         "."
     ],
     "python.testing.unittestEnabled": false,

@@ -8,7 +8,14 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/easelenium/scripts/easelenium_cli.py",
-            "args": ["--browser", "ff_headless", "-k", "test_mouse_left_right_clicks"],
+            "args": ["--browser", "gc", "-k", "test_get_po_fields_from_page"],
+            "console": "externalTerminal"
+        },
+        {
+            "name": "Python: easelenium_ui.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/easelenium/scripts/easelenium_ui.py",
             "console": "externalTerminal"
         },
         {
