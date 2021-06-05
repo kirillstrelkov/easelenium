@@ -153,9 +153,9 @@ class BrowserTest(BaseTest):
         assert "We can help" in value
 
     def test_open_close_new_window(self):
-        self.browser.get("https://html.com/attributes/a-target/")
+        self.browser.get("https://duckduckgo.com/")
 
-        a_element = 'a[target="_blank"]'
+        a_element = "a[href*='revenue']"
 
         title_before_click = self.browser.get_title()
         self.browser.switch_to_new_window(self.browser.click, by_css=a_element)
