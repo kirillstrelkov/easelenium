@@ -5,6 +5,8 @@ import sys
 from datetime import datetime
 from random import choice
 
+from loguru import logger
+
 LINESEP = os.linesep
 
 
@@ -39,20 +41,27 @@ def get_random_value(_list, *val_to_skip):
 
 
 class Logger(object):
-    def __init__(self, name=None, log_to_console=True, file_path=None, handler=None):
-        self.__logger = logging.getLogger(name)
-        self.__logger.setLevel(logging.INFO)
+    def __init__(
+        self,
+        name=None,
+        log_to_console=True,
+        file_path=None,
+        handler=None,
+        level=logging.INFO,
+    ):
+        self.__logger = logger
 
         if log_to_console:
-            h = logging.StreamHandler(sys.stdout)
-            self.__logger.addHandler(h)
+            self.__logger.add(sys.stdout, filter=name, level=level)
 
         if file_path:
-            h = logging.FileHandler(file_path, encoding="utf8")
-            self.__logger.addHandler(h)
+            self.__logger.add(file_path, filter=name, level=level)
 
         if handler:
-            self.__logger.addHandler(handler)
+            self.__logger.add(handler, filter=name, level=level)
+
+    def debug(self, msg, *args, **kwargs):
+        self.__logger.info(msg, *args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
         self.__logger.info(msg, *args, **kwargs)
@@ -63,7 +72,7 @@ class Logger(object):
 
 def get_class_name_from_file(path):
     filename, _ = os.path.splitext(os.path.basename(path))
-    return "".join([w.capitalize() for w in filename.split(u"_")])
+    return "".join([w.capitalize() for w in filename.split("_")])
 
 
 def get_py_file_name_from_class_name(class_name):

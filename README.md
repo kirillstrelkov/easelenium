@@ -33,6 +33,7 @@ GUI [easelenium_ui.py](/easelenium/scripts/easelenium_ui.py):
 4. pytest
 5. pytest-html
 6. pytest-dotenv
+7. loguru
 
 ## Simple usage
 

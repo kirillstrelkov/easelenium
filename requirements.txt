@@ -6,3 +6,4 @@ selenium
 wxPython
 black
 flake8
+loguru

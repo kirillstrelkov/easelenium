@@ -31,7 +31,7 @@ setup(
         "easelenium/scripts/easelenium_cli.py",
         "easelenium/scripts/easelenium_ui.py",
     ],
-    requires=["wheel", "selenium", "wxPython", "pytest", "pytest_html"],
+    requires=["wheel", "selenium", "wxPython", "pytest", "pytest_html", "loguru"],
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
