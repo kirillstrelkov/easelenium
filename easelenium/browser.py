@@ -343,13 +343,13 @@ class Browser(object):
             return "Element {%s}" % string
 
     def is_ff(self):
-        return self.__browser_name == Browser.FF
+        return self.__browser_name.startswith(Browser.FF)
 
     def is_ie(self):
         return self.__browser_name == Browser.IE
 
     def is_gc(self):
-        return self.__browser_name == Browser.GC
+        return self.__browser_name.startswith(Browser.GC)
 
     def is_op(self):
         return self.__browser_name == Browser.OP

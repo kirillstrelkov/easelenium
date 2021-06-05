@@ -8,6 +8,7 @@ from pytest import mark
 @mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
 class BrowserTest(BaseTest):
     BROWSER_NAME = "gc"
+    LOGGER = None
 
     def test_get_parent(self):
         self.browser.get("https://duckduckgo.com/")
@@ -52,7 +53,7 @@ class BrowserTest(BaseTest):
         self.browser.get("https://www.openstreetmap.org/")
 
         map_element = "map"
-        context_menu = "#map .leaflet-contextmen"
+        context_menu = "#map .leaflet-contextmenu"
         welcome_close = ".welcome.visible .geolink .close"
 
         self.browser.wait_for_visible(by_css=welcome_close)

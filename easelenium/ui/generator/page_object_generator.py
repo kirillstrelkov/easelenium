@@ -191,6 +191,8 @@ class PageObjectGenerator(object):
     def _get_selector(self, element):
         for selector_func in (
             self._get_id_selector,
+            self._get_link_text_selector,
+            self._get_class_name_selector,
             self._get_css_selector,
             self._get_xpath_selector,
         ):
@@ -202,7 +204,7 @@ class PageObjectGenerator(object):
 
     def _get_id_selector(self, element):
         _id = self.browser.get_id(element)
-        if _id and len(self.browser.find_elements(by_id=id)) == 1:
+        if _id and len(self.browser.find_elements(by_id=_id)) == 1:
             return By.ID, _id
         else:
             return None
@@ -248,3 +250,21 @@ class PageObjectGenerator(object):
 
     def _get_xpath_selector(self, element):
         return By.XPATH, self.browser.execute_js(self.GET_XPATH_USING_JS, element)
+
+    def _get_link_text_selector(self, element):
+        text = self.browser.get_text(element)
+        if len(self.browser.find_elements((By.LINK_TEXT, text))) == 1 and len(text) > 1:
+            return By.LINK_TEXT, text
+        else:
+            return None
+
+    def _get_class_name_selector(self, element):
+        class_name = self.browser.get_class(element)
+        if (
+            len(class_name) > 0
+            and " " not in class_name
+            and len(self.browser.find_elements((By.CLASS_NAME, class_name))) == 1
+        ):
+            return By.CLASS_NAME, class_name
+        else:
+            return None

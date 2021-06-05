@@ -34,7 +34,7 @@ class FirefoxTest(BrowserConstrutorTest):
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
     def test_constructor_by_name(self):
-        self.browser = Browser(name="ff", headless=False)
+        self.browser = Browser(browser_name="ff", headless=False)
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
@@ -60,12 +60,12 @@ class ChromeTest(BrowserConstrutorTest):
         assert type(self.browser.execute_js("return window.chrome")) == dict
 
     def test_constructor_by_name(self):
-        self.browser = Browser(name="gc", headless=False)
+        self.browser = Browser(browser_name="gc", headless=False)
         assert self.browser.is_gc()
         assert type(self.browser.execute_js("return window.chrome")) == dict
 
     def test_constructor_headless(self):
-        self.browser = Browser(name="gc", headless=True)
+        self.browser = Browser(browser_name="gc", headless=True)
         assert self.browser.is_gc()
         assert self.browser.execute_js("return window.chrome") is None
 
@@ -74,7 +74,7 @@ class ChromeTest(BrowserConstrutorTest):
         options.add_argument("window-size=1366,768")
 
         self.browser = Browser(
-            name="gc", headless=False, webdriver_kwargs={"options": options}
+            browser_name="gc", headless=False, webdriver_kwargs={"options": options}
         )
         assert self.browser.is_gc()
         assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
@@ -84,7 +84,7 @@ class ChromeTest(BrowserConstrutorTest):
         options.add_argument("window-size=1366,768")
 
         self.browser = Browser(
-            name="gc", headless=True, webdriver_kwargs={"options": options}
+            browser_name="gc", headless=True, webdriver_kwargs={"options": options}
         )
         assert self.browser.is_gc()
         assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
@@ -94,5 +94,5 @@ class ChromeTest(BrowserConstrutorTest):
         new_driver_path = os.path.join(gettempdir(), "chromedriver")
         shutil.copy(Browser._find_driver_path("gc"), new_driver_path)
         self.browser = Browser(
-            name="gc", webdriver_kwargs={"executable_path": new_driver_path}
+            browser_name="gc", webdriver_kwargs={"executable_path": new_driver_path}
         )

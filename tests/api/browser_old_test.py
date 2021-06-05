@@ -42,7 +42,7 @@ class BrowserTest(BaseTest):
         self.browser.get("https://www.openstreetmap.org/")
 
         map_element = (By.ID, "map")
-        context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmen")
+        context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmenu")
         welcome_close = (By.CSS_SELECTOR, ".welcome.visible .geolink .close")
 
         self.browser.wait_for_visible(welcome_close)

@@ -33,7 +33,9 @@ class ParsedClassTest(TestCase):
         assert _class.get_arg_spec("type").args[:3] == ["self", "element", "text"]
 
     def test_parsed_py_file_by_path(self):
-        path = os.path.abspath(os.path.join(__file__, "..", "..", "browser.py"))
+        path = os.path.abspath(
+            os.path.join(__file__, "..", "..", "easelenium", "browser.py")
+        )
         classes = ParsedClass.get_parsed_classes(path)
         assert len(classes) == 1
 

@@ -29,7 +29,7 @@ class PageObjectGeneratorTest(BaseTest):
         fields = self.generator.get_all_po_fields("https://duckduckgo.com/", None)
         exec_time = time() - start_time
         assert len(fields) > 0
-        assert exec_time < 15
+        assert exec_time < 12
 
     def test_get_po_fields_from_page(self):
         fields = self.generator.get_all_po_fields("https://duckduckgo.com/", None)
@@ -108,7 +108,7 @@ class PageObjectGeneratorTest(BaseTest):
     def test_get_xpath_selector_for_element(self):
         by_and_selector = By.XPATH, u'//*[@id="search_form_input_homepage"]'
         element = self.browser.find_element(by_and_selector)
-        assert by_and_selector, self.generator._get_xpath_selector(element)
+        assert by_and_selector == self.generator._get_xpath_selector(element)
         assert (By.ID, "search_form_input_homepage") == self.generator._get_selector(
             element
         )
