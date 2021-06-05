@@ -1,8 +1,11 @@
 # coding=utf8
 
 from easelenium.base_test import BaseTest
+from easelenium.browser import Browser
+from pytest import mark
 
 
+@mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
 class BrowserTest(BaseTest):
     BROWSER_NAME = "gc"
 

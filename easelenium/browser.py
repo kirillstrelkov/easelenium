@@ -1,12 +1,11 @@
 # coding=utf8
 import os
-from functools import wraps
+import traceback
 from tempfile import gettempdir
 
 from selenium import webdriver
 from selenium.common.exceptions import (
     NoSuchElementException,
-    StaleElementReferenceException,
     TimeoutException,
     WebDriverException,
 )
@@ -20,18 +19,41 @@ from easelenium.mouse import Mouse
 from easelenium.utils import get_random_value, get_timestamp, is_windows
 
 
-def stale_exception_wrapper(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return_value = None
-        try:
-            return_value = func(*args, **kwargs)
-        except StaleElementReferenceException:
-            return_value = func(*args, **kwargs)
-        finally:
+def browser_decorator(
+    browser_name=None, timeout=5, logger=None, headless=False, webdriver_kwargs=None
+):
+    def func_decorator(func):
+        def wrapper(*args, **kwargs):
+            browser = None
+            return_value = None
+            try:
+                browser = Browser(
+                    browser_name=browser_name,
+                    logger=logger,
+                    timeout=timeout,
+                    headless=headless,
+                    webdriver_kwargs=webdriver_kwargs,
+                )
+
+                kwargs["browser"] = browser
+                value = func(*args, **kwargs)
+                return_value = value
+            except Exception:
+                try:
+                    if browser:
+                        browser.save_screenshot()
+                except Exception:
+                    pass
+                traceback.print_exc()
+            finally:
+                if browser:
+                    browser.quit()
+
             return return_value
 
-    return wrapper
+        return wrapper
+
+    return func_decorator
 
 
 class Browser(object):
@@ -66,17 +88,23 @@ class Browser(object):
         "by_css": By.CSS_SELECTOR,
     }
 
-    def __init__(self, browser_name=None, webdriver_kwargs=None, **browser_kwargs):
+    def __init__(
+        self,
+        browser_name=None,
+        logger=None,
+        timeout=5,
+        headless=False,
+        webdriver_kwargs=None,
+    ):
         if webdriver_kwargs is None:
             webdriver_kwargs = {}
 
-        browser_name = browser_kwargs.get("name", browser_name)
         self.__browser_name = self.DEFAULT_BROWSER or browser_name or self.FF
 
-        self.logger = browser_kwargs.get("logger", None)
-        self.__timeout = browser_kwargs.get("timeout", 5)
+        self.logger = logger
+        self.__timeout = timeout
 
-        headless = browser_kwargs.get("headless", "headless" in self.__browser_name)
+        headless = headless or "headless" in self.__browser_name
         if self.is_gc():
             self.__set_chrome_kwargs(headless, webdriver_kwargs)
         elif self.is_ff():
@@ -103,7 +131,11 @@ class Browser(object):
         webdriver_kwargs["options"] = options
 
     @classmethod
-    def _find_driver_path(cls, browser_name, **webdriver_kwargs):
+    def supports(cls, browser_name):
+        return cls._find_driver_path(browser_name) is not None
+
+    @classmethod
+    def _find_driver_path(cls, browser_name):
         assert browser_name in cls.__BROWSERS
 
         driver_filename = cls.__DRIVERS_AND_CONSTUCTORS[browser_name][0]
@@ -139,7 +171,9 @@ class Browser(object):
 
         driver_filename, constructor = driver_filename_and_constructor
 
-        driver_path = self._find_driver_path(name, **webdriver_kwargs)
+        driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
+            name
+        )
         if driver_path is None:
             raise FileNotFoundError(f"Failed to find {driver_filename}")
 

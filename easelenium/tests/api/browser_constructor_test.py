@@ -19,7 +19,7 @@ class BrowserConstrutorTest(TestCase):
             self.browser.quit()
 
 
-@mark.skipif(Browser._find_driver_path("ff") is None, reason="Firefox driver not found")
+@mark.skipif(not Browser.supports("ff"), reason="Browser not supported")
 class FirefoxTest(BrowserConstrutorTest):
     DRIVER_IN_HOME_DIR = os.path.join(os.path.expanduser("~"), "geckodriver")
 
@@ -50,7 +50,7 @@ class FirefoxTest(BrowserConstrutorTest):
         self.browser = Browser(executable_path=new_driver_path)
 
 
-@mark.skipif(Browser._find_driver_path("gc") is None, reason="Chrome driver not found")
+@mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
 class ChromeTest(BrowserConstrutorTest):
     DRIVER_IN_HOME_DIR = os.path.join(os.path.expanduser("~"), "chromedriver")
 
@@ -93,4 +93,6 @@ class ChromeTest(BrowserConstrutorTest):
     def test_constructor_with_executable_path(self):
         new_driver_path = os.path.join(gettempdir(), "chromedriver")
         shutil.copy(Browser._find_driver_path("gc"), new_driver_path)
-        self.browser = Browser(name="gc", executable_path=new_driver_path)
+        self.browser = Browser(
+            name="gc", webdriver_kwargs={"executable_path": new_driver_path}
+        )

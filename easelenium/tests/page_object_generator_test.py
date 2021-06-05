@@ -2,11 +2,14 @@
 import tempfile
 
 from easelenium.base_test import BaseTest
+from easelenium.browser import Browser
 from easelenium.ui.generator.page_object_generator import PageObjectGenerator
+from pytest import mark
 from selenium.webdriver.common.by import By
 from wx import Point, Rect
 
 
+@mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
 class PageObjectGeneratorTest(BaseTest):
     BROWSER_NAME = "gc"
     LOGGER = None
