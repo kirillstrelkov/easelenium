@@ -1,5 +1,6 @@
 # coding=utf8
 import tempfile
+from time import time
 
 from easelenium.base_test import BaseTest
 from easelenium.browser import Browser
@@ -22,6 +23,13 @@ class PageObjectGeneratorTest(BaseTest):
     def setUp(self):
         BaseTest.setUp(self)
         self.browser.get("https://duckduckgo.com/")
+
+    def test_get_po_fields_from_page_timed(self):
+        start_time = time()
+        fields = self.generator.get_all_po_fields("https://duckduckgo.com/", None)
+        exec_time = time() - start_time
+        assert len(fields) > 0
+        assert exec_time < 15
 
     def test_get_po_fields_from_page(self):
         fields = self.generator.get_all_po_fields("https://duckduckgo.com/", None)

@@ -80,10 +80,12 @@ class PageObjectGenerator(object):
         i = 1
         log_prefix = " " * 10
         for e in elements:
-            self.__log(
-                "%5d/%d Trying to get PageObjectField for element %s"
-                % (i, len(elements), self.browser._to_string(e))
-            )
+            if self.logger:
+                self.__log(
+                    "%5d/%d Trying to get PageObjectField for element %s"
+                    % (i, len(elements), self.browser._to_string(e))
+                )
+
             if self.__is_correct_element(e, area, location_offset):
                 field = self.__get_pageobject_field(e, location_offset)
                 if field:
@@ -113,7 +115,10 @@ class PageObjectGenerator(object):
         for frame in self.browser.find_elements(self.FRAMES_SELECTOR):
             self.browser.switch_to_default_content()
             location_offset = self.browser.get_location(frame)
-            self.__log("Getting fields for frame", self.browser._to_string(frame))
+
+            if self.logger:
+                self.__log("Getting fields for frame", self.browser._to_string(frame))
+
             self.browser.switch_to_frame(frame)
 
             fields += self.__get_po_fields_from_page(area, location_offset)
@@ -186,36 +191,19 @@ class PageObjectGenerator(object):
     def _get_selector(self, element):
         for selector_func in (
             self._get_id_selector,
-            self._get_link_text_selector,
-            self._get_class_name_selector,
             self._get_css_selector,
             self._get_xpath_selector,
         ):
-            if self.browser.is_visible(element):
-                try:
-                    by_and_selector = selector_func(element)
-                    if by_and_selector:
-                        return by_and_selector
-                except Exception:
-                    pass
+            by_and_selector = selector_func(element)
+            if by_and_selector:
+                return by_and_selector
 
         return None
 
     def _get_id_selector(self, element):
         _id = self.browser.get_id(element)
-        if _id and len(self.browser.find_elements((By.ID, _id))) == 1:
+        if _id and len(self.browser.find_elements(by_id=id)) == 1:
             return By.ID, _id
-        else:
-            return None
-
-    def _get_class_name_selector(self, element):
-        class_name = self.browser.get_class(element)
-        if (
-            len(class_name) > 0
-            and " " not in class_name
-            and len(self.browser.find_elements((By.CLASS_NAME, class_name))) == 1
-        ):
-            return By.CLASS_NAME, class_name
         else:
             return None
 
@@ -226,18 +214,20 @@ class PageObjectGenerator(object):
         doesn't find unique selector returns None.
 
         """
+        element = self.browser.find_element(element)
         cur_css_selector = ""
-        _id = self.browser.get_id(element)
+        _id = element.get_attribute("id").strip()
 
         if _id:
             cur_css_selector += "#%s" % _id
         else:
-            class_name = self.browser.get_class(element)
+            class_name = element.get_attribute("class").strip()
+
             if class_name:
                 class_name = re.sub(r"\s+", ".", class_name)
                 cur_css_selector += ".%s" % class_name
 
-        cur_el_tag = self.browser.get_tag_name(element)
+        cur_el_tag = element.tag_name
         if cur_el_tag in ("body", "html") or len(cur_css_selector) == 0:
             return None
         else:
@@ -255,13 +245,6 @@ class PageObjectGenerator(object):
                     return By.CSS_SELECTOR, new_css_selector
                 else:
                     return None
-
-    def _get_link_text_selector(self, element):
-        text = self.browser.get_text(element)
-        if len(self.browser.find_elements((By.LINK_TEXT, text))) == 1 and len(text) > 1:
-            return By.LINK_TEXT, text
-        else:
-            return None
 
     def _get_xpath_selector(self, element):
         return By.XPATH, self.browser.execute_js(self.GET_XPATH_USING_JS, element)
