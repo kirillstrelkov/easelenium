@@ -42,21 +42,20 @@ Most of `Browser` functions support both `WebElement` object and tuple/list whic
 Here is simple example:
 
 ```python
->>> from selenium.webdriver.common.by import By
 >>> from easelenium.browser import Browser
 
->>> browser = Browser('ff') # initilizing browser
+>>> browser = Browser('gc') # create browser
 
->>> browser.get('http://www.google.com') # going to google
+>>> browser.get('https://www.duckduckgo.com') # go to page
 
->>> browser.type('selenium', by_name='q') # typing 'selenium' into search field
+>>> browser.type(by_name='q', text='selenium') # type 'selenium' into search field
 
->>> browser.click(search_btn, by_name='btnG') # clicking search button
+>>> browser.click(by_id='search_button_homepage') # click search button
 
->>> browser.get_text(by_css='.r') # getting first found title
-'Selenium - Web Browser Automation'
+>>> browser.get_text(by_css='h2.result__title') # get first result title
+'SeleniumHQ Browser Automation'
 
->>> browser.quit() # closing browser
+>>> browser.quit() # close browser
 ```
 
 Check [browser_test.py](/easelenium/test/browser_test.py) for more examples.
