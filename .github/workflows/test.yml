@@ -24,4 +24,4 @@ jobs:
           echo "PYTHONPATH=." >> $GITHUB_ENV
       - name: Run tests
         run: |
-          xvfb-run --server-args="-screen 0 1366x768x24" pytest easelenium/tests
+          xvfb-run --server-args="-screen 0 1366x768x24" pytest tests
