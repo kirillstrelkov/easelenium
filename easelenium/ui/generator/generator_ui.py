@@ -34,15 +34,15 @@ class GeneratorTab(Panel):
         col = 0
 
         # first row
-        label = StaticText(self, label=u"Selected area:")
+        label = StaticText(self, label="Selected area:")
         sizer.Add(label, pos=(row, col))
 
         col += 1
-        self.txt_selected_area = TextCtrl(self, value=u"(0, 0, 0, 0)")
+        self.txt_selected_area = TextCtrl(self, value="(0, 0, 0, 0)")
         sizer.Add(self.txt_selected_area, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        label = StaticText(self, label=u"Class name:")
+        label = StaticText(self, label="Class name:")
         sizer.Add(label, pos=(row, col))
 
         col += 1
@@ -50,12 +50,12 @@ class GeneratorTab(Panel):
         sizer.Add(self.txt_class_name, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_reload_img = Button(self, label=u"Reload image")
+        self.bth_reload_img = Button(self, label="Reload image")
         self.bth_reload_img.Bind(EVT_BUTTON, self.__load_img)
         sizer.Add(self.bth_reload_img, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.btn_generate = Button(self, label=u"Generate")
+        self.btn_generate = Button(self, label="Generate")
         self.btn_generate.Bind(EVT_BUTTON, self.generate)
         sizer.Add(self.btn_generate, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -87,7 +87,7 @@ class GeneratorTab(Panel):
 
             w, h = self.select_image_panel.get_image_dimensions()
 
-            self.txt_selected_area.SetValue(u"(%d, %d, %d, %d)" % (0, 0, w, h))
+            self.txt_selected_area.SetValue("(%d, %d, %d, %d)" % (0, 0, w, h))
             self.main_frame.set_url(browser.get_current_url())
 
     def _on_mouse_move(self, evt):
@@ -149,7 +149,7 @@ class GeneratorTab(Panel):
             if os.path.exists(file_path):
                 show_dialog_path_does_exist(self, file_path)
             elif not StringUtils.is_class_name_correct(class_name):
-                show_dialog_bad_name(self, class_name, "Header", "ContextMenu")
+                show_dialog_bad_name(self, class_name, "Header", "ContextMen")
             elif not StringUtils.is_area_correct(area_as_text):
                 show_dialog(
                     self, "Bad selected area: %s" % area_as_text, "Bad selected area"
@@ -173,10 +173,10 @@ class GeneratorTab(Panel):
                         url, class_name, folder_path, area
                     )
                     po_class.save(folder)
-                    logger.info(u"Saving class '%s'..." % po_class.name)
-                    logger.info(u"Saved file: %s" % po_class.file_path)
-                    logger.info(u"Saved file: %s" % po_class.img_path)
-                    logger.info(u"DONE")
+                    logger.info("Saving class '%s'..." % po_class.name)
+                    logger.info("Saved file: %s" % po_class.file_path)
+                    logger.info("Saved file: %s" % po_class.img_path)
+                    logger.info("DONE")
                     dialog.btn_ok.Enable()
 
                 thread = Thread(target=generate)

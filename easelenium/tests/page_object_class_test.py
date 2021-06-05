@@ -93,11 +93,11 @@ class PageObjectClassTest(TestCase):
         assert "By.LINK_TEXT" == get_by_as_code_str(By.LINK_TEXT)
 
     def test_get_by_from_code_str(self):
-        assert By.ID == get_by_from_code_str(u"By.ID")
-        assert By.CLASS_NAME == get_by_from_code_str(u"By.CLASS_NAME")
-        assert By.XPATH == get_by_from_code_str(u"By.XPATH")
-        assert By.CSS_SELECTOR == get_by_from_code_str(u"By.CSS_SELECTOR")
-        assert By.LINK_TEXT == get_by_from_code_str(u"By.LINK_TEXT")
+        assert By.ID == get_by_from_code_str("By.ID")
+        assert By.CLASS_NAME == get_by_from_code_str("By.CLASS_NAME")
+        assert By.XPATH == get_by_from_code_str("By.XPATH")
+        assert By.CSS_SELECTOR == get_by_from_code_str("By.CSS_SELECTOR")
+        assert By.LINK_TEXT == get_by_from_code_str("By.LINK_TEXT")
 
     def test_parse_string_to_po_class(self):
         if is_windows():

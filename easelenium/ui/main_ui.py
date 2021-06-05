@@ -44,7 +44,7 @@ class MainFrame(Frame):
         sizer = GridBagSizer(5, 5)
         row = 0
         col = 0
-        label = StaticText(panel, label=u"Root folder:")
+        label = StaticText(panel, label="Root folder:")
         sizer.Add(label, pos=(row, col))
 
         col += 1
@@ -58,23 +58,23 @@ class MainFrame(Frame):
         )
 
         col += col_width
-        self.__btn_set_root = Button(panel, label=u"Set root folder")
+        self.__btn_set_root = Button(panel, label="Set root folder")
         self.__btn_set_root.Bind(EVT_BUTTON, self.__set_root_folder)
         sizer.Add(self.__btn_set_root, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         row += 1
         col = 0
-        label = StaticText(panel, label=u"Url:")
+        label = StaticText(panel, label="Url:")
         sizer.Add(label, pos=(row, col))
 
         col += 1
         self.__txt_url = TextCtrl(
-            panel, value=u"https://www.google.com/"
+            panel, value="https://www.google.com/"
         )  # TODO: remove url
         sizer.Add(self.__txt_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        label = StaticText(panel, label=u"Browser:")
+        label = StaticText(panel, label="Browser:")
         sizer.Add(label, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
@@ -83,12 +83,12 @@ class MainFrame(Frame):
         sizer.Add(self.__cb_browser, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_open_url = Button(panel, label=u"Open url")
+        self.bth_open_url = Button(panel, label="Open url")
         self.bth_open_url.Bind(EVT_BUTTON, self.__open_url)
         sizer.Add(self.bth_open_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_close_url = Button(panel, label=u"Close browser")
+        self.bth_close_url = Button(panel, label="Close browser")
         self.bth_close_url.Bind(EVT_BUTTON, self.__close_browser)
         sizer.Add(self.bth_close_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 

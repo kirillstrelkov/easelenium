@@ -8,7 +8,7 @@ class Table(Grid):
 
         self.selected_row = None
         self.__data = None
-        self.__data_attrs = [u"name", "by", "selector", "location", "dimensions"]
+        self.__data_attrs = ["name", "by", "selector", "location", "dimensions"]
 
     def get_selected_data(self):
         return (

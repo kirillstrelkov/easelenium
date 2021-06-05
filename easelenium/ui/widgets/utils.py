@@ -108,7 +108,7 @@ class DialogWithText(Dialog):
             self.txt_ctrl.SetValue(text)
         sizer.Add(self.txt_ctrl, 1, flag=FLAG_ALL_AND_EXPAND)
 
-        self.btn_ok = Button(self, label=u"OK")
+        self.btn_ok = Button(self, label="OK")
         self.btn_ok.Bind(EVT_BUTTON, self.__close)
         sizer.Add(self.btn_ok, flag=CENTER)
 

@@ -13,7 +13,7 @@ def is_correct_python_file(filename):
 
 def check_if_path_exists(path):
     if not os.path.exists(path):
-        raise Exception(u"Path not found '%s'" % path)
+        raise Exception("Path not found '%s'" % path)
     return True
 
 

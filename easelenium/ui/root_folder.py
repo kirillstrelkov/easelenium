@@ -20,4 +20,4 @@ class RootFolder(object):
 
             save_file(os.path.join(path, cls.PO_FOLDER, cls.INIT_PY), "")
         else:
-            raise Exception(u"'%s' is not a folder." % path)
+            raise Exception("'%s' is not a folder." % path)

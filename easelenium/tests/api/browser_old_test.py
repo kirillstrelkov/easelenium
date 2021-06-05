@@ -42,7 +42,7 @@ class BrowserTest(BaseTest):
         self.browser.get("https://www.openstreetmap.org/")
 
         map_element = (By.ID, "map")
-        context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmenu")
+        context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmen")
         welcome_close = (By.CSS_SELECTOR, ".welcome.visible .geolink .close")
 
         self.browser.wait_for_visible(welcome_close)
@@ -111,8 +111,8 @@ class BrowserTest(BaseTest):
         texts = self.browser.get_texts_from_dropdown(select_element)
         values = self.browser.get_values_from_dropdown(select_element)
         assert len(texts) == len(values)
-        assert texts == [u"First Value", "Second Value", "Third Value"]
-        assert values == [u"first", "second", "third"]
+        assert texts == ["First Value", "Second Value", "Third Value"]
+        assert values == ["first", "second", "third"]
 
     def test_js_script(self):
         self.browser.get("https://duckduckgo.com/")

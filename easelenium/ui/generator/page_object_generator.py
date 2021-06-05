@@ -34,7 +34,7 @@ class PageObjectGenerator(object):
 
     def __log(self, *msgs):
         if self.logger:
-            self.logger.info(u" ".join(msgs))
+            self.logger.info(" ".join(msgs))
 
     def _get_name_for_field(self, element_or_by_and_selector):
         max_length = 30
@@ -55,7 +55,7 @@ class PageObjectGenerator(object):
 
         if area:
             if type(area) not in (tuple, list) or len(area) != 4:
-                raise Exception(u"Bad area data '%s'" % str(area))
+                raise Exception("Bad area data '%s'" % str(area))
             area = Rect(*area)
             x, y = self.browser.get_location(element)
             if location_offset:
@@ -98,7 +98,7 @@ class PageObjectGenerator(object):
                 )
             i += 1
 
-        self.__log(u"Number of fields:", len(fields))
+        self.__log("Number of fields:", len(fields))
         return fields
 
     def get_all_po_fields(self, url, area=None):
@@ -107,18 +107,18 @@ class PageObjectGenerator(object):
 
         fields = []
         self.browser.switch_to_default_content()
-        self.__log(u"Getting fields for main content")
+        self.__log("Getting fields for main content")
         fields += self.__get_po_fields_from_page(area)
 
         for frame in self.browser.find_elements(self.FRAMES_SELECTOR):
             self.browser.switch_to_default_content()
             location_offset = self.browser.get_location(frame)
-            self.__log(u"Getting fields for frame", self.browser._to_string(frame))
+            self.__log("Getting fields for frame", self.browser._to_string(frame))
             self.browser.switch_to_frame(frame)
 
             fields += self.__get_po_fields_from_page(area, location_offset)
 
-        self.__log(u"Total number of fields:", len(fields))
+        self.__log("Total number of fields:", len(fields))
 
         names = []
         for field in fields:

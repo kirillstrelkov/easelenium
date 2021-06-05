@@ -55,18 +55,18 @@ class EditorTab(Panel):
 
         # Next row
         inner_sizer = BoxSizer(HORIZONTAL)
-        label = StaticText(self, label=u"Class path:")
+        label = StaticText(self, label="Class path:")
         inner_sizer.Add(label, flag=ALL)
 
         self.cb_class_path = ComboBox(self, style=CB_READONLY)
         self.cb_class_path.Bind(EVT_COMBOBOX, self.__on_load_po_class)
         inner_sizer.Add(self.cb_class_path, 1, flag=FLAG_ALL_AND_EXPAND)
 
-        self.btn_reload = Button(self, label=u"Reload")
+        self.btn_reload = Button(self, label="Reload")
         self.btn_reload.Bind(EVT_BUTTON, self.__on_load_po_class)
         inner_sizer.Add(self.btn_reload, flag=ALL)
 
-        self.btn_open_class = Button(self, label=u"Open class")
+        self.btn_open_class = Button(self, label="Open class")
         self.btn_open_class.Bind(EVT_BUTTON, self.__open_class)
         inner_sizer.Add(self.btn_open_class, flag=ALL)
 
@@ -153,7 +153,7 @@ class EditorTab(Panel):
         if folder:
             if RootFolder.PO_FOLDER in os.listdir(folder):
                 folder = os.path.join(folder, RootFolder.PO_FOLDER)
-            dialog = FileDialog(self, defaultDir=folder, wildcard=u"*.py")
+            dialog = FileDialog(self, defaultDir=folder, wildcard="*.py")
             if dialog.ShowModal() == ID_OK:
                 self.__load_po_class(dialog.GetPath())
         else:

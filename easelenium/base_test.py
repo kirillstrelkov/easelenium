@@ -46,11 +46,6 @@ class BaseTest(TestCase):
         ):
             # nose
             failed = not self._resultForDoCleanups.result.wasSuccessful()
-        elif hasattr(self, "_resultForDoCleanups") and hasattr(
-            self._resultForDoCleanups, "current_failed"
-        ):
-            # python2
-            failed = self._resultForDoCleanups.current_failed
 
         if failed:
             name = self.id()
@@ -67,4 +62,4 @@ class BaseTest(TestCase):
         TestCase.tearDown(self)
 
         if self.browser.logger:
-            self.browser.logger.info(u"-" * self.TC_NAME_WIDTH)
+            self.browser.logger.info("-" * self.TC_NAME_WIDTH)

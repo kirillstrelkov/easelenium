@@ -39,12 +39,12 @@ class SelectorFinderTab(Panel):
 
         row = 0
         col = 1
-        self.bth_reload_img = Button(self, label=u"Reload image")
+        self.bth_reload_img = Button(self, label="Reload image")
         self.bth_reload_img.Bind(EVT_BUTTON, self.__load_img)
         sizer.Add(self.bth_reload_img, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
-        self.bth_reload_selectors = Button(self, label=u"Find selectors")
+        self.bth_reload_selectors = Button(self, label="Find selectors")
         self.bth_reload_selectors.Bind(EVT_BUTTON, self.__find_selectors)
         sizer.Add(self.bth_reload_selectors, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
         # third row
@@ -106,7 +106,7 @@ class SelectorFinderTab(Panel):
                 def find_selectors():
                     dialog.btn_ok.Disable()
                     self.po_fields = generator.get_all_po_fields(url, None)
-                    logger.info(u"DONE")
+                    logger.info("DONE")
                     self.__update_table()
                     dialog.btn_ok.Enable()
 
