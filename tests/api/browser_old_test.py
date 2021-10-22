@@ -72,7 +72,7 @@ class BrowserTest(BaseTest):
 
     def test_select(self):
         self.browser.get(
-            "https://mdn.mozillademos.org/en-US/docs/Web/HTML/Element/select$samples/Basic_select?revision=1620423"
+            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html"
         )
 
         select_element = (By.CSS_SELECTOR, "select[name]")
@@ -147,3 +147,20 @@ class BrowserTest(BaseTest):
         self.browser.execute_js(js_statement)
         self.browser.alert_dismiss()
         assert not self.browser.execute_js("return window.alert_val;")
+
+    def test_get_attribute(self):
+        self.browser.get("https://duckduckgo.com/")
+        assert (
+            self.browser.get_attribute((By.ID, "logo_homepage_link"), "href")
+            == "https://duckduckgo.com/about"
+        )
+
+    def test_get_attribute_with_parent(self):
+        self.browser.get("https://duckduckgo.com/")
+        parent = self.browser.find_element(by_id="content_homepage")
+        assert (
+            self.browser.get_attribute(
+                (By.ID, "logo_homepage_link"), "href", parent=parent
+            )
+            == "https://duckduckgo.com/about"
+        )

@@ -370,6 +370,7 @@ class Browser(object):
         self,
         element=None,
         text=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -391,12 +392,8 @@ class Browser(object):
             by_class=by_class,
         )
 
-        self.wait_for_visible(
-            element=element,
-        )
-        element = self.find_element(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
+        element = self.find_element(element=element, parent=parent)
         try:
             element.clear()
         except WebDriverException as e:
@@ -410,6 +407,7 @@ class Browser(object):
     def click(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -430,12 +428,8 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
-        element = self.find_element(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
+        element = self.find_element(element=element, parent=parent)
 
         self._safe_log("Clicking at '%s'", element)
 
@@ -469,6 +463,7 @@ class Browser(object):
     def get_text(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -489,12 +484,8 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
-        element = self.find_element(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
+        element = self.find_element(element=element, parent=parent)
         text = element.text
 
         self._safe_log("Getting text from '%s' -> '%s'", element, text)
@@ -505,6 +496,7 @@ class Browser(object):
         self,
         element=None,
         attr=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -513,6 +505,7 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
+        visible=True,
     ):
         assert attr is not None, "attr is not specified"
         element = self._get_element(
@@ -526,12 +519,9 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
-        element = self.find_elements(
-            element=element,
-        )[0]
+        if visible:
+            self.wait_for_visible(element=element, parent=parent)
+        element = self.find_element(element=element, parent=parent)
         value = element.get_attribute(attr)
 
         self._safe_log(f"Getting attribute {attr} from {element} -> {value}")
@@ -541,6 +531,7 @@ class Browser(object):
     def get_tag_name(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -552,6 +543,7 @@ class Browser(object):
     ):
         return self.find_element(
             element=element,
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -565,6 +557,7 @@ class Browser(object):
     def get_id(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -573,10 +566,12 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
+        visible=False,
     ):
         return self.get_attribute(
             element=element,
             attr="id",
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -585,11 +580,13 @@ class Browser(object):
             by_tag=by_tag,
             by_css=by_css,
             by_class=by_class,
+            visible=visible,
         )
 
     def get_class(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -598,10 +595,12 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
+        visible=False,
     ):
         return self.get_attribute(
             element=element,
             attr="class",
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -610,11 +609,13 @@ class Browser(object):
             by_tag=by_tag,
             by_css=by_css,
             by_class=by_class,
+            visible=visible,
         )
 
     def get_value(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -623,10 +624,12 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
+        visible=True,
     ):
         return self.get_attribute(
             element=element,
             attr="value",
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -635,6 +638,7 @@ class Browser(object):
             by_tag=by_tag,
             by_css=by_css,
             by_class=by_class,
+            visible=visible,
         )
 
     def get_location(
@@ -702,6 +706,7 @@ class Browser(object):
     def get_selected_value_from_dropdown(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -722,13 +727,9 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
         value = Select(element).first_selected_option.get_attribute("value")
 
         self._safe_log("Getting selected value from '%s' -> '%s'", element, value)
@@ -738,6 +739,7 @@ class Browser(object):
     def get_selected_text_from_dropdown(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -758,13 +760,9 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
 
         text = Select(element).first_selected_option.text
 
@@ -776,6 +774,7 @@ class Browser(object):
         self,
         element=None,
         value=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -796,13 +795,9 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
         select = Select(element)
         assert value is not None, "value not specified"
 
@@ -814,6 +809,7 @@ class Browser(object):
         self,
         element=None,
         text=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -834,13 +830,9 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
         select = Select(element)
 
         self._safe_log(f"Selecting by text {text} from {element}")
@@ -851,6 +843,7 @@ class Browser(object):
         self,
         element=None,
         index=0,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -872,13 +865,9 @@ class Browser(object):
             by_class=by_class,
         )
 
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
         select = Select(element)
 
         self._safe_log(f"Selecting by index {index} from {element}")
@@ -889,6 +878,7 @@ class Browser(object):
         self,
         element=None,
         texts_to_skip=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -909,9 +899,7 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
         texts_to_skip = texts_to_skip or []
 
         options = self.get_texts_from_dropdown(
@@ -927,6 +915,7 @@ class Browser(object):
     def get_texts_from_dropdown(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -947,14 +936,10 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
         texts = []
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
         for option in Select(element).options:
             texts.append(option.text)
 
@@ -965,6 +950,7 @@ class Browser(object):
     def get_values_from_dropdown(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -985,14 +971,10 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(
-            element=element,
-        )
+        self.wait_for_visible(element=element, parent=parent)
 
         values = []
-        element = self.find_element(
-            element=element,
-        )
+        element = self.find_element(element=element, parent=parent)
         for option in Select(element).options:
             values.append(option.get_attribute("value"))
 
@@ -1019,6 +1001,7 @@ class Browser(object):
     def find_element(
         self,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -1030,6 +1013,7 @@ class Browser(object):
     ):
         return self.find_descendant(
             element=element,
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -1083,9 +1067,11 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
+        parent=None,
     ):
         elements = self.__get_webelements(
             element=element,
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -1102,8 +1088,8 @@ class Browser(object):
 
     def find_descendants(
         self,
-        parent=None,
         element=None,
+        parent=None,
         by_id=None,
         by_xpath=None,
         by_link=None,
@@ -1114,8 +1100,8 @@ class Browser(object):
         by_class=None,
     ):
         return self.__get_webelements(
-            parent=parent,
             element=element,
+            parent=parent,
             by_id=by_id,
             by_xpath=by_xpath,
             by_link=by_link,
@@ -1127,7 +1113,20 @@ class Browser(object):
         )
 
     def wait_for_text_is_changed(
-        self, element=None, old_text=None, msg=None, timeout=None
+        self,
+        element=None,
+        old_text=None,
+        parent=None,
+        msg=None,
+        timeout=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
     ):
         if not timeout:
             timeout = self.__timeout
@@ -1135,11 +1134,39 @@ class Browser(object):
             msg = "%s text was not changed for %s seconds" % (element, timeout)
 
         self.webdriver_wait(
-            lambda driver: old_text != self.get_text(element), msg, timeout
+            lambda driver: old_text
+            != self.get_text(
+                element,
+                parent=parent,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            ),
+            msg,
+            timeout,
         )
 
     def wait_for_attribute_is_changed(
-        self, element=None, attr=None, old_value=None, msg=None, timeout=None
+        self,
+        element=None,
+        attr=None,
+        old_value=None,
+        parent=None,
+        msg=None,
+        timeout=None,
+        by_id=None,
+        by_xpath=None,
+        by_link=None,
+        by_partial_link=None,
+        by_name=None,
+        by_tag=None,
+        by_css=None,
+        by_class=None,
     ):
         if not timeout:
             timeout = self.__timeout
@@ -1147,7 +1174,21 @@ class Browser(object):
             msg = "%s attribute was not changed for %s seconds" % (element, timeout)
 
         self.webdriver_wait(
-            lambda driver: old_value != self.get_attribute(element, attr, False),
+            lambda driver: old_value
+            != self.get_attribute(
+                element=element,
+                attr=attr,
+                parent=parent,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+                visible=False,
+            ),
             msg,
             timeout,
         )
@@ -1280,35 +1321,32 @@ class Browser(object):
         by_css=None,
         by_class=None,
     ):
-        try:
-            if parent:
-                elements = self.find_descendants(
-                    element=element,
-                    parent=parent,
-                    by_id=by_id,
-                    by_xpath=by_xpath,
-                    by_link=by_link,
-                    by_partial_link=by_partial_link,
-                    by_name=by_name,
-                    by_tag=by_tag,
-                    by_css=by_css,
-                    by_class=by_class,
-                )
-            else:
-                elements = self.find_elements(
-                    element=element,
-                    by_id=by_id,
-                    by_xpath=by_xpath,
-                    by_link=by_link,
-                    by_partial_link=by_partial_link,
-                    by_name=by_name,
-                    by_tag=by_tag,
-                    by_css=by_css,
-                    by_class=by_class,
-                )
-            return len(elements) > 0 and elements[0].is_displayed()
-        except WebDriverException:
-            return False
+        if parent:
+            elements = self.find_descendants(
+                element=element,
+                parent=parent,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            )
+        else:
+            elements = self.find_elements(
+                element=element,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            )
+        return len(elements) > 0 and elements[0].is_displayed()
 
     def is_present(
         self,

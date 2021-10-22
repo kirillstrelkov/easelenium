@@ -87,7 +87,7 @@ class BrowserTest(BaseTest):
 
     def test_select(self):
         self.browser.get(
-            "https://mdn.mozillademos.org/en-US/docs/Web/HTML/Element/select$samples/Basic_select?revision=1620423"
+            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html"
         )
 
         select_element = "select[name]"
@@ -182,3 +182,54 @@ class BrowserTest(BaseTest):
         self.browser.execute_js(js_statement)
         self.browser.alert_dismiss()
         assert not self.browser.execute_js("return window.alert_val;")
+
+    def test_get_attribute(self):
+        self.browser.get("https://duckduckgo.com/")
+        element = self.browser.find_element(by_id="logo_homepage_link")
+        assert self.browser.get_id(element) == "logo_homepage_link"
+        assert self.browser.get_class(element) == "logo_homepage"
+        assert self.browser.get_tag_name(element) == "a"
+        assert (
+            self.browser.get_attribute(element, attr="href")
+            == "https://duckduckgo.com/about"
+        )
+
+    def test_get_attribute_with_parent(self):
+        self.browser.get("https://duckduckgo.com/")
+        parent = self.browser.find_element(by_id="content_homepage")
+
+        assert (
+            self.browser.get_attribute(
+                by_id="logo_homepage_link", attr="href", parent=parent
+            )
+            == "https://duckduckgo.com/about"
+        )
+
+    def test_wait_for_attribute_is_changed_with_parent(self):
+        self.browser.get("https://material.angular.io/components/expansion/overview")
+
+        css_parent = ".docs-markdown #expansion-overview"
+        self.browser.wait_for_visible(by_css=css_parent)
+        parent = self.browser.find_element(by_css=css_parent)
+
+        css_mat_accardion = "expansion-overview-example mat-expansion-panel"
+        old_value = self.browser.get_class(
+            by_css=css_mat_accardion,
+            parent=parent,
+        )
+        self.browser.click(
+            by_css=css_mat_accardion,
+            parent=parent,
+        )
+
+        self.browser.wait_for_attribute_is_changed(
+            by_css=css_mat_accardion,
+            attr="class",
+            parent=parent,
+            old_value=old_value,
+        )
+        new_value = self.browser.get_class(
+            by_css=css_mat_accardion,
+            parent=parent,
+        )
+        assert old_value != new_value
