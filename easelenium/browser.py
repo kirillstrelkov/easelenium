@@ -69,13 +69,13 @@ class Browser(object):
     __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, OP, PHANTOMJS]
 
     __DRIVERS_AND_CONSTUCTORS = driver_and_constructor = {
-        FF: ("geckodriver", webdriver.Firefox),
-        FF_HEADLESS: ("geckodriver", webdriver.Firefox),
-        IE: ("IEDriverServer", webdriver.Ie),
-        GC: ("chromedriver", webdriver.Chrome),
-        GC_HEADLESS: ("chromedriver", webdriver.Chrome),
-        OP: ("operadriver", webdriver.Opera),
-        PHANTOMJS: ("phantomjs", webdriver.PhantomJS),
+        FF: ("geckodriver", "Firefox"),
+        FF_HEADLESS: ("geckodriver", "Firefox"),
+        IE: ("IEDriverServer", "Ie"),
+        GC: ("chromedriver", "Chrome"),
+        GC_HEADLESS: ("chromedriver", "Chrome"),
+        OP: ("operadriver", "Opera"),
+        PHANTOMJS: ("phantomjs", "PhantomJS"),
     }
     __LOCATOR_MAPPINGS = {
         "by_name": By.NAME,
@@ -170,6 +170,7 @@ class Browser(object):
             )
 
         driver_filename, constructor = driver_filename_and_constructor
+        constructor = getattr(webdriver, constructor)
 
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
             name
