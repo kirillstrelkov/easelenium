@@ -154,7 +154,7 @@ class PageObjectGeneratorTest(BaseTest):
         name = "Iframe"
         area = None
         po_class = self.generator.get_po_class_for_url(
-            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/iframe/_sample_.Example1.html",
+            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/iframe/_sample_.A_simple_iframe.html",
             name,
             folder,
             area,
