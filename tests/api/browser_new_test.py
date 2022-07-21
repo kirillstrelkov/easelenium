@@ -41,7 +41,7 @@ class BrowserTest(BaseTest):
 
         text_field = "search_form_input_homepage"
         search_btn = "search_button_homepage"
-        results = "#links a.result__a"
+        results = "article"
 
         self.browser.type(by_id=text_field, text="selenium python docs")
         self.browser.click(by_id=search_btn)
