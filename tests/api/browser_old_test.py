@@ -28,9 +28,9 @@ class BrowserTest(BaseTest):
 
         text_field = (By.ID, "search_form_input_homepage")
         search_btn = (By.ID, "search_button_homepage")
-        results = (By.CSS_SELECTOR, "#links a.result__a")
+        results = (By.CSS_SELECTOR, "article")
 
-        self.browser.type(text_field, "selenium python")
+        self.browser.type(text_field, "selenium python io")
         self.browser.click(search_btn)
 
         self.browser.wait_for_visible(results)

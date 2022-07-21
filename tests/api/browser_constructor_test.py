@@ -77,7 +77,7 @@ class ChromeTest(BrowserConstrutorTest):
             browser_name="gc", headless=False, webdriver_kwargs={"options": options}
         )
         assert self.browser.is_gc()
-        assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
+        assert 1300 < self.browser.execute_js("return window.innerWidth") < 1400
 
     def test_constructor_headless_and_special_options(self):
         options = webdriver.ChromeOptions()

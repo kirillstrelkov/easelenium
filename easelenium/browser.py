@@ -63,19 +63,17 @@ class Browser(object):
     GC_HEADLESS = "gc_headless"
     IE = "ie"
     OP = "op"
-    PHANTOMJS = "phantomjs"
     DEFAULT_BROWSER = None
 
-    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, OP, PHANTOMJS]
+    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, OP]
 
-    __DRIVERS_AND_CONSTUCTORS = driver_and_constructor = {
+    __DRIVERS_AND_CONSTUCTORS = {
         FF: ("geckodriver", "Firefox"),
         FF_HEADLESS: ("geckodriver", "Firefox"),
         IE: ("IEDriverServer", "Ie"),
         GC: ("chromedriver", "Chrome"),
         GC_HEADLESS: ("chromedriver", "Chrome"),
         OP: ("operadriver", "Opera"),
-        PHANTOMJS: ("phantomjs", "PhantomJS"),
     }
     __LOCATOR_MAPPINGS = {
         "by_name": By.NAME,
