@@ -63,12 +63,12 @@ class BrowserTest(BaseTest):
     def test_mouse_hover(self):
         self.browser.get("https://www.openstreetmap.org/")
 
-        edit_buton = (By.ID, "editanchor")
-        tooltip = (By.CSS_SELECTOR, ".tooltip-inner")
+        edit_buton = (By.CSS_SELECTOR, ".control-button.zoomin")
+        tooltip = (By.CSS_SELECTOR, ".tooltip")
 
         self.browser.mouse.hover(edit_buton)
         self.browser.wait_for_visible(tooltip)
-        assert "Zoom in to edit the map" == self.browser.get_text(tooltip)
+        assert "Zoom In" == self.browser.get_text(tooltip)
 
     def test_select(self):
         self.browser.get(
