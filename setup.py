@@ -11,7 +11,7 @@ with open(
 
 setup(
     name="easelenium",
-    version="0.6.5",
+    version="0.6.6",
     description="easelenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",
@@ -31,7 +31,15 @@ setup(
         "easelenium/scripts/easelenium_cli.py",
         "easelenium/scripts/easelenium_ui.py",
     ],
-    requires=["wheel", "selenium", "wxPython", "pytest", "pytest_html", "loguru"],
+    requires=[
+        "wheel",
+        "selenium",
+        "attrdict3",
+        "wxPython",
+        "pytest",
+        "pytest_html",
+        "loguru",
+    ],
     long_description=long_description,
     long_description_content_type="text/markdown",
 )
