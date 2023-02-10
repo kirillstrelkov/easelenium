@@ -1,16 +1,23 @@
 # coding=utf8
 import os
+import tempfile
 import traceback
 from tempfile import gettempdir
 
-from selenium import webdriver
 from selenium.common.exceptions import (
     NoSuchElementException,
     TimeoutException,
     WebDriverException,
 )
+from selenium.webdriver import Chrome, Firefox, Ie
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.service import Service
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.ie.service import Service as IeService
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
@@ -62,18 +69,16 @@ class Browser(object):
     GC = "gc"
     GC_HEADLESS = "gc_headless"
     IE = "ie"
-    OP = "op"
     DEFAULT_BROWSER = None
 
-    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, OP]
+    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE]
 
-    __DRIVERS_AND_CONSTUCTORS = {
-        FF: ("geckodriver", "Firefox"),
-        FF_HEADLESS: ("geckodriver", "Firefox"),
-        IE: ("IEDriverServer", "Ie"),
-        GC: ("chromedriver", "Chrome"),
-        GC_HEADLESS: ("chromedriver", "Chrome"),
-        OP: ("operadriver", "Opera"),
+    __DRIVERS_MAPPING = {
+        FF: ("geckodriver", Firefox, FirefoxService),
+        FF_HEADLESS: ("geckodriver", Firefox, FirefoxService),
+        IE: ("IEDriverServer", Ie, IeService),
+        GC: ("chromedriver", Chrome, ChromeService),
+        GC_HEADLESS: ("chromedriver", Chrome, ChromeService),
     }
     __LOCATOR_MAPPINGS = {
         "by_name": By.NAME,
@@ -117,13 +122,13 @@ class Browser(object):
         self.mouse = Mouse(self)
 
     def __set_chrome_kwargs(self, headless, webdriver_kwargs):
-        options = webdriver_kwargs.get("options", webdriver.ChromeOptions())
+        options = webdriver_kwargs.get("options", ChromeOptions())
         if headless:
             options.add_argument("--headless")
         webdriver_kwargs["options"] = options
 
     def __set_firefox_kwargs(self, headless, webdriver_kwargs):
-        options = webdriver_kwargs.get("options", webdriver.FirefoxOptions())
+        options = webdriver_kwargs.get("options", FirefoxOptions())
         if headless:
             options.add_argument("--headless")
         webdriver_kwargs["options"] = options
@@ -136,7 +141,7 @@ class Browser(object):
     def _find_driver_path(cls, browser_name):
         assert browser_name in cls.__BROWSERS
 
-        driver_filename = cls.__DRIVERS_AND_CONSTUCTORS[browser_name][0]
+        driver_filename = cls.__DRIVERS_MAPPING[browser_name][0]
         if is_windows():
             driver_filename += ".exe"
 
@@ -159,7 +164,11 @@ class Browser(object):
         return self.__browser_name
 
     def __create_driver(self, name, webdriver_kwargs):
-        driver_filename_and_constructor = self.__DRIVERS_AND_CONSTUCTORS.get(name, None)
+        if os.environ.get("TMPDIR") is None:
+            # fix TMPDIR if not exists
+            os.environ["TMPDIR"] = tempfile.gettempdir()
+
+        driver_filename_and_constructor = self.__DRIVERS_MAPPING.get(name, None)
 
         if driver_filename_and_constructor is None:
             browsers = "', '".join(self.__BROWSERS)
@@ -167,8 +176,7 @@ class Browser(object):
                 f"Unsupported browser '{name}', supported browsers: ['{browsers}']"
             )
 
-        driver_filename, constructor = driver_filename_and_constructor
-        constructor = getattr(webdriver, constructor)
+        driver_filename, constructor, service = driver_filename_and_constructor
 
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
             name
@@ -176,11 +184,11 @@ class Browser(object):
         if driver_path is None:
             raise FileNotFoundError(f"Failed to find {driver_filename}")
 
-        webdriver_kwargs["executable_path"] = driver_path
+        webdriver_kwargs["service"] = service(driver_path)
 
         driver = constructor(**webdriver_kwargs)
 
-        if driver and not self.is_gc() and not self.is_op():
+        if driver and not self.is_gc():
             driver.maximize_window()
 
         return driver
@@ -350,9 +358,6 @@ class Browser(object):
     def is_gc(self):
         return self.__browser_name.startswith(Browser.GC)
 
-    def is_op(self):
-        return self.__browser_name == Browser.OP
-
     def _safe_log(self, *args):
         if self.logger:
             args = [
@@ -471,6 +476,7 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
+        visible=True,
     ):
         element = self._get_element(
             element=element,
@@ -483,7 +489,8 @@ class Browser(object):
             by_css=by_css,
             by_class=by_class,
         )
-        self.wait_for_visible(element=element, parent=parent)
+        if visible:
+            self.wait_for_visible(element=element, parent=parent)
         element = self.find_element(element=element, parent=parent)
         text = element.text
 
@@ -504,7 +511,7 @@ class Browser(object):
         by_tag=None,
         by_css=None,
         by_class=None,
-        visible=True,
+        visible=False,
     ):
         assert attr is not None, "attr is not specified"
         element = self._get_element(
@@ -1284,7 +1291,21 @@ class Browser(object):
             timeout = self.__timeout
             msg = "%s is not present for %s seconds" % (element, timeout)
 
-        self.webdriver_wait(lambda driver: self.is_present(element), msg, timeout)
+        self.webdriver_wait(
+            lambda driver: self.is_present(
+                element,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            ),
+            msg,
+            timeout,
+        )
 
     def wait_for_not_present(
         self,

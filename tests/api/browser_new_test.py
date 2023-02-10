@@ -54,7 +54,7 @@ class BrowserTest(BaseTest):
 
         map_element = "map"
         context_menu = "#map .leaflet-contextmenu"
-        welcome_close = ".welcome.visible .geolink .close"
+        welcome_close = ".welcome .btn-close"
 
         self.browser.wait_for_visible(by_css=welcome_close)
 

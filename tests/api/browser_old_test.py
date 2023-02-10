@@ -1,7 +1,8 @@
 # coding=utf8
 
-from easelenium.base_test import BaseTest
 from selenium.webdriver.common.by import By
+
+from easelenium.base_test import BaseTest
 
 
 # TODO: fix failing tests
@@ -43,7 +44,7 @@ class BrowserTest(BaseTest):
 
         map_element = (By.ID, "map")
         context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmenu")
-        welcome_close = (By.CSS_SELECTOR, ".welcome.visible .geolink .close")
+        welcome_close = (By.CSS_SELECTOR, ".welcome .btn-close")
 
         self.browser.wait_for_visible(welcome_close)
 
