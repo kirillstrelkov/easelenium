@@ -2,12 +2,17 @@
 import tempfile
 from time import time
 
+from pytest import mark, skip
+from selenium.webdriver.common.by import By
+
+try:
+    from wx import Point, Rect
+except ModuleNotFoundError:
+    skip(allow_module_level=True)
+
 from easelenium.base_test import BaseTest
 from easelenium.browser import Browser
 from easelenium.ui.generator.page_object_generator import PageObjectGenerator
-from pytest import mark
-from selenium.webdriver.common.by import By
-from wx import Point, Rect
 
 
 @mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
@@ -106,7 +111,7 @@ class PageObjectGeneratorTest(BaseTest):
         assert "LOGO_HOMEPAGE_LINK" == self.generator._get_name_for_field(element)
 
     def test_get_xpath_selector_for_element(self):
-        by_and_selector = By.XPATH, u'//*[@id="search_form_input_homepage"]'
+        by_and_selector = By.XPATH, '//*[@id="search_form_input_homepage"]'
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_xpath_selector(element)
         assert (By.ID, "search_form_input_homepage") == self.generator._get_selector(
