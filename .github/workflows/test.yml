@@ -16,9 +16,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          apt-cache search firefox
-          sudo apt-get install -y xvfb chromium-browser chromium-chromedriver firefox firefox-geckodriver
+          sudo apt update
+          sudo apt purge chromium* 
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          sudo apt -f install
+          wget https://chromedriver.storage.googleapis.com/110.0.5481.77/chromedriver_linux64.zip
+          unzip -d ~ chromedriver_linux64.zip
+          sudo apt install -y xvfb firefox firefox-geckodriver python3-pip
           pip install pytest pytest-html pytest-dotenv selenium loguru
       - name: Set PYTHONPATH
         run: |
