@@ -122,6 +122,9 @@ class Browser(object):
 
     def __set_chrome_kwargs(self, headless, webdriver_kwargs):
         options = webdriver_kwargs.get("options", ChromeOptions())
+        is_root = os.getuid() == 0
+        if is_root:
+            options.add_argument("--no-sandbox")
         if headless:
             options.add_argument("--headless")
         webdriver_kwargs["options"] = options
