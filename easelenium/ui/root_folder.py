@@ -3,7 +3,7 @@ import os
 from easelenium.ui.file_utils import save_file
 
 
-class RootFolder(object):
+class RootFolder:
     PO_FOLDER = "page_objects"
     TESTS_FOLDER = "tests"
     REPORTS = "reports"

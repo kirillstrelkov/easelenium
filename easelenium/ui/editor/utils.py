@@ -1,27 +1,6 @@
 import os
 import re
 
-from easelenium.ui.file_utils import save_file
-from easelenium.ui.parser.parsed_class import (
-    ParsedBrowserClass,
-    ParsedMouseClass,
-    ParsedPageObjectClass,
-)
-from easelenium.ui.root_folder import RootFolder
-from easelenium.ui.string_utils import StringUtils
-from easelenium.ui.utils import (
-    FLAG_ALL_AND_EXPAND,
-    check_file_for_errors,
-    check_py_code_for_errors,
-)
-from easelenium.ui.widgets.table import Table
-from easelenium.ui.widgets.utils import (
-    Tabs,
-    show_dialog,
-    show_dialog_bad_name,
-    show_error_dialog,
-)
-from easelenium.utils import LINESEP, get_class_name_from_file, is_windows
 from wx import (
     ALIGN_RIGHT,
     DEFAULT_DIALOG_STYLE,
@@ -54,6 +33,28 @@ from wx import (
 )
 from wx.grid import EVT_GRID_CELL_RIGHT_CLICK, EVT_GRID_SELECT_CELL
 
+from easelenium.ui.file_utils import save_file
+from easelenium.ui.parser.parsed_class import (
+    ParsedBrowserClass,
+    ParsedMouseClass,
+    ParsedPageObjectClass,
+)
+from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.string_utils import StringUtils
+from easelenium.ui.utils import (
+    FLAG_ALL_AND_EXPAND,
+    check_file_for_errors,
+    check_py_code_for_errors,
+)
+from easelenium.ui.widgets.table import Table
+from easelenium.ui.widgets.utils import (
+    Tabs,
+    show_dialog,
+    show_dialog_bad_name,
+    show_error_dialog,
+)
+from easelenium.utils import LINESEP, get_class_name_from_file, is_windows
+
 
 class PyFileUI(Panel):
     CHANGED_PREFIX = "*"
@@ -71,7 +72,7 @@ class PyFileUI(Panel):
 
         sizer = BoxSizer(VERTICAL)
         self.txt_test_file_path = TextCtrl(
-            self, value=self.__file_path, style=TE_READONLY
+            self, value=self.__file_path, style=TE_READONLY,
         )
         sizer.Add(self.txt_test_file_path, 0, flag=FLAG_ALL_AND_EXPAND)
 
@@ -152,7 +153,7 @@ class PyFileUI(Panel):
         return len(re.findall(r"def [a-z_]+\(self.+:", self.txt_content.GetValue())) > 0
 
     def append_method_call(
-        self, field=None, method_name=None, method=None, arg_spec=None
+        self, field=None, method_name=None, method=None, arg_spec=None,
     ):
         # TODO: simplify
         assert field or method_name
@@ -241,7 +242,7 @@ class PyFileUI(Panel):
                         "caller": caller,
                         "method": method_name,
                         "method_args": ", ".join(args),
-                    }
+                    },
                 )
                 code_line = method_call_template.format(**method_kwargs)
                 code = self.txt_content.GetValue() + LINESEP + code_line
@@ -250,7 +251,7 @@ class PyFileUI(Panel):
 
                 if formatted_exception:
                     show_dialog(
-                        self, formatted_exception, "Values are not Python expressions"
+                        self, formatted_exception, "Values are not Python expressions",
                     )
                 else:
                     method_kwargs.update(
@@ -258,7 +259,7 @@ class PyFileUI(Panel):
                             "caller": caller,
                             "method": method_name,
                             "method_args": ", ".join(args),
-                        }
+                        },
                     )
                     self.append_text(method_call_template.format(**method_kwargs))
         else:
@@ -267,7 +268,7 @@ class PyFileUI(Panel):
                     "caller": caller,
                     "method": method_name,
                     "method_args": ", ".join(args),
-                }
+                },
             )
             self.append_text(method_call_template.format(**method_kwargs))
 
@@ -298,7 +299,7 @@ class {class_name}(BaseTest):
 
         if not load_file:
             initial_text = self.TEST_FILE_TEMPLATE.format(
-                class_name=get_class_name_from_file(test_file_path), url=po_class.url
+                class_name=get_class_name_from_file(test_file_path), url=po_class.url,
             )
             self.txt_content.SetValue(initial_text)
 
@@ -309,9 +310,7 @@ class {class_name}(BaseTest):
         paths = [p for p in os.path.normpath(path).split(os.sep) if len(p) > 0]
         correct_import = ".".join(paths)
         class_name = po_class.name
-        import_line = "from {relative_import} import {class_name}".format(
-            relative_import=correct_import, class_name=class_name
-        )
+        import_line = f"from {correct_import} import {class_name}"
         text = self.txt_content.GetValue()
         if import_line not in text:
             base_test_import = "import BaseTest"
@@ -323,9 +322,7 @@ class {class_name}(BaseTest):
         class_name = po_class.name
         field_name = class_name.lower()
         field_line = (
-            "        cls.{field_name} = {class_name}(cls.browser, cls.logger)".format(
-                field_name=field_name, class_name=class_name
-            )
+            f"        cls.{field_name} = {class_name}(cls.browser, cls.logger)"
         )
 
         text = self.txt_content.GetValue()
@@ -336,7 +333,7 @@ class {class_name}(BaseTest):
             self.insert_text(field_line, pos)
 
     def append_method_call(
-        self, field=None, method_name=None, method=None, arg_spec=None
+        self, field=None, method_name=None, method=None, arg_spec=None,
     ):
         assert field or method_name
         if method_name != "assert":
@@ -346,7 +343,7 @@ class {class_name}(BaseTest):
             self.__fix_imports(po_class)
 
         PyFileUI.append_method_call(
-            self, field=field, method_name=method_name, method=method, arg_spec=arg_spec
+            self, field=field, method_name=method_name, method=method, arg_spec=arg_spec,
         )
 
     def create_new_test_case(self, test_case_name):
@@ -412,7 +409,7 @@ class FieldsTableAndTestFilesTabs(Panel):
         else:
             py_file_ui = PyFileUI(self.tabs, self.__cur_po_class.file_path, True)
             self.tabs.AddPage(
-                py_file_ui, os.path.basename(self.__cur_po_class.file_path)
+                py_file_ui, os.path.basename(self.__cur_po_class.file_path),
             )
 
         if (
@@ -501,7 +498,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                 filename = os.path.basename(test_file)
                 if StringUtils.is_test_file_name_correct(test_file):
                     test_file_ui = TestFileUI(
-                        self.tabs, test_file, self.__cur_po_class, load_file
+                        self.tabs, test_file, self.__cur_po_class, load_file,
                     )
                     self.tabs.AddPage(test_file_ui, filename)
                     self.tabs.SetSelection(self.tabs.GetPageCount() - 1)
@@ -532,7 +529,7 @@ class FieldsTableAndTestFilesTabs(Panel):
 class MultipleTextEntry(Dialog):
     def __init__(self, parent, title, values):
         Dialog.__init__(
-            self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER
+            self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER,
         )
         self.values = None
 

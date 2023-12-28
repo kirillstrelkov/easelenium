@@ -40,7 +40,7 @@ def get_random_value(_list, *val_to_skip):
     return value
 
 
-class Logger(object):
+class Logger:
     def __init__(
         self,
         name=None,
@@ -67,7 +67,7 @@ class Logger(object):
         self.__logger.info(msg, *args, **kwargs)
 
     def warn(self, msg, *args, **kwargs):
-        self.__logger.warn(msg, *args, **kwargs)
+        self.__logger.warning(msg, *args, **kwargs)
 
 
 def get_class_name_from_file(path):

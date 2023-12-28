@@ -1,8 +1,8 @@
-# coding=utf8
+
+from pytest import mark
 
 from easelenium.base_test import BaseTest
 from easelenium.browser import Browser
-from pytest import mark
 
 
 @mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
@@ -16,7 +16,7 @@ class BrowserTest(BaseTest):
         element = self.browser.find_element(by_id="__next")
         parent = self.browser.get_parent(element)
 
-        assert "body" == parent.tag_name
+        assert parent.tag_name == "body"
 
     def test_switch_to_frame(self):
         frame = "iframe[src*=default]"
@@ -63,12 +63,12 @@ class BrowserTest(BaseTest):
         self.browser.wait_for_visible(by_css=context_menu)
 
         self.browser.mouse.left_click_by_offset(
-            xoffset=-50, yoffset=-50, by_id=map_element
+            xoffset=-50, yoffset=-50, by_id=map_element,
         )
         self.browser.wait_for_not_visible(by_css=context_menu)
 
         self.browser.mouse.right_click_by_offset(
-            xoffset=100, yoffset=100, by_id=map_element
+            xoffset=100, yoffset=100, by_id=map_element,
         )
         self.browser.wait_for_visible(by_css=context_menu)
 
@@ -80,34 +80,34 @@ class BrowserTest(BaseTest):
 
         self.browser.mouse.hover(by_css=edit_buton)
         self.browser.wait_for_visible(by_css=tooltip)
-        assert "Zoom In" == self.browser.get_text(by_css=tooltip)
+        assert self.browser.get_text(by_css=tooltip) == "Zoom In"
 
     def test_select(self):
         self.browser.get(
-            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html"
+            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html",
         )
 
         select_element = "select[name]"
 
         old_option = self.browser.get_selected_text_from_dropdown(by_css=select_element)
         self.browser.select_random_option_from_dropdown(
-            by_css=select_element, texts_to_skip=[old_option]
+            by_css=select_element, texts_to_skip=[old_option],
         )
         new_option = self.browser.get_selected_text_from_dropdown(by_css=select_element)
         new_option_value = self.browser.get_selected_value_from_dropdown(
-            by_css=select_element
+            by_css=select_element,
         )
 
         assert old_option != new_option
         assert new_option.lower().split(" ")[0] == new_option_value
 
         self.browser.select_option_by_index_from_dropdown(
-            by_css=select_element, index=0
+            by_css=select_element, index=0,
         )
 
         new_option = "Second Value"
         self.browser.select_option_by_text_from_dropdown(
-            by_css=select_element, text=new_option
+            by_css=select_element, text=new_option,
         )
         assert (
             self.browser.get_selected_text_from_dropdown(by_css=select_element)
@@ -116,7 +116,7 @@ class BrowserTest(BaseTest):
 
         new_option = "third"
         self.browser.select_option_by_value_from_dropdown(
-            by_css=select_element, value=new_option
+            by_css=select_element, value=new_option,
         )
         assert (
             self.browser.get_selected_value_from_dropdown(by_css=select_element)
@@ -125,7 +125,7 @@ class BrowserTest(BaseTest):
 
         index = 0
         self.browser.select_option_by_index_from_dropdown(
-            by_css=select_element, index=index
+            by_css=select_element, index=index,
         )
         assert (
             self.browser.get_selected_value_from_dropdown(by_css=select_element)
@@ -133,7 +133,7 @@ class BrowserTest(BaseTest):
         )
         index = 2
         self.browser.select_option_by_index_from_dropdown(
-            by_css=select_element, index=index
+            by_css=select_element, index=index,
         )
         assert (
             self.browser.get_selected_value_from_dropdown(by_css=select_element)
@@ -196,7 +196,7 @@ class BrowserTest(BaseTest):
 
         assert (
             self.browser.get_attribute(
-                by_css="a[class*='header_logoHorizontal']", attr="href", parent=parent
+                by_css="a[class*='header_logoHorizontal']", attr="href", parent=parent,
             )
             == "https://duckduckgo.com/about"
         )

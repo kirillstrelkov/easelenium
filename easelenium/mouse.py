@@ -1,4 +1,4 @@
-class Mouse(object):
+class Mouse:
     def __init__(self, browser):
         self.browser = browser
 
@@ -64,11 +64,11 @@ class Mouse(object):
             )
 
         self.browser._safe_log(
-            "Click at '%s' by offset(%s,%s)", element, xoffset, yoffset
+            "Click at '%s' by offset(%s,%s)", element, xoffset, yoffset,
         )
 
         actions.move_to_element(element).move_by_offset(
-            xoffset, yoffset
+            xoffset, yoffset,
         ).click().perform()
 
     def hover(
@@ -134,7 +134,7 @@ class Mouse(object):
         )
 
         self.browser._safe_log(
-            "Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset
+            "Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset,
         )
 
         actions.move_to_element(element).move_by_offset(xoffset, yoffset).perform()
@@ -217,9 +217,9 @@ class Mouse(object):
             )
 
         self.browser._safe_log(
-            "Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset
+            "Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset,
         )
 
         actions.move_to_element(element).move_by_offset(
-            xoffset, yoffset
+            xoffset, yoffset,
         ).context_click().perform()

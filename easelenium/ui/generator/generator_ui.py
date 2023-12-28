@@ -2,6 +2,9 @@ import os
 import re
 from threading import Thread
 
+from selenium.webdriver.common.by import By
+from wx import EVT_BUTTON, EVT_MOTION, Button, GridBagSizer, Panel, StaticText, TextCtrl
+
 from easelenium.ui.generator.page_object_generator import PageObjectGenerator
 from easelenium.ui.root_folder import RootFolder
 from easelenium.ui.string_utils import StringUtils
@@ -16,8 +19,6 @@ from easelenium.ui.widgets.utils import (
     show_dialog_path_doesnt_exist,
 )
 from easelenium.utils import LINESEP, Logger, get_py_file_name_from_class_name
-from selenium.webdriver.common.by import By
-from wx import EVT_BUTTON, EVT_MOTION, Button, GridBagSizer, Panel, StaticText, TextCtrl
 
 
 class GeneratorTab(Panel):
@@ -106,7 +107,7 @@ class GeneratorTab(Panel):
             show_dialog(self, msg, caption)
             return False
         elif not re.match(
-            r"\(\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*\)", area
+            r"\(\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*\)", area,
         ):
             msg = "Selected area is not correct: '%s'" % area
             caption = "Bad selected area"
@@ -142,7 +143,7 @@ class GeneratorTab(Panel):
 
             class_name = self.txt_class_name.GetValue()
             file_path = os.path.join(
-                folder, get_py_file_name_from_class_name(class_name)
+                folder, get_py_file_name_from_class_name(class_name),
             )
             area_as_text = self.txt_selected_area.GetValue()
             url = self.main_frame.get_url()
@@ -152,7 +153,7 @@ class GeneratorTab(Panel):
                 show_dialog_bad_name(self, class_name, "Header", "ContextMen")
             elif not StringUtils.is_area_correct(area_as_text):
                 show_dialog(
-                    self, "Bad selected area: %s" % area_as_text, "Bad selected area"
+                    self, "Bad selected area: %s" % area_as_text, "Bad selected area",
                 )
             elif not StringUtils.is_url_correct(url):
                 show_dialog(self, "Bad url: %s" % url, "Bad url")
@@ -170,7 +171,7 @@ class GeneratorTab(Panel):
                 def generate():
                     dialog.btn_ok.Disable()
                     po_class = generator.get_po_class_for_url(
-                        url, class_name, folder_path, area
+                        url, class_name, folder_path, area,
                     )
                     po_class.save(folder)
                     logger.info("Saving class '%s'..." % po_class.name)

@@ -1,9 +1,9 @@
-# coding=utf8
 import os
+
+from selenium.webdriver.common.by import By
 
 from easelenium.ui.file_utils import safe_create_path, save_file
 from easelenium.utils import LINESEP, get_match
-from selenium.webdriver.common.by import By
 
 # TODO: move to f string and get rid of u strings
 
@@ -38,7 +38,7 @@ def get_by_from_code_str(by_as_string):
         raise NotImplementedError
 
 
-class PageObjectClassField(object):
+class PageObjectClassField:
     def __init__(self, name, by, selector, location, dimensions):
         self.name = name
         self.by = by
@@ -60,7 +60,7 @@ class PageObjectClassField(object):
         return f"PageObjectClassField({self.__dict__})"
 
 
-class PageObjectClass(object):
+class PageObjectClass:
     IMAGE_FOLDER = "img"
     TEMPLATE = """# coding=utf8
 from selenium.webdriver.common.by import By
@@ -102,7 +102,7 @@ class {name}(BasePageObject):
             img_filename = os.path.basename(self.img_path)
             self.file_path = os.path.abspath(os.path.join(new_folder, py_filename))
             self.img_path = os.path.abspath(
-                os.path.join(new_folder, self.IMAGE_FOLDER, img_filename)
+                os.path.join(new_folder, self.IMAGE_FOLDER, img_filename),
             )
         safe_create_path(self.file_path)
         safe_create_path(self.img_path)
@@ -123,14 +123,9 @@ class {name}(BasePageObject):
         for field in self.fields:
             lines.append(
                 single_line.format(
-                    **{
-                        "name": field.name,
-                        "by_as_code": get_by_as_code_str(field.by),
-                        "selector": field.selector.replace("'", "\\'"),
-                        "comment": "location: %s dimensions: %s"
+                    name=field.name, by_as_code=get_by_as_code_str(field.by), selector=field.selector.replace("'", "\\'"), comment="location: %s dimensions: %s"
                         % (field.location, field.dimensions),
-                    }
-                )
+                ),
             )
 
         return LINESEP.join(lines)
@@ -168,7 +163,7 @@ class {name}(BasePageObject):
                 location = eval(field_location)
                 dimensions = eval(field_dimensions)
                 po_class_field = PageObjectClassField(
-                    field_name, by, selector, location, dimensions
+                    field_name, by, selector, location, dimensions,
                 )
                 fields.append(po_class_field)
 

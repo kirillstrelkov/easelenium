@@ -8,7 +8,6 @@ from wx import App
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", ".."))
 from easelenium.ui.main_ui import MainFrame
 
-
 if __name__ == "__main__":
     app = App(False)
     main_ui = MainFrame(None)

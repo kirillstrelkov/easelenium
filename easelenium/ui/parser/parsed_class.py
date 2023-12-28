@@ -8,7 +8,7 @@ from easelenium.browser import Browser, Mouse
 from easelenium.utils import is_string
 
 
-class ParsedClass(object):
+class ParsedClass:
     PROTECTED_PREFIX = "_"
     PRIVATE_PREFIX = "__"
 
@@ -53,10 +53,10 @@ class ParsedClass(object):
         if inspect.ismodule(module_or_class_or_path) or is_path:
             if is_path:
                 module_name = os.path.splitext(
-                    os.path.basename(module_or_class_or_path)
+                    os.path.basename(module_or_class_or_path),
                 )[0]
                 module_or_class_or_path = SourceFileLoader(
-                    module_name, module_or_class_or_path
+                    module_name, module_or_class_or_path,
                 ).load_module()
 
             cur_module = inspect.getmodule(module_or_class_or_path)
@@ -84,7 +84,7 @@ class ParsedClass(object):
             fields = inspect.getmembers(_class, lambda o: not inspect.isroutine(o))
             fields = filter_private_members(fields)
             parsed_classes.append(
-                ParsedClass(class_name, _class, dict(fields), dict(methods))
+                ParsedClass(class_name, _class, dict(fields), dict(methods)),
             )
 
         return parsed_classes
@@ -116,7 +116,7 @@ class ParsedBrowserClass(ParsedClass):
                         cls._LOCATOR_NAME in _class.get_arg_spec(n).args
                         or n in cls._GOOD_METHODS
                     )
-                ]
+                ],
             )
         return parsed_classes
 
@@ -133,7 +133,7 @@ class ParsedMouseClass(ParsedClass):
                     (n, v)
                     for n, v in _class.methods.items()
                     if cls._LOCATOR_NAME in _class.get_arg_spec(n).args
-                ]
+                ],
             )
         return parsed_classes
 
@@ -150,7 +150,7 @@ class ParsedPageObjectClass(ParsedClass):
                     (n, v)
                     for n, v in getattr(class1, methods_or_fields).items()
                     if n not in getattr(class2, methods_or_fields)
-                ]
+                ],
             )
 
         for _class in parsed_classes:

@@ -1,8 +1,9 @@
 from unittest import TestCase
 
-from easelenium.browser import Browser, browser_decorator
 from pytest import mark
 from selenium import webdriver
+
+from easelenium.browser import Browser, browser_decorator
 
 
 def __open_duck_and_assert_title(browser: Browser):
@@ -21,7 +22,7 @@ __CHROME_OPTIONS.add_argument("window-size=1366,768")
 
 
 @browser_decorator(
-    browser_name="gc", headless=True, webdriver_kwargs={"options": __CHROME_OPTIONS}
+    browser_name="gc", headless=True, webdriver_kwargs={"options": __CHROME_OPTIONS},
 )
 def func_decorator_gc_with_params(browser: Browser = None):
     result = __open_duck_and_assert_title(browser)

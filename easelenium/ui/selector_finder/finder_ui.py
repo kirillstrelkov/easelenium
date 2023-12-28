@@ -1,5 +1,17 @@
 from threading import Thread
 
+from wx import (
+    EVT_BUTTON,
+    EVT_MOTION,
+    SP_3D,
+    SP_LIVE_UPDATE,
+    Button,
+    GridBagSizer,
+    Panel,
+    SplitterWindow,
+)
+from wx.grid import EVT_GRID_SELECT_CELL
+
 from easelenium.ui.generator.page_object_generator import PageObjectGenerator
 from easelenium.ui.string_utils import StringUtils
 from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
@@ -12,17 +24,6 @@ from easelenium.ui.widgets.utils import (
     show_dialog,
 )
 from easelenium.utils import Logger
-from wx import (
-    EVT_BUTTON,
-    EVT_MOTION,
-    SP_3D,
-    SP_LIVE_UPDATE,
-    Button,
-    GridBagSizer,
-    Panel,
-    SplitterWindow,
-)
-from wx.grid import EVT_GRID_SELECT_CELL
 
 
 class SelectorFinderTab(Panel):
@@ -73,7 +74,7 @@ class SelectorFinderTab(Panel):
 
     def __on_mouse_move(self, evt):
         ImageAndTableHelper.select_field_on_mouse_move(
-            evt, self.po_fields, self.image_panel, self.table
+            evt, self.po_fields, self.image_panel, self.table,
         )
 
     def __on_cell_select(self, evt):

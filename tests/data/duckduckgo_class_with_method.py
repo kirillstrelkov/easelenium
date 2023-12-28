@@ -1,4 +1,3 @@
-# coding=utf8
 from selenium.webdriver.common.by import By
 
 from easelenium.base_page_object import BasePageObject
@@ -37,7 +36,7 @@ class DuckDuckGo(BasePageObject):
     )  # location: (518, 521) dimensions: (64, 64)
     ID_FOOTER_HOMEPAGE_DIV_1_SPAN_1_BR_1 = (
         By.XPATH,
-        u'id("footer_homepage")/DIV[1]/SPAN[1]/BR[1]',
+        'id("footer_homepage")/DIV[1]/SPAN[1]/BR[1]',
     )  # location: (747, 572) dimensions: (0, 20)
     DDGSI_ADD_TO_BROWSER_BADGE_CLOSE_JS_ADD_TO_BROWSER_CLOSE = (
         By.CSS_SELECTOR,

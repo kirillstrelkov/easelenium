@@ -1,8 +1,9 @@
-# coding=utf8
 import codecs
 import os
 import pickle
 from unittest.case import TestCase
+
+from selenium.webdriver.common.by import By
 
 from easelenium.ui.file_utils import check_if_path_exists, read_file, safe_remove_path
 from easelenium.ui.generator.page_object_class import (
@@ -11,7 +12,6 @@ from easelenium.ui.generator.page_object_class import (
     get_by_from_code_str,
 )
 from easelenium.utils import is_windows
-from selenium.webdriver.common.by import By
 
 
 class PageObjectClassTest(TestCase):
@@ -20,10 +20,10 @@ class PageObjectClassTest(TestCase):
         super(PageObjectClassTest, cls).setUpClass()
         cur_path = os.path.dirname(__file__)
         cls.pickled_object_path = os.path.join(
-            cur_path, "data", "pickled_po_class_object"
+            cur_path, "data", "pickled_po_class_object",
         )
         cls.expected_duckduckgo_class_path = os.path.join(
-            cur_path, "data", "expected_duckduckgo_class_py"
+            cur_path, "data", "expected_duckduckgo_class_py",
         )
         cls.po_class_object = pickle.load(
             codecs.open(cls.pickled_object_path, mode="rb"),
@@ -38,7 +38,7 @@ class PageObjectClassTest(TestCase):
     def test_save_po_object_class(self):
         if is_windows():
             self.skipTest(
-                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object."
+                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
             )
         else:
             for path in (self.po_class_object.file_path, self.po_class_object.img_path):
@@ -54,7 +54,7 @@ class PageObjectClassTest(TestCase):
     def test_get_formatted_fields(self):
         if is_windows():
             self.skipTest(
-                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object."
+                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
             )
         else:
             expected_fields = """
@@ -76,7 +76,7 @@ class PageObjectClassTest(TestCase):
     def test_get_file_content(self):
         if is_windows():
             self.skipTest(
-                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object."
+                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
             )
         else:
             expected_string = read_file(self.expected_duckduckgo_class_path)
@@ -86,23 +86,23 @@ class PageObjectClassTest(TestCase):
             )
 
     def test_get_by_as_code_str(self):
-        assert "By.ID" == get_by_as_code_str(By.ID)
-        assert "By.CLASS_NAME" == get_by_as_code_str(By.CLASS_NAME)
-        assert "By.XPATH" == get_by_as_code_str(By.XPATH)
-        assert "By.CSS_SELECTOR" == get_by_as_code_str(By.CSS_SELECTOR)
-        assert "By.LINK_TEXT" == get_by_as_code_str(By.LINK_TEXT)
+        assert get_by_as_code_str(By.ID) == "By.ID"
+        assert get_by_as_code_str(By.CLASS_NAME) == "By.CLASS_NAME"
+        assert get_by_as_code_str(By.XPATH) == "By.XPATH"
+        assert get_by_as_code_str(By.CSS_SELECTOR) == "By.CSS_SELECTOR"
+        assert get_by_as_code_str(By.LINK_TEXT) == "By.LINK_TEXT"
 
     def test_get_by_from_code_str(self):
-        assert By.ID == get_by_from_code_str("By.ID")
-        assert By.CLASS_NAME == get_by_from_code_str("By.CLASS_NAME")
-        assert By.XPATH == get_by_from_code_str("By.XPATH")
-        assert By.CSS_SELECTOR == get_by_from_code_str("By.CSS_SELECTOR")
-        assert By.LINK_TEXT == get_by_from_code_str("By.LINK_TEXT")
+        assert get_by_from_code_str("By.ID") == By.ID
+        assert get_by_from_code_str("By.CLASS_NAME") == By.CLASS_NAME
+        assert get_by_from_code_str("By.XPATH") == By.XPATH
+        assert get_by_from_code_str("By.CSS_SELECTOR") == By.CSS_SELECTOR
+        assert get_by_from_code_str("By.LINK_TEXT") == By.LINK_TEXT
 
     def test_parse_string_to_po_class(self):
         if is_windows():
             self.skipTest(
-                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object."
+                "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
             )
         else:
             expected_string = read_file(self.expected_duckduckgo_class_path)
@@ -112,7 +112,7 @@ class PageObjectClassTest(TestCase):
             )
 
             po_class = PageObjectClass.parse_string_to_po_class(
-                read_file(self.expected_duckduckgo_class_path)
+                read_file(self.expected_duckduckgo_class_path),
             )
 
             assert po_class.name == self.po_class_object.name

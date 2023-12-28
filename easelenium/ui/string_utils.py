@@ -2,7 +2,7 @@ import os
 import re
 
 
-class RegExps(object):
+class RegExps:
     CLASS_NAME = r"^[A-Z][a-zA-Z0-9]*$"
     TEST_FILE_NAME = r"^[a-z_\d]+_test.py$"
     TEST_CASE_NAME = r"^test_[a-z_\d]+$"
@@ -11,7 +11,7 @@ class RegExps(object):
     URL = r"https?://.+"
 
 
-class StringUtils(object):
+class StringUtils:
     @classmethod
     def is_test_file_name_correct(cls, file_name):
         file_name = os.path.basename(file_name)

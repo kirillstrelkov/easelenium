@@ -1,7 +1,7 @@
 from wx import EVT_MENU, Menu, MenuItem, NewId
 
 
-class MenuItemData(object):
+class MenuItemData:
     def __init__(self, text, func):
         self.text = text
         self.func = func
@@ -22,7 +22,7 @@ class ContextMenu(Menu):
 
         self.__id_and_item_data = self.__get_ids_and_item_data(data)
         self.__text_and_item_data = dict(
-            [(d.text, d) for d in self.__id_and_item_data.values()]
+            [(d.text, d) for d in self.__id_and_item_data.values()],
         )
 
         self.__create_menu(data)

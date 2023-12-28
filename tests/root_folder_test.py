@@ -27,9 +27,9 @@ class RootFolderTest(TestCase):
         assert RootFolder.TESTS_FOLDER in files_and_folders
 
         assert RootFolder.INIT_PY in os.listdir(
-            os.path.join(self.tmp_dir, RootFolder.PO_FOLDER)
+            os.path.join(self.tmp_dir, RootFolder.PO_FOLDER),
         )
 
         assert RootFolder.INIT_PY not in os.listdir(
-            os.path.join(self.tmp_dir, RootFolder.TESTS_FOLDER)
+            os.path.join(self.tmp_dir, RootFolder.TESTS_FOLDER),
         )

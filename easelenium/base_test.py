@@ -1,4 +1,3 @@
-# coding=utf8
 import traceback
 from unittest.case import TestCase
 
@@ -33,7 +32,7 @@ class BaseTest(TestCase):
             name = self.id()
             symbols_before = "-" * int((self.TC_NAME_WIDTH - len(name) - 2) / 2)
             self.browser.logger.info(
-                "{} {} {}".format(symbols_before, name, symbols_before)
+                f"{symbols_before} {name} {symbols_before}",
             )
 
     def tearDown(self):
@@ -42,7 +41,7 @@ class BaseTest(TestCase):
             # python3
             failed = self._outcome and not self._outcome.success
         elif hasattr(self, "_resultForDoCleanups") and hasattr(
-            self._resultForDoCleanups, "result"
+            self._resultForDoCleanups, "result",
         ):
             # nose
             failed = not self._resultForDoCleanups.result.wasSuccessful()
@@ -50,11 +49,11 @@ class BaseTest(TestCase):
         if failed:
             name = self.id()
             filename = "_".join(
-                [name, self.browser.get_browser_initials(), get_timestamp()]
+                [name, self.browser.get_browser_initials(), get_timestamp()],
             )
             try:
                 self.browser.save_screenshot(
-                    self.FAILED_SCREENSHOT_FOLDER, filename + ".png"
+                    self.FAILED_SCREENSHOT_FOLDER, filename + ".png",
                 )
             except Exception:
                 formatted_exc = traceback.format_exc()

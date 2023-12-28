@@ -1,18 +1,18 @@
 from wx import (
-    ScrolledWindow,
-    BoxSizer,
-    VERTICAL,
-    StaticBitmap,
-    Image,
     BITMAP_TYPE_ANY,
-    Bitmap,
-    Rect,
-    MemoryDC,
-    BufferedDC,
     BLACK_PEN,
-    TRANSPARENT_BRUSH,
     GREY_PEN,
+    TRANSPARENT_BRUSH,
+    VERTICAL,
+    Bitmap,
+    BoxSizer,
+    BufferedDC,
+    Image,
+    MemoryDC,
     NullBitmap,
+    Rect,
+    ScrolledWindow,
+    StaticBitmap,
 )
 
 from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
@@ -64,7 +64,7 @@ class ImagePanel(ScrolledWindow):
             )
 
             self.original_bitmap = self._get_bitmap(
-                bitmap, bitmap_to_draw, x, y, w, h, False
+                bitmap, bitmap_to_draw, x, y, w, h, False,
             )
         else:
             self.original_bitmap = Bitmap(self.wx_image)

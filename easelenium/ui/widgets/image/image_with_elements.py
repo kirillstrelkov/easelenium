@@ -1,4 +1,4 @@
-from wx import EVT_MOTION, Cursor, CURSOR_HAND, CURSOR_ARROW, Point, Rect
+from wx import CURSOR_ARROW, CURSOR_HAND, EVT_MOTION, Cursor, Point, Rect
 
 from easelenium.ui.widgets.image.selectable_image import SelectableImagePanel
 
@@ -54,7 +54,7 @@ class ImageWithElements(SelectableImagePanel):
         position = Point(*position)
         if self.__po_fields:
             fields_sorted_by_dimensions = sorted(
-                self.__po_fields, key=lambda f: f.dimensions
+                self.__po_fields, key=lambda f: f.dimensions,
             )
             for field in fields_sorted_by_dimensions:
                 field_x, field_y = field.location

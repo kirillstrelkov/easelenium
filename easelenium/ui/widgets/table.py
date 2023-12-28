@@ -1,5 +1,6 @@
-from easelenium.ui.generator.page_object_class import get_by_as_code_str
 from wx.grid import Grid
+
+from easelenium.ui.generator.page_object_class import get_by_as_code_str
 
 
 class Table(Grid):

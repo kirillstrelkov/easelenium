@@ -1,9 +1,8 @@
-# coding=utf8
-from functools import lru_cache
 import os
-from pathlib import Path
 import tempfile
 import traceback
+from functools import lru_cache
+from pathlib import Path
 from tempfile import gettempdir
 
 from selenium.common.exceptions import (
@@ -11,30 +10,28 @@ from selenium.common.exceptions import (
     TimeoutException,
     WebDriverException,
 )
-from selenium.webdriver import Chrome, Firefox, Ie, Edge
+from selenium.webdriver import Chrome, Edge, Firefox, Ie
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
+from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.ie.service import Service as IeService
-from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-from webdriver_manager.microsoft import IEDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager, IEDriverManager
 
 from easelenium.mouse import Mouse
-from easelenium.utils import get_random_value, get_timestamp, is_windows
+from easelenium.utils import get_random_value, get_timestamp
 
 
 def browser_decorator(
-    browser_name=None, timeout=5, logger=None, headless=False, webdriver_kwargs=None
+    browser_name=None, timeout=5, logger=None, headless=False, webdriver_kwargs=None,
 ):
     def func_decorator(func):
         def wrapper(*args, **kwargs):
@@ -70,7 +67,7 @@ def browser_decorator(
     return func_decorator
 
 
-class Browser(object):
+class Browser:
     FF = "ff"
     FF_HEADLESS = "ff_headless"
     GC = "gc"
@@ -195,13 +192,13 @@ class Browser(object):
         if driver_filename_and_constructor is None:
             browsers = "', '".join(self.__BROWSERS)
             raise ValueError(
-                f"Unsupported browser '{name}', supported browsers: ['{browsers}']"
+                f"Unsupported browser '{name}', supported browsers: ['{browsers}']",
             )
 
         driver_filename, constructor, service_klass = driver_filename_and_constructor
 
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
-            name
+            name,
         )
 
         webdriver_kwargs["service"] = service_klass(driver_path)
@@ -423,7 +420,7 @@ class Browser(object):
         try:
             element.clear()
         except WebDriverException as e:
-            if "Element must be user-editable in order to clear it." != e.msg:
+            if e.msg != "Element must be user-editable in order to clear it.":
                 raise e
 
         self._safe_log("Typing '%s' at '%s'", text, element)
@@ -1079,7 +1076,7 @@ class Browser(object):
         )
         if len(found_elements) == 0:
             raise NoSuchElementException(
-                "Didn't find any elements for selector - %s" % str(element)
+                "Didn't find any elements for selector - %s" % str(element),
             )
         else:
             return found_elements[0]
@@ -1414,7 +1411,7 @@ class Browser(object):
                     by_tag=by_tag,
                     by_css=by_css,
                     by_class=by_class,
-                )
+                ),
             )
             > 0
         )
@@ -1457,7 +1454,7 @@ class Browser(object):
                 by_tag=by_tag,
                 by_css=by_css,
                 by_class=by_class,
-            )
+            ),
         )
 
     def switch_to_frame(
@@ -1516,7 +1513,7 @@ class Browser(object):
         )
 
         self.webdriver_wait(
-            lambda driver: len(initial_handles) < len(driver.window_handles)
+            lambda driver: len(initial_handles) < len(driver.window_handles),
         )
         new_handles = self._driver.window_handles
         for handle in initial_handles:

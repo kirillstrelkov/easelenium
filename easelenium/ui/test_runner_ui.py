@@ -2,18 +2,6 @@ import os
 import traceback
 from subprocess import check_output
 
-from easelenium.base_test import BaseTest
-from easelenium.browser import Browser
-from easelenium.ui.file_utils import get_list_of_files
-from easelenium.ui.parser.parsed_class import ParsedClass
-from easelenium.ui.root_folder import RootFolder
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
-from easelenium.ui.widgets.utils import (
-    DialogWithText,
-    InfiniteProgressBarDialog,
-    show_dialog_path_doesnt_exist,
-    show_error_dialog,
-)
 from pytest import main
 from wx import (
     DD_DIR_MUST_EXIST,
@@ -56,8 +44,21 @@ from wx.lib.agw.customtreectrl import (
     CustomTreeCtrl,
 )
 
+from easelenium.base_test import BaseTest
+from easelenium.browser import Browser
+from easelenium.ui.file_utils import get_list_of_files
+from easelenium.ui.parser.parsed_class import ParsedClass
+from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
+from easelenium.ui.widgets.utils import (
+    DialogWithText,
+    InfiniteProgressBarDialog,
+    show_dialog_path_doesnt_exist,
+    show_error_dialog,
+)
 
-class RedirectText(object):
+
+class RedirectText:
     def __init__(self, txt_ctrl):
         self.out = txt_ctrl
 
@@ -86,7 +87,7 @@ class TestRunnerTab(Panel):
         self.txt_html_report = TextCtrl(self, style=TE_READONLY)
         self.txt_html_report.Disable()
         sizer.Add(
-            self.txt_html_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND
+            self.txt_html_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND,
         )
 
         col += 3
@@ -105,7 +106,7 @@ class TestRunnerTab(Panel):
         self.txt_xml_report = TextCtrl(self, style=TE_READONLY)
         self.txt_xml_report.Disable()
         sizer.Add(
-            self.txt_xml_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND
+            self.txt_xml_report, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND,
         )
 
         col += 3
@@ -124,7 +125,7 @@ class TestRunnerTab(Panel):
         self.txt_options = TextCtrl(self)
         self.txt_options.Disable()
         sizer.Add(
-            self.txt_options, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND
+            self.txt_options, pos=(row, col), span=(1, 3), flag=FLAG_ALL_AND_EXPAND,
         )
 
         col += 3
@@ -137,14 +138,14 @@ class TestRunnerTab(Panel):
         self.btn_load_tests_from_files = Button(self, label="Load tests from files")
         self.btn_load_tests_from_files.Bind(EVT_BUTTON, self.__load_tests_from_files)
         sizer.Add(
-            self.btn_load_tests_from_files, pos=(row, col), flag=FLAG_ALL_AND_EXPAND
+            self.btn_load_tests_from_files, pos=(row, col), flag=FLAG_ALL_AND_EXPAND,
         )
 
         col += 1
         self.btn_load_tests_from_dir = Button(self, label="Load tests from directory")
         self.btn_load_tests_from_dir.Bind(EVT_BUTTON, self.__load_tests_from_directory)
         sizer.Add(
-            self.btn_load_tests_from_dir, pos=(row, col), flag=FLAG_ALL_AND_EXPAND
+            self.btn_load_tests_from_dir, pos=(row, col), flag=FLAG_ALL_AND_EXPAND,
         )
 
         col += 1
@@ -177,7 +178,7 @@ class TestRunnerTab(Panel):
         self.tree_ctrl.Bind(EVT_TREE_ITEM_CHECKED, self.__on_tree_check)
 
         self.txt_ctrl = TextCtrl(
-            window, style=TE_MULTILINE | TE_READONLY | HSCROLL | VSCROLL
+            window, style=TE_MULTILINE | TE_READONLY | HSCROLL | VSCROLL,
         )
         font_size = self.txt_ctrl.GetFont().GetPointSize()
         self.txt_ctrl.SetFont(Font(font_size, FONTFAMILY_TELETYPE, NORMAL, NORMAL))
@@ -196,11 +197,11 @@ class TestRunnerTab(Panel):
                 os.sys.executable,
                 os.path.abspath(
                     os.path.join(
-                        os.path.dirname(__file__), "../scripts/easelenium_cli.py"
-                    )
+                        os.path.dirname(__file__), "../scripts/easelenium_cli.py",
+                    ),
                 ),
                 "--help",
-            ]
+            ],
         )
         DialogWithText(self, "Help for nosetests", text).ShowModal()
 
@@ -301,13 +302,13 @@ class TestRunnerTab(Panel):
 
                 for python_file in python_files:
                     top_item = self.tree_ctrl.AppendItem(
-                        root, os.path.abspath(python_file), checkbox_type
+                        root, os.path.abspath(python_file), checkbox_type,
                     )
 
                     parsed_classes = ParsedClass.get_parsed_classes(python_file)
                     for parsed_class in parsed_classes:
                         item = self.tree_ctrl.AppendItem(
-                            top_item, parsed_class.name, checkbox_type
+                            top_item, parsed_class.name, checkbox_type,
                         )
 
                         test_methods = [
@@ -363,7 +364,7 @@ class TestRunnerTab(Panel):
                         tests.append(f"{test_class} and {test_method}")
 
         if not tests:
-            return
+            return None
 
         args = [
             f"--rootdir={self.__get_safe_path_from_root_folder()}",
@@ -414,7 +415,7 @@ class TestRunnerTab(Panel):
                 browser_name = self.cb_browser.GetStringSelection()
                 Browser.DEFAULT_BROWSER = browser_name
                 report_folder = self.__get_safe_path_from_root_folder(
-                    RootFolder.REPORTS
+                    RootFolder.REPORTS,
                 )
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 

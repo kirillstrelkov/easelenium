@@ -1,6 +1,9 @@
-# coding=utf8
 import os
 import re
+
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from wx import Point, Rect
 
 from easelenium.ui.file_utils import check_if_path_exists, read_file
 from easelenium.ui.generator.page_object_class import (
@@ -9,16 +12,13 @@ from easelenium.ui.generator.page_object_class import (
 )
 from easelenium.ui.root_folder import RootFolder
 from easelenium.utils import get_py_file_name_from_class_name
-from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
-from wx import Point, Rect
 
 # TODO: when generating link_text - escape new lines
 
 
-class PageObjectGenerator(object):
+class PageObjectGenerator:
     GET_XPATH_USING_JS = read_file(
-        os.path.join(os.path.dirname(__file__), "get_xpath.js")
+        os.path.join(os.path.dirname(__file__), "get_xpath.js"),
     )
     ELEMENTS_SELECTOR = (
         By.CSS_SELECTOR,
@@ -43,7 +43,7 @@ class PageObjectGenerator(object):
         else:
             by_and_selector = element_or_by_and_selector
         name = "_".join(
-            [w.upper()[:max_length] for w in re.findall(r"\w+", by_and_selector[1])]
+            [w.upper()[:max_length] for w in re.findall(r"\w+", by_and_selector[1])],
         )
         name = re.sub(r"_+", "_", name)
         if len(name) == 0:
@@ -83,7 +83,7 @@ class PageObjectGenerator(object):
             if self.logger:
                 self.__log(
                     "%5d/%d Trying to get PageObjectField for element %s"
-                    % (i, len(elements), self.browser._to_string(e))
+                    % (i, len(elements), self.browser._to_string(e)),
                 )
 
             if self.__is_correct_element(e, area, location_offset):
@@ -143,12 +143,12 @@ class PageObjectGenerator(object):
     def get_po_class_for_url(self, url, class_name, folder_path, area=None):
         po_folder = os.path.join(folder_path, RootFolder.PO_FOLDER)
         img_folder = os.path.join(
-            folder_path, RootFolder.PO_FOLDER, PageObjectClass.IMAGE_FOLDER
+            folder_path, RootFolder.PO_FOLDER, PageObjectClass.IMAGE_FOLDER,
         )
         check_if_path_exists(folder_path)
 
         self.__log(
-            "Generating PageObjectClass for url %s with area %s" % (url, str(area))
+            "Generating PageObjectClass for url %s with area %s" % (url, str(area)),
         )
         fields = self.get_all_po_fields(url, area)
         img_as_png = self.browser.get_screenshot_as_png()
@@ -158,7 +158,7 @@ class PageObjectGenerator(object):
         img_path = os.path.join(img_folder, os.path.splitext(filename)[0] + ".png")
 
         return PageObjectClass(
-            class_name, url, fields, area, file_path, img_path, img_as_png
+            class_name, url, fields, area, file_path, img_path, img_as_png,
         )
 
     def __get_pageobject_field(self, element, location_offset):
@@ -210,7 +210,8 @@ class PageObjectGenerator(object):
             return None
 
     def _get_css_selector(self, element):
-        """Recursively tries to find unique CSS selector for given element.
+        """
+        Recursively tries to find unique CSS selector for given element.
 
         Goes up through DOM tree until HTML or BODY tag is found. If
         doesn't find unique selector returns None.
@@ -243,7 +244,7 @@ class PageObjectGenerator(object):
                 css_parent_selector = self._get_css_selector(parent)
                 if css_parent_selector:
                     new_css_selector = " > ".join(
-                        (css_parent_selector[1], cur_css_selector)
+                        (css_parent_selector[1], cur_css_selector),
                     )
                     return By.CSS_SELECTOR, new_css_selector
                 else:

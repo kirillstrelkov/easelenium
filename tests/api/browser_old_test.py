@@ -1,4 +1,3 @@
-# coding=utf8
 
 from selenium.webdriver.common.by import By
 
@@ -67,18 +66,18 @@ class BrowserTest(BaseTest):
 
         self.browser.mouse.hover(edit_buton)
         self.browser.wait_for_visible(tooltip)
-        assert "Zoom In" == self.browser.get_text(tooltip)
+        assert self.browser.get_text(tooltip) == "Zoom In"
 
     def test_select(self):
         self.browser.get(
-            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html"
+            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html",
         )
 
         select_element = (By.CSS_SELECTOR, "select[name]")
 
         old_option = self.browser.get_selected_text_from_dropdown(select_element)
         self.browser.select_random_option_from_dropdown(
-            select_element, texts_to_skip=(old_option,)
+            select_element, texts_to_skip=(old_option,),
         )
         new_option = self.browser.get_selected_text_from_dropdown(select_element)
         new_option_value = self.browser.get_selected_value_from_dropdown(select_element)
@@ -151,7 +150,7 @@ class BrowserTest(BaseTest):
         self.browser.get("https://duckduckgo.com/")
         assert (
             self.browser.get_attribute(
-                (By.CSS_SELECTOR, "a[class*='header_logoHorizontal']"), "href"
+                (By.CSS_SELECTOR, "a[class*='header_logoHorizontal']"), "href",
             )
             == "https://duckduckgo.com/about"
         )

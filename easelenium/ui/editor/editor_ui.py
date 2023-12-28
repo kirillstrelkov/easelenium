@@ -1,24 +1,6 @@
 import os
 import traceback
 
-from easelenium.ui.editor.field_context_menu import FieldContextMenu
-from easelenium.ui.editor.utils import FieldsTableAndTestFilesTabs, PyFileUI, TestFileUI
-from easelenium.ui.file_utils import is_correct_python_file, read_file
-from easelenium.ui.generator.page_object_class import PageObjectClass
-from easelenium.ui.parser.parsed_class import (
-    ParsedBrowserClass,
-    ParsedMouseClass,
-    ParsedPageObjectClass,
-)
-from easelenium.ui.root_folder import RootFolder
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
-from easelenium.ui.widgets.utils import (
-    ImageAndTableHelper,
-    show_dialog,
-    show_dialog_path_doesnt_exist,
-    show_error_dialog,
-)
 from wx import (
     ALL,
     CB_READONLY,
@@ -38,6 +20,25 @@ from wx import (
     Panel,
     SplitterWindow,
     StaticText,
+)
+
+from easelenium.ui.editor.field_context_menu import FieldContextMenu
+from easelenium.ui.editor.utils import FieldsTableAndTestFilesTabs, PyFileUI, TestFileUI
+from easelenium.ui.file_utils import is_correct_python_file, read_file
+from easelenium.ui.generator.page_object_class import PageObjectClass
+from easelenium.ui.parser.parsed_class import (
+    ParsedBrowserClass,
+    ParsedMouseClass,
+    ParsedPageObjectClass,
+)
+from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
+from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
+from easelenium.ui.widgets.utils import (
+    ImageAndTableHelper,
+    show_dialog,
+    show_dialog_path_doesnt_exist,
+    show_error_dialog,
 )
 
 
@@ -91,7 +92,7 @@ class EditorTab(Panel):
 
     def __get_parsed_classes(self, field):
         classes = ParsedPageObjectClass.get_parsed_classes(
-            self.__cur_po_class.file_path
+            self.__cur_po_class.file_path,
         )
         if len(classes) > 0 and len(classes[0].methods) == 0:
             classes = []
@@ -110,7 +111,7 @@ class EditorTab(Panel):
                 txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
                 parsed_classes = self.__get_parsed_classes(field)
                 context_menu = FieldContextMenu(
-                    field, parsed_classes, file_path, txt_ctrl_ui
+                    field, parsed_classes, file_path, txt_ctrl_ui,
                 )
                 self.PopupMenu(context_menu)
                 context_menu.Destroy()
@@ -178,7 +179,7 @@ class EditorTab(Panel):
             self.cb_class_path.Select(files.index(path))
             try:
                 self.__cur_po_class = PageObjectClass.parse_string_to_po_class(
-                    read_file(path)
+                    read_file(path),
                 )
                 area = self.__cur_po_class.area
                 self.image_panel.set_po_fields(self.__cur_po_class.fields)
@@ -190,5 +191,5 @@ class EditorTab(Panel):
             except Exception:
                 self.__cur_po_class = None
                 show_error_dialog(
-                    self, traceback.format_exc(), "Failed to open file %s" % path
+                    self, traceback.format_exc(), "Failed to open file %s" % path,
                 )

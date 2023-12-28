@@ -2,9 +2,6 @@ import logging
 from threading import Event
 from time import sleep
 
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
-from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
-from easelenium.utils import LINESEP
 from wx import (
     CAPTION,
     CENTER,
@@ -30,6 +27,10 @@ from wx import (
     StaticText,
     TextCtrl,
 )
+
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, run_in_separate_thread
+from easelenium.ui.widgets.image.image_with_elements import ImageWithElements
+from easelenium.utils import LINESEP
 
 
 def show_error_dialog(parent, message, caption):
@@ -96,7 +97,7 @@ class WxTextCtrlHandler(logging.Handler):
 class DialogWithText(Dialog):
     def __init__(self, parent, title, text=None):
         Dialog.__init__(
-            self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER
+            self, parent, title=title, style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER,
         )
         self.SetTitle(title)
         self.SetSize(600, 400)
@@ -143,7 +144,7 @@ class InfiniteProgressBarDialog(Dialog):
         run_in_separate_thread(show_progress)
 
 
-class ImageAndTableHelper(object):
+class ImageAndTableHelper:
     @staticmethod
     def select_field_on_mouse_move(evt, po_fields, image_panel, table):
         field_before = image_panel.selected_field

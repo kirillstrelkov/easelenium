@@ -2,15 +2,6 @@ import shutil
 import traceback
 from tempfile import mkdtemp
 
-from easelenium.browser import Browser
-from easelenium.ui.editor.editor_ui import EditorTab
-from easelenium.ui.generator.generator_ui import GeneratorTab
-from easelenium.ui.root_folder import RootFolder
-from easelenium.ui.selector_finder.finder_ui import SelectorFinderTab
-from easelenium.ui.string_utils import StringUtils
-from easelenium.ui.test_runner_ui import TestRunnerTab
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
-from easelenium.ui.widgets.utils import Tabs, show_dialog, show_error_dialog
 from wx import (
     EVT_BUTTON,
     EVT_CLOSE,
@@ -24,6 +15,16 @@ from wx import (
     StaticText,
     TextCtrl,
 )
+
+from easelenium.browser import Browser
+from easelenium.ui.editor.editor_ui import EditorTab
+from easelenium.ui.generator.generator_ui import GeneratorTab
+from easelenium.ui.root_folder import RootFolder
+from easelenium.ui.selector_finder.finder_ui import SelectorFinderTab
+from easelenium.ui.string_utils import StringUtils
+from easelenium.ui.test_runner_ui import TestRunnerTab
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
+from easelenium.ui.widgets.utils import Tabs, show_dialog, show_error_dialog
 
 
 class MainFrame(Frame):
@@ -69,7 +70,7 @@ class MainFrame(Frame):
 
         col += 1
         self.__txt_url = TextCtrl(
-            panel, value="https://www.google.com/"
+            panel, value="https://www.google.com/",
         )  # TODO: remove url
         sizer.Add(self.__txt_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
@@ -139,7 +140,7 @@ class MainFrame(Frame):
                     self.__browser = Browser(name)
             except Exception:
                 show_error_dialog(
-                    self, traceback.format_exc(), "Failed to open browser"
+                    self, traceback.format_exc(), "Failed to open browser",
                 )
                 self.__browser = None
 

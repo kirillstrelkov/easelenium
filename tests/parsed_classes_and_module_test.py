@@ -34,7 +34,7 @@ class ParsedClassTest(TestCase):
 
     def test_parsed_py_file_by_path(self):
         path = os.path.abspath(
-            os.path.join(__file__, "..", "..", "easelenium", "browser.py")
+            os.path.join(__file__, "..", "..", "easelenium", "browser.py"),
         )
         classes = ParsedClass.get_parsed_classes(path)
         assert len(classes) == 1
@@ -83,7 +83,7 @@ class ParsedMouseClassTest(TestCase):
 class ParsedPageObjectClassTest(TestCase):
     def test_parsed_page_object_class_contains_methods(self):
         path = os.path.join(
-            os.path.dirname(__file__), "data", "duckduckgo_class_with_method.py"
+            os.path.dirname(__file__), "data", "duckduckgo_class_with_method.py",
         )
         parsed_class = ParsedPageObjectClass.get_parsed_classes(path)[0]
 

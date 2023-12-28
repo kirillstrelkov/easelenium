@@ -1,4 +1,3 @@
-# coding=utf8
 import tempfile
 from time import time
 
@@ -44,7 +43,7 @@ class PageObjectGeneratorTest(BaseTest):
         folder = tempfile.gettempdir()
         name = "DuckDuckGo"
         po_class = self.generator.get_po_class_for_url(
-            "https://duckduckgo.com/", name, folder
+            "https://duckduckgo.com/", name, folder,
         )
         po_class.save()
         assert len(po_class.fields) > 0
@@ -58,7 +57,7 @@ class PageObjectGeneratorTest(BaseTest):
         name = "DuckDuckGo"
         area = (200, 80, 670, 295)
         po_class = self.generator.get_po_class_for_url(
-            "https://duckduckgo.com/", name, folder, area
+            "https://duckduckgo.com/", name, folder, area,
         )
         po_class.save()
         assert len(po_class.fields) > 0
@@ -90,48 +89,48 @@ class PageObjectGeneratorTest(BaseTest):
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_id_selector(element)
         assert by_and_selector == self.generator._get_selector(element)
-        assert "SEARCHBOX_INPUT" == self.generator._get_name_for_field(element)
+        assert self.generator._get_name_for_field(element) == "SEARCHBOX_INPUT"
 
     def test_get_class_name_selector_for_element(self):
         by_and_selector = By.CLASS_NAME, "is-not-mobile-device"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_class_name_selector(element)
-        assert "IS_NOT_MOBILE_DEVICE" == self.generator._get_name_for_field(element)
+        assert self.generator._get_name_for_field(element) == "IS_NOT_MOBILE_DEVICE"
 
     def test_get_link_text_selector_for_element(self):
         by_and_selector = By.LINK_TEXT, "Help"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_link_text_selector(element)
-        assert (By.LINK_TEXT, "Help") == self.generator._get_selector(element)
-        assert "HELP" == self.generator._get_name_for_field(element)
+        assert self.generator._get_selector(element) == (By.LINK_TEXT, "Help")
+        assert self.generator._get_name_for_field(element) == "HELP"
 
     def test_get_xpath_selector_for_element(self):
         by_and_selector = By.XPATH, '//*[@id="searchbox_input"]'
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_xpath_selector(element)
-        assert (By.ID, "searchbox_input") == self.generator._get_selector(element)
-        assert "SEARCHBOX_INPUT" == self.generator._get_name_for_field(element)
+        assert self.generator._get_selector(element) == (By.ID, "searchbox_input")
+        assert self.generator._get_name_for_field(element) == "SEARCHBOX_INPUT"
 
     def test_get_css_selector_for_element(self):
         by_and_selector = By.CSS_SELECTOR, "#searchbox_input"
         element = self.browser.find_element(by_and_selector)
         assert by_and_selector == self.generator._get_css_selector(element)
-        assert (By.ID, "searchbox_input") == self.generator._get_selector(element)
-        assert "SEARCHBOX_INPUT" == self.generator._get_name_for_field(element)
+        assert self.generator._get_selector(element) == (By.ID, "searchbox_input")
+        assert self.generator._get_name_for_field(element) == "SEARCHBOX_INPUT"
 
         by_and_selector = By.CSS_SELECTOR, "footer a[class*='footer']"
         element = self.browser.find_element(by_and_selector)
-        assert (By.LINK_TEXT, "DuckDuckGo Browser") == self.generator._get_selector(
-            element
-        )
-        assert "DUCKDUCKGO_BROWSER" == self.generator._get_name_for_field(element)
+        assert self.generator._get_selector(
+            element,
+        ) == (By.LINK_TEXT, "DuckDuckGo Browser")
+        assert self.generator._get_name_for_field(element) == "DUCKDUCKGO_BROWSER"
 
     def test_duckduckgo_search_results_area(self):
         folder = tempfile.gettempdir()
         name = "DuckDuckGo"
         area = (50, 156, 815, 444)
         po_class = self.generator.get_po_class_for_url(
-            "https://duckduckgo.com/?q=selenium+webdriver&ia=web", name, folder, area
+            "https://duckduckgo.com/?q=selenium+webdriver&ia=web", name, folder, area,
         )
         for f in po_class.fields:
             x, y = f.location

@@ -1,12 +1,12 @@
-# coding=utf8
 import os
 import shutil
 from tempfile import gettempdir
 from unittest.case import TestCase
 
-from easelenium.browser import Browser
 from pytest import mark
 from selenium import webdriver
+
+from easelenium.browser import Browser
 
 
 # add test skip if browser is not supported
@@ -74,7 +74,7 @@ class ChromeTest(BrowserConstrutorTest):
         options.add_argument("window-size=1366,768")
 
         self.browser = Browser(
-            browser_name="gc", headless=False, webdriver_kwargs={"options": options}
+            browser_name="gc", headless=False, webdriver_kwargs={"options": options},
         )
         assert self.browser.is_gc()
         assert 1300 < self.browser.execute_js("return window.innerWidth") < 1400
@@ -84,7 +84,7 @@ class ChromeTest(BrowserConstrutorTest):
         options.add_argument("window-size=1366,768")
 
         self.browser = Browser(
-            browser_name="gc", headless=True, webdriver_kwargs={"options": options}
+            browser_name="gc", headless=True, webdriver_kwargs={"options": options},
         )
         assert self.browser.is_gc()
         assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
@@ -94,5 +94,5 @@ class ChromeTest(BrowserConstrutorTest):
         new_driver_path = os.path.join(gettempdir(), "chromedriver")
         shutil.copy(Browser._find_driver_path("gc"), new_driver_path)
         self.browser = Browser(
-            browser_name="gc", webdriver_kwargs={"executable_path": new_driver_path}
+            browser_name="gc", webdriver_kwargs={"executable_path": new_driver_path},
         )
