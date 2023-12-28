@@ -21,10 +21,8 @@ jobs:
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O google-chrome-stable_current_amd64.deb
           sudo apt install -y ./google-chrome-stable_current_amd64.deb
           sudo apt -f install
-          wget https://chromedriver.storage.googleapis.com/110.0.5481.77/chromedriver_linux64.zip
-          unzip -d ~ chromedriver_linux64.zip
-          sudo apt install -y xvfb firefox firefox-geckodriver python3-pip
-          pip install pytest pytest-html pytest-dotenv selenium loguru
+          sudo apt install -y xvfb firefox python3-pip
+          pip install pytest pytest-html pytest-dotenv selenium loguru webdriver-manager
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=." >> $GITHUB_ENV
