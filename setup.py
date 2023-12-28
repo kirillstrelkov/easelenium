@@ -11,7 +11,7 @@ with open(
 
 setup(
     name="easelenium",
-    version="0.6.6",
+    version="0.6.7",
     description="easelenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",
@@ -39,6 +39,7 @@ setup(
         "pytest",
         "pytest_html",
         "loguru",
+        "webdriver-manager",
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
