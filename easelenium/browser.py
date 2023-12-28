@@ -1,5 +1,7 @@
 # coding=utf8
+from functools import lru_cache
 import os
+from pathlib import Path
 import tempfile
 import traceback
 from tempfile import gettempdir
@@ -9,17 +11,23 @@ from selenium.common.exceptions import (
     TimeoutException,
     WebDriverException,
 )
-from selenium.webdriver import Chrome, Firefox, Ie
+from selenium.webdriver import Chrome, Firefox, Ie, Edge
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.ie.service import Service as IeService
+from selenium.webdriver.edge.service import Service as EdgeService
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from webdriver_manager.microsoft import IEDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 from easelenium.mouse import Mouse
 from easelenium.utils import get_random_value, get_timestamp, is_windows
@@ -68,14 +76,16 @@ class Browser(object):
     GC = "gc"
     GC_HEADLESS = "gc_headless"
     IE = "ie"
+    EDGE = "edge"
     DEFAULT_BROWSER = None
 
-    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE]
+    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, EDGE]
 
     __DRIVERS_MAPPING = {
         FF: ("geckodriver", Firefox, FirefoxService),
         FF_HEADLESS: ("geckodriver", Firefox, FirefoxService),
         IE: ("IEDriverServer", Ie, IeService),
+        EDGE: ("EdgeDriverServer", Edge, EdgeService),
         GC: ("chromedriver", Chrome, ChromeService),
         GC_HEADLESS: ("chromedriver", Chrome, ChromeService),
     }
@@ -140,21 +150,31 @@ class Browser(object):
         return cls._find_driver_path(browser_name) is not None
 
     @classmethod
+    @lru_cache
     def _find_driver_path(cls, browser_name):
         assert browser_name in cls.__BROWSERS
+        assert browser_name in cls.__DRIVERS_MAPPING
 
-        driver_filename = cls.__DRIVERS_MAPPING[browser_name][0]
-        if is_windows():
-            driver_filename += ".exe"
+        service_klass = cls.__DRIVERS_MAPPING[browser_name][2]
 
-        possible_path = os.path.join(os.path.expanduser("~"), driver_filename)
-        if os.path.exists(possible_path):
-            return possible_path
+        if service_klass == FirefoxService:
+            geckodriver_snap = Path("/snap/bin/geckodriver")
+            if geckodriver_snap.exists():
+                driver_path = geckodriver_snap.as_posix()
+            else:
+                driver_path = GeckoDriverManager().install()
+            return driver_path
         else:
-            for folder in os.getenv("PATH", "").split(os.pathsep):
-                possible_path = os.path.join(folder, driver_filename)
-                if os.path.exists(possible_path):
-                    return possible_path
+            if service_klass == ChromeService:
+                manager = ChromeDriverManager
+            elif service_klass == IeService:
+                manager = IEDriverManager
+            elif service_klass == EdgeService:
+                manager = EdgeChromiumDriverManager
+            else:
+                raise ValueError("Failed to find driver manager")
+
+            return manager().install()
 
         return None
 
@@ -178,15 +198,15 @@ class Browser(object):
                 f"Unsupported browser '{name}', supported browsers: ['{browsers}']"
             )
 
-        driver_filename, constructor, service = driver_filename_and_constructor
+        driver_filename, constructor, service_klass = driver_filename_and_constructor
 
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
             name
         )
-        if driver_path is None:
-            raise FileNotFoundError(f"Failed to find {driver_filename}")
 
-        webdriver_kwargs["service"] = service(driver_path)
+        webdriver_kwargs["service"] = service_klass(driver_path)
+        if "executable_path" in webdriver_kwargs:
+            webdriver_kwargs.pop("executable_path")
 
         driver = constructor(**webdriver_kwargs)
 

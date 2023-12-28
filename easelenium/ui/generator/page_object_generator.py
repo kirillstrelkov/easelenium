@@ -229,6 +229,7 @@ class PageObjectGenerator(object):
                 class_name = re.sub(r"\s+", ".", class_name)
                 cur_css_selector += ".%s" % class_name
 
+        cur_css_selector = cur_css_selector.replace(":", r"\:")
         cur_el_tag = element.tag_name
         if cur_el_tag in ("body", "html") or len(cur_css_selector) == 0:
             return None

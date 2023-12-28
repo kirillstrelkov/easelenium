@@ -27,17 +27,15 @@ class BrowserTest(BaseTest):
     def test_type_click_get_text(self):
         self.browser.get("https://duckduckgo.com/")
 
-        text_field = (By.ID, "search_form_input_homepage")
-        search_btn = (By.ID, "search_button_homepage")
+        text_field = (By.ID, "searchbox_input")
+        search_btn = (By.CSS_SELECTOR, "[aria-label='Search']")
         results = (By.CSS_SELECTOR, "article")
 
         self.browser.type(text_field, "selenium python io")
         self.browser.click(search_btn)
 
         self.browser.wait_for_visible(results)
-        assert "Selenium with Python" in self.browser.get_text(
-            self.browser.find_elements(results)[0]
-        )
+        assert "Selenium with Python" in self.browser.get_text(results)
 
     def test_mouse_left_right_clicks(self):
         self.browser.get("https://www.openstreetmap.org/")
@@ -117,7 +115,7 @@ class BrowserTest(BaseTest):
 
     def test_js_script(self):
         self.browser.get("https://duckduckgo.com/")
-        js_statement = "return document.getElementsByClassName('badge-link__title')[0].textContent;"
+        js_statement = "return document.getElementsByTagName('h2')[0].textContent;"
         value = self.browser.execute_js(js_statement)
 
         assert "We can help" in value
@@ -152,16 +150,20 @@ class BrowserTest(BaseTest):
     def test_get_attribute(self):
         self.browser.get("https://duckduckgo.com/")
         assert (
-            self.browser.get_attribute((By.ID, "logo_homepage_link"), "href")
+            self.browser.get_attribute(
+                (By.CSS_SELECTOR, "a[class*='header_logoHorizontal']"), "href"
+            )
             == "https://duckduckgo.com/about"
         )
 
     def test_get_attribute_with_parent(self):
         self.browser.get("https://duckduckgo.com/")
-        parent = self.browser.find_element(by_id="content_homepage")
+        parent = self.browser.find_element(by_tag="main")
         assert (
             self.browser.get_attribute(
-                (By.ID, "logo_homepage_link"), "href", parent=parent
+                (By.CSS_SELECTOR, "a[class*='header_logoHorizontal']"),
+                "href",
+                parent=parent,
             )
             == "https://duckduckgo.com/about"
         )

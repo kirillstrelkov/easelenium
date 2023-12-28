@@ -9,3 +9,5 @@ flake8
 loguru
 pytest-profiling
 pytest-cov
+ruff
+webdriver-manager

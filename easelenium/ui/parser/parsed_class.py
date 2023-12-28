@@ -91,8 +91,8 @@ class ParsedClass(object):
 
 
 class ParsedBrowserClass(ParsedClass):
-    __LOCATOR_NAME = "element"
-    __GOOD_METHODS = (
+    _LOCATOR_NAME = "element"
+    _GOOD_METHODS = (
         "switch_to_default_content",
         "get_title",
         "get_text",
@@ -100,7 +100,7 @@ class ParsedBrowserClass(ParsedClass):
         "get_current_url",
     )
     # NOTE: methods which are wrapped(ex. 'stale_exception_wrapper')
-    # should be added to __GOOD_METHODS
+    # should be added to _GOOD_METHODS
     # otherwise they won't be added to ParsedClass object
 
     @classmethod
@@ -111,15 +111,18 @@ class ParsedBrowserClass(ParsedClass):
                 [
                     (n, v)
                     for n, v in _class.methods.items()
-                    if cls.__LOCATOR_NAME in _class.get_arg_spec(n).args
-                    or n in cls.__GOOD_METHODS
+                    if not n.startswith("_")
+                    and (
+                        cls._LOCATOR_NAME in _class.get_arg_spec(n).args
+                        or n in cls._GOOD_METHODS
+                    )
                 ]
             )
         return parsed_classes
 
 
 class ParsedMouseClass(ParsedClass):
-    __LOCATOR_NAME = "element"
+    _LOCATOR_NAME = "element"
 
     @classmethod
     def get_parsed_classes(cls, module_or_class_or_path=None):
@@ -129,7 +132,7 @@ class ParsedMouseClass(ParsedClass):
                 [
                     (n, v)
                     for n, v in _class.methods.items()
-                    if cls.__LOCATOR_NAME in _class.get_arg_spec(n).args
+                    if cls._LOCATOR_NAME in _class.get_arg_spec(n).args
                 ]
             )
         return parsed_classes

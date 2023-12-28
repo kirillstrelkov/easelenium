@@ -12,14 +12,11 @@ class BrowserTest(BaseTest):
 
     def test_get_parent(self):
         self.browser.get("https://duckduckgo.com/")
-        element = self.browser.find_element(by_id="content_homepage")
 
-        parent_tags = set()
-        for _ in range(3):
-            element = self.browser.get_parent(element)
-            parent_tags.add(element.tag_name)
+        element = self.browser.find_element(by_id="__next")
+        parent = self.browser.get_parent(element)
 
-        assert "body" in parent_tags
+        assert "body" == parent.tag_name
 
     def test_switch_to_frame(self):
         frame = "iframe[src*=default]"
@@ -39,12 +36,12 @@ class BrowserTest(BaseTest):
     def test_type_click_get_text(self):
         self.browser.get("https://duckduckgo.com/")
 
-        text_field = "search_form_input_homepage"
-        search_btn = "search_button_homepage"
+        text_field = "searchbox_input"
+        css_search_btn = "[aria-label='Search']"
         results = "article"
 
         self.browser.type(by_id=text_field, text="selenium python docs")
-        self.browser.click(by_id=search_btn)
+        self.browser.click(by_css=css_search_btn)
 
         self.browser.wait_for_visible(by_css=results)
         assert "Selenium with Python" in self.browser.get_text(by_css=results)
@@ -151,7 +148,7 @@ class BrowserTest(BaseTest):
 
     def test_js_script(self):
         self.browser.get("https://duckduckgo.com/")
-        js_statement = "return document.getElementsByClassName('badge-link__title')[0].textContent;"
+        js_statement = "return document.getElementsByTagName('h2')[0].textContent;"
         value = self.browser.execute_js(js_statement)
 
         assert "We can help" in value
@@ -159,7 +156,7 @@ class BrowserTest(BaseTest):
     def test_open_close_new_window(self):
         self.browser.get("https://duckduckgo.com/")
 
-        a_element = "a[href*='revenue']"
+        a_element = "a[class*='learnMore']"
 
         title_before_click = self.browser.get_title()
         self.browser.switch_to_new_window(self.browser.click, by_css=a_element)
@@ -185,9 +182,8 @@ class BrowserTest(BaseTest):
 
     def test_get_attribute(self):
         self.browser.get("https://duckduckgo.com/")
-        element = self.browser.find_element(by_id="logo_homepage_link")
-        assert self.browser.get_id(element) == "logo_homepage_link"
-        assert self.browser.get_class(element) == "logo_homepage"
+        element = self.browser.find_element(by_css="a[class*='header_logoHorizontal']")
+        assert "header" in self.browser.get_class(element)
         assert self.browser.get_tag_name(element) == "a"
         assert (
             self.browser.get_attribute(element, attr="href")
@@ -196,11 +192,11 @@ class BrowserTest(BaseTest):
 
     def test_get_attribute_with_parent(self):
         self.browser.get("https://duckduckgo.com/")
-        parent = self.browser.find_element(by_id="content_homepage")
+        parent = self.browser.find_element(by_tag="main")
 
         assert (
             self.browser.get_attribute(
-                by_id="logo_homepage_link", attr="href", parent=parent
+                by_css="a[class*='header_logoHorizontal']", attr="href", parent=parent
             )
             == "https://duckduckgo.com/about"
         )
