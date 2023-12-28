@@ -150,7 +150,7 @@ class Browser(object):
         return cls._find_driver_path(browser_name) is not None
 
     @classmethod
-    @lru_cache
+    @lru_cache(maxsize=None)
     def _find_driver_path(cls, browser_name):
         assert browser_name in cls.__BROWSERS
         assert browser_name in cls.__DRIVERS_MAPPING
