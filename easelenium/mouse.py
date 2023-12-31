@@ -1,19 +1,34 @@
+"""Mouse."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
+
+    from easelenium.browser import Browser, TypeElement
+
+
 class Mouse:
-    def __init__(self, browser):
+    """Mouse."""
+
+    def __init__(self, browser: Browser) -> None:
+        """Initialize."""
         self.browser = browser
 
-    def left_click(
+    def left_click(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Mouse left click."""
         self.left_click_by_offset(
             element,
             0,
@@ -28,22 +43,23 @@ class Mouse:
             by_class=by_class,
         )
 
-    def left_click_by_offset(
+    def left_click_by_offset(  # noqa: PLR0913
         self,
-        element=None,
-        xoffset=0,
-        yoffset=0,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        xoffset: int = 0,
+        yoffset: int = 0,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Mouse left click with offset."""
         actions = self.browser.get_action_chains()
-        element = self.browser._get_element(
+        element = self.browser._get_element(  # noqa: SLF001
             element=element,
             by_id=by_id,
             by_xpath=by_xpath,
@@ -63,27 +79,32 @@ class Mouse:
                 element=element,
             )
 
-        self.browser._safe_log(
-            "Click at '%s' by offset(%s,%s)", element, xoffset, yoffset,
+        self.browser._safe_log(  # noqa: SLF001
+            "Click at '%s' by offset(%s,%s)",
+            element,
+            xoffset,
+            yoffset,
         )
 
         actions.move_to_element(element).move_by_offset(
-            xoffset, yoffset,
+            xoffset,
+            yoffset,
         ).click().perform()
 
-    def hover(
+    def hover(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
-        self.browser._safe_log("Hover at '%s'", element)
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Mouse hover."""
+        self.browser._safe_log("Hover at '%s'", element)  # noqa: SLF001
 
         self.hover_by_offset(
             element,
@@ -99,22 +120,23 @@ class Mouse:
             by_class=by_class,
         )
 
-    def hover_by_offset(
+    def hover_by_offset(  # noqa: PLR0913
         self,
-        element=None,
-        xoffset=0,
-        yoffset=0,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        xoffset: int = 0,
+        yoffset: int = 0,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Mouse hover with offset."""
         actions = self.browser.get_action_chains()
-        element = self.browser._get_element(
+        element = self.browser._get_element(  # noqa: SLF001
             element=element,
             by_id=by_id,
             by_xpath=by_xpath,
@@ -133,26 +155,30 @@ class Mouse:
             element=element,
         )
 
-        self.browser._safe_log(
-            "Mouse over '%s' by offset(%s,%s)", element, xoffset, yoffset,
+        self.browser._safe_log(  # noqa: SLF001
+            "Mouse over '%s' by offset(%s,%s)",
+            element,
+            xoffset,
+            yoffset,
         )
 
         actions.move_to_element(element).move_by_offset(xoffset, yoffset).perform()
 
-    def right_click(
+    def right_click(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Mouse right click."""
         actions = self.browser.get_action_chains()
-        element = self.browser._get_element(
+        element = self.browser._get_element(  # noqa: SLF001
             element=element,
             by_id=by_id,
             by_xpath=by_xpath,
@@ -172,31 +198,30 @@ class Mouse:
                 element=element,
             )
 
-        self.browser._safe_log(
+        self.browser._safe_log(  # noqa: SLF001
             "Right click at '%s'",
-            self.browser._to_string(
-                element=element,
-            ),
+            element,
         )
 
         actions.context_click(element).perform()
 
-    def right_click_by_offset(
+    def right_click_by_offset(  # noqa: PLR0913
         self,
-        element=None,
-        xoffset=0,
-        yoffset=0,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        xoffset: int = 0,
+        yoffset: int = 0,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Mouse right click with offset."""
         actions = self.browser.get_action_chains()
-        element = self.browser._get_element(
+        element = self.browser._get_element(  # noqa: SLF001
             element=element,
             by_id=by_id,
             by_xpath=by_xpath,
@@ -216,10 +241,14 @@ class Mouse:
                 element=element,
             )
 
-        self.browser._safe_log(
-            "Right click at '%s' by offset(%s,%s)", element, xoffset, yoffset,
+        self.browser._safe_log(  # noqa: SLF001
+            "Right click at '%s' by offset(%s,%s)",
+            element,
+            xoffset,
+            yoffset,
         )
 
         actions.move_to_element(element).move_by_offset(
-            xoffset, yoffset,
+            xoffset,
+            yoffset,
         ).context_click().perform()

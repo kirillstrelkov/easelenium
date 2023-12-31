@@ -1,9 +1,28 @@
+"""Field context menu UI."""
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from easelenium.ui.context_menu import ContextMenu
 from easelenium.ui.widgets.utils import show_dialog
 
+if TYPE_CHECKING:
+    from wx import Event, TextCtrl
+
+    from easelenium.ui.parser.parsed_class import ParsedClass
+
 
 class FieldContextMenu(ContextMenu):
-    def __init__(self, field, parsed_classes, test_file, txt_ctrl_ui):
+    """Field context menu UI."""
+
+    def __init__(
+        self,
+        field: str,
+        parsed_classes: list[ParsedClass],
+        test_file: str,
+        txt_ctrl_ui: TextCtrl,
+    ) -> None:
+        """Initialize."""
         self.__field = field
         self.__parsed_classes = parsed_classes
         self.__test_file = test_file
@@ -13,17 +32,17 @@ class FieldContextMenu(ContextMenu):
         ContextMenu.__init__(self, data)
         self._bind_evt_menu(self.__on_menu_click)
 
-    def __prepare_data_from_classes(self, parsed_classes):
+    def __prepare_data_from_classes(
+        self,
+        parsed_classes: list[ParsedClass],
+    ) -> list[tuple[str, callable]]:
         data = []
         for pc in parsed_classes:
             is_asserts = "assert_true" in pc.methods
             is_mouse = "hover" in pc.methods
             is_browser = "click" in pc.methods
             if is_asserts or is_mouse or not is_browser:
-                if is_mouse:
-                    name = "Mouse"
-                else:
-                    name = pc.name
+                name = "Mouse" if is_mouse else pc.name
                 data.append((name, self.__prepare_context_data(pc.methods)))
                 if len(parsed_classes) > 1:
                     data.append((ContextMenu.SEPARATOR_TEXT, None))
@@ -36,22 +55,25 @@ class FieldContextMenu(ContextMenu):
             data.append(("assert", None))
         return data
 
-    def __prepare_context_data(self, initial_data):
-        if type(initial_data) == dict:
+    def __prepare_context_data(
+        self,
+        initial_data: dict[str, callable] | list[tuple[str, callable]],
+    ) -> list[tuple[str, callable]]:
+        if isinstance(initial_data, dict):
             initial_data = initial_data.items()
         # needs to be initially sorted so that submenu items will be sorted as well
         initial_data = sorted(initial_data, key=lambda x: x[0])
 
         data = {}
 
-        def append_to_data(submenu_text, item_text, func):
+        def append_to_data(submenu_text: str, item_text: str, func: callable) -> None:
             if submenu_text in data:
                 data[submenu_text] += [(item_text, func)]
             else:
                 data[submenu_text] = [(item_text, func)]
 
         for text, func in initial_data:
-            if text.startswith("_") or text.startswith("find"):
+            if text.startswith(("_", "find")):
                 continue
 
             if "dropdown" in text:
@@ -63,10 +85,9 @@ class FieldContextMenu(ContextMenu):
             else:
                 data[text] = func
 
-        data = sorted(data.items(), key=lambda x: x[0])
-        return data
+        return sorted(data.items(), key=lambda x: x[0])
 
-    def __on_menu_click(self, evt):
+    def __on_menu_click(self, evt: Event) -> None:
         if self.__test_file:
             if self.__txt_ctrl_ui.has_one_or_more_methods_or_test_cases():
                 item_data = self._get_menu_item_data(evt.GetId())

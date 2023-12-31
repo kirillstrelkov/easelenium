@@ -1,9 +1,10 @@
-import os
+"""Browser API tests."""
 import shutil
+from pathlib import Path
 from tempfile import gettempdir
 from unittest.case import TestCase
 
-from pytest import mark
+import pytest
 from selenium import webdriver
 
 from easelenium.browser import Browser
@@ -11,88 +12,124 @@ from easelenium.browser import Browser
 
 # add test skip if browser is not supported
 class BrowserConstrutorTest(TestCase):
-    def setUp(self):
+    """Browser constructor tests."""
+
+    def setUp(self) -> None:
+        """Set up."""
         self.browser = None
 
-    def tearDown(self):
+    def tearDown(self) -> None:
+        """Tear down."""
         if self.browser:
             self.browser.quit()
 
 
-@mark.skipif(not Browser.supports("ff"), reason="Browser not supported")
+@pytest.mark.skipif(not Browser.supports("ff"), reason="Browser not supported")
 class FirefoxTest(BrowserConstrutorTest):
-    DRIVER_IN_HOME_DIR = os.path.join(os.path.expanduser("~"), "geckodriver")
+    """Firefox tests."""
 
-    def test_constructor_no_args(self):
+    def test_constructor_no_args(self) -> None:
+        """Test default constructor."""
         self.browser = Browser()
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
-    def test_constructor(self):
+    def test_constructor(self) -> None:
+        """Test constructor with arguments."""
         self.browser = Browser("ff", headless=False)
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
-    def test_constructor_by_name(self):
+    def test_constructor_by_name(self) -> None:
+        """Test constructor with arguments."""
         self.browser = Browser(browser_name="ff", headless=False)
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
 
-    def test_constructor_headless(self):
+    def test_constructor_headless(self) -> None:
+        """Test constructor with headless True."""
         self.browser = Browser("ff", headless=True)
         assert self.browser.is_ff()
         assert self.browser.execute_js("return typeof InstallTrigger") == "object"
-        # TODO: add check if is headless
+        # TODO: add check if is headless  # noqa: TD003, TD002, FIX002
 
-    def test_constructor_with_executable_path(self):
-        new_driver_path = os.path.join(gettempdir(), "geckodriver")
-        shutil.copy(Browser._find_driver_path("ff"), new_driver_path)
-        self.browser = Browser(webdriver_kwargs={"executable_path": new_driver_path})
+    def test_constructor_with_executable_path(self) -> None:
+        """Test constructor with driver path."""
+        new_driver_path = str(Path(gettempdir()) / "geckodriver")
+        shutil.copy(
+            Browser._find_driver_path("ff"),
+            new_driver_path,
+        )
+        self.browser = Browser(
+            webdriver_kwargs={
+                "executable_path": new_driver_path,
+            },
+        )
 
 
-@mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
+@pytest.mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
 class ChromeTest(BrowserConstrutorTest):
-    DRIVER_IN_HOME_DIR = os.path.join(os.path.expanduser("~"), "chromedriver")
+    """Chrome tests."""
 
-    def test_constructor(self):
+    def test_constructor(self) -> None:
+        """Test default constructor."""
         self.browser = Browser("gc", headless=False)
         assert self.browser.is_gc()
-        assert type(self.browser.execute_js("return window.chrome")) == dict
+        assert isinstance(self.browser.execute_js("return window.chrome"), dict)
 
-    def test_constructor_by_name(self):
+    def test_constructor_by_name(self) -> None:
+        """Test constructor with arguments."""
         self.browser = Browser(browser_name="gc", headless=False)
         assert self.browser.is_gc()
-        assert type(self.browser.execute_js("return window.chrome")) == dict
+        assert isinstance(self.browser.execute_js("return window.chrome"), dict)
 
-    def test_constructor_headless(self):
+    def test_constructor_headless(self) -> None:
+        """Test constructor with headless True."""
         self.browser = Browser(browser_name="gc", headless=True)
         assert self.browser.is_gc()
         assert self.browser.execute_js("return window.chrome") is None
 
-    def test_constructor_special_options(self):
+    def test_constructor_special_options(self) -> None:
+        """Test constructor with options."""
         options = webdriver.ChromeOptions()
         options.add_argument("window-size=1366,768")
 
         self.browser = Browser(
-            browser_name="gc", headless=False, webdriver_kwargs={"options": options},
+            browser_name="gc",
+            headless=False,
+            maximize=False,
+            webdriver_kwargs={"options": options},
         )
         assert self.browser.is_gc()
-        assert 1300 < self.browser.execute_js("return window.innerWidth") < 1400
+        assert (
+            1300  # noqa: PLR2004
+            < self.browser.execute_js("return window.innerWidth")
+            < 1400  # noqa: PLR2004
+        )
 
-    def test_constructor_headless_and_special_options(self):
+    def test_constructor_headless_and_special_options(self) -> None:
+        """Test constructor with headless and options."""
         options = webdriver.ChromeOptions()
         options.add_argument("window-size=1366,768")
 
         self.browser = Browser(
-            browser_name="gc", headless=True, webdriver_kwargs={"options": options},
+            browser_name="gc",
+            headless=True,
+            webdriver_kwargs={"options": options},
         )
         assert self.browser.is_gc()
-        assert 1350 < self.browser.execute_js("return window.innerWidth") < 1400
+        assert (
+            1350  # noqa: PLR2004
+            < self.browser.execute_js("return window.innerWidth")
+            < 1400  # noqa: PLR2004
+        )
         assert self.browser.execute_js("return window.chrome") is None
 
-    def test_constructor_with_executable_path(self):
-        new_driver_path = os.path.join(gettempdir(), "chromedriver")
+    def test_constructor_with_executable_path(self) -> None:
+        """Test constructor with driver path."""
+        new_driver_path = str(Path(gettempdir()) / "chromedriver")
         shutil.copy(Browser._find_driver_path("gc"), new_driver_path)
         self.browser = Browser(
-            browser_name="gc", webdriver_kwargs={"executable_path": new_driver_path},
+            browser_name="gc",
+            webdriver_kwargs={"executable_path": new_driver_path},
         )

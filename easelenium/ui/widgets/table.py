@@ -1,24 +1,34 @@
-from wx.grid import Grid
+"""Table UI."""
+from __future__ import annotations
+
+from typing import Any
+
+from wx.grid import Grid, Window
 
 from easelenium.ui.generator.page_object_class import get_by_as_code_str
 
 
 class Table(Grid):
-    def __init__(self, parent):
+    """Table UI."""
+
+    def __init__(self, parent: Window) -> None:
+        """Initialize."""
         Grid.__init__(self, parent)
 
         self.selected_row = None
         self.__data = None
         self.__data_attrs = ["name", "by", "selector", "location", "dimensions"]
 
-    def get_selected_data(self):
+    def get_selected_data(self) -> Any:  # noqa: ANN401
+        """Get selected data."""
         return (
             self.__data[self.selected_row]
             if self.selected_row is not None
             else self.selected_row
         )
 
-    def load_data(self, data):
+    def load_data(self, data: dict[str, Any]) -> None:
+        """Load data."""
         self.clear_table()
 
         self.__data = data
@@ -53,10 +63,12 @@ class Table(Grid):
 
         self.AutoSizeColumns()
 
-    def clear_table(self):
+    def clear_table(self) -> None:
+        """Clear table."""
         self.ClearGrid()
 
-    def select_row(self, row):
+    def select_row(self, row: Any | None) -> None:  # noqa: ANN401
+        """Select row."""
         if row:
             self.selected_row = row
             self.SelectRow(row)

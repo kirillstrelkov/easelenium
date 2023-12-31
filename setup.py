@@ -1,13 +1,9 @@
-#!/usr/bin/env python3
-
-from os import path
+"""Setup tools."""
+from pathlib import Path
 
 from setuptools import setup
 
-with open(
-    path.join(path.abspath(path.dirname(__file__)), "README.md"), encoding="utf-8",
-) as f:
-    long_description = f.read()
+long_description = (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="easelenium",

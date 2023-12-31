@@ -1,5 +1,6 @@
+"""Parsed classes and module."""
 import inspect
-import os
+from pathlib import Path
 from unittest.case import TestCase
 
 from easelenium import browser
@@ -12,7 +13,10 @@ from easelenium.ui.parser.parsed_class import (
 
 
 class ParsedClassTest(TestCase):
-    def test_parsed_py_file_by_class(self):
+    """Parsed class tests."""
+
+    def test_parsed_py_file_by_class(self) -> None:
+        """Check parsed Browser class."""
         classes = ParsedClass.get_parsed_classes(browser.Browser)
         assert len(classes) >= 1
 
@@ -22,7 +26,8 @@ class ParsedClassTest(TestCase):
         assert _class.get_code("type") == inspect.getsource(browser.Browser.type)
         assert _class.get_arg_spec("type").args[:3] == ["self", "element", "text"]
 
-    def test_parsed_py_file_by_module(self):
+    def test_parsed_py_file_by_module(self) -> None:
+        """Check parsed Browser module."""
         classes = ParsedClass.get_parsed_classes(browser)
         assert len(classes) == 1
 
@@ -32,10 +37,9 @@ class ParsedClassTest(TestCase):
         assert _class.get_code("type") == inspect.getsource(browser.Browser.type)
         assert _class.get_arg_spec("type").args[:3] == ["self", "element", "text"]
 
-    def test_parsed_py_file_by_path(self):
-        path = os.path.abspath(
-            os.path.join(__file__, "..", "..", "easelenium", "browser.py"),
-        )
+    def test_parsed_py_file_by_path(self) -> None:
+        """Check parsed Python file."""
+        path = str(Path(__file__).parent / "../easelenium/browser.py")
         classes = ParsedClass.get_parsed_classes(path)
         assert len(classes) == 1
 
@@ -49,7 +53,10 @@ class ParsedClassTest(TestCase):
 
 
 class ParsedBrowserClassTest(TestCase):
-    def test_parsed_browser_class_contains_only_methods_with_element(self):
+    """Parsed browser class."""
+
+    def test_parsed_browser_class_contains_only_methods_with_element(self) -> None:
+        """Check parsed browser class contains only methods with element."""
         parsed_class = ParsedBrowserClass.get_parsed_classes()[0]
         assert "webdriver_wait" not in parsed_class.methods
         assert "execute_js" not in parsed_class.methods
@@ -69,7 +76,10 @@ class ParsedBrowserClassTest(TestCase):
 
 
 class ParsedMouseClassTest(TestCase):
-    def test_parsed_browser_class_contains_only_methods_with_element(self):
+    """Parsed mouse tests."""
+
+    def test_parsed_browser_class_contains_only_methods_with_element(self) -> None:
+        """Check parsed browser class contains only methods with element."""
         parsed_class = ParsedMouseClass.get_parsed_classes()[0]
 
         assert "hover" in parsed_class.methods
@@ -81,9 +91,12 @@ class ParsedMouseClassTest(TestCase):
 
 
 class ParsedPageObjectClassTest(TestCase):
-    def test_parsed_page_object_class_contains_methods(self):
-        path = os.path.join(
-            os.path.dirname(__file__), "data", "duckduckgo_class_with_method.py",
+    """Parsed page object class tests.."""
+
+    def test_parsed_page_object_class_contains_methods(self) -> None:
+        """Check parsed page object class contains methods."""
+        path = str(
+            Path(__file__).parent / "data/duckduckgo_class_with_method.py",
         )
         parsed_class = ParsedPageObjectClass.get_parsed_classes(path)[0]
 

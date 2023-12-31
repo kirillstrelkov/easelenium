@@ -1,6 +1,9 @@
+"""Page object class tests."""
+from __future__ import annotations
+
 import codecs
-import os
 import pickle
+from pathlib import Path
 from unittest.case import TestCase
 
 from selenium.webdriver.common.by import By
@@ -15,17 +18,18 @@ from easelenium.utils import is_windows
 
 
 class PageObjectClassTest(TestCase):
+    """PageObjectClass tests."""
+
     @classmethod
-    def setUpClass(cls):
-        super(PageObjectClassTest, cls).setUpClass()
-        cur_path = os.path.dirname(__file__)
-        cls.pickled_object_path = os.path.join(
-            cur_path, "data", "pickled_po_class_object",
+    def setUpClass(cls: type[PageObjectClassTest]) -> None:
+        """Set up class."""
+        super().setUpClass()
+        cur_path = Path(__file__).parent
+        cls.pickled_object_path = str(cur_path / "data" / "pickled_po_class_object")
+        cls.expected_duckduckgo_class_path = str(
+            cur_path / "data" / "expected_duckduckgo_class_py",
         )
-        cls.expected_duckduckgo_class_path = os.path.join(
-            cur_path, "data", "expected_duckduckgo_class_py",
-        )
-        cls.po_class_object = pickle.load(
+        cls.po_class_object = pickle.load(  # noqa: S301
             codecs.open(cls.pickled_object_path, mode="rb"),
             encoding="utf8",
             errors="replace",
@@ -35,7 +39,8 @@ class PageObjectClassTest(TestCase):
 
         cls.maxDiff = None
 
-    def test_save_po_object_class(self):
+    def test_save_po_object_class(self) -> None:
+        """Check save page object class."""
         if is_windows():
             self.skipTest(
                 "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
@@ -47,11 +52,12 @@ class PageObjectClassTest(TestCase):
             self.po_class_object.save()
 
             check_if_path_exists(self.po_class_object.file_path)
-            assert os.path.getsize(self.po_class_object.file_path) > 0
+            assert Path(self.po_class_object.file_path).stat().st_size
             check_if_path_exists(self.po_class_object.img_path)
-            assert os.path.getsize(self.po_class_object.img_path) > 0
+            assert Path(self.po_class_object.img_path).stat().st_size
 
-    def test_get_formatted_fields(self):
+    def test_get_formatted_fields(self) -> None:
+        """Check get formatted fields."""
         if is_windows():
             self.skipTest(
                 "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
@@ -73,7 +79,8 @@ class PageObjectClassTest(TestCase):
                 == expected_fields.strip()
             )
 
-    def test_get_file_content(self):
+    def test_get_file_content(self) -> None:
+        """Check get file content."""
         if is_windows():
             self.skipTest(
                 "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",
@@ -85,21 +92,24 @@ class PageObjectClassTest(TestCase):
                 == expected_string.strip()
             )
 
-    def test_get_by_as_code_str(self):
+    def test_get_by_as_code_str(self) -> None:
+        """Check get by as code str."""
         assert get_by_as_code_str(By.ID) == "By.ID"
         assert get_by_as_code_str(By.CLASS_NAME) == "By.CLASS_NAME"
         assert get_by_as_code_str(By.XPATH) == "By.XPATH"
         assert get_by_as_code_str(By.CSS_SELECTOR) == "By.CSS_SELECTOR"
         assert get_by_as_code_str(By.LINK_TEXT) == "By.LINK_TEXT"
 
-    def test_get_by_from_code_str(self):
+    def test_get_by_from_code_str(self) -> None:
+        """Check get by from code str."""
         assert get_by_from_code_str("By.ID") == By.ID
         assert get_by_from_code_str("By.CLASS_NAME") == By.CLASS_NAME
         assert get_by_from_code_str("By.XPATH") == By.XPATH
         assert get_by_from_code_str("By.CSS_SELECTOR") == By.CSS_SELECTOR
         assert get_by_from_code_str("By.LINK_TEXT") == By.LINK_TEXT
 
-    def test_parse_string_to_po_class(self):
+    def test_parse_string_to_po_class(self) -> None:
+        """Check parse string to page object class."""
         if is_windows():
             self.skipTest(
                 "Unsupported in Windows because temp directory is hardcoded to '/tmp' in pickled object.",

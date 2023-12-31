@@ -1,9 +1,13 @@
+"""Browser module."""
+from __future__ import annotations
+
 import os
 import tempfile
 import traceback
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
+from typing import TYPE_CHECKING, Any, Final
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -27,14 +31,26 @@ from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager, IEDriverManager
 
 from easelenium.mouse import Mouse
-from easelenium.utils import get_random_value, get_timestamp
+from easelenium.utils import Logger, get_random_value, get_timestamp
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webdriver import WebDriver
+
+TypeElement = WebElement | tuple[str, str]
 
 
 def browser_decorator(
-    browser_name=None, timeout=5, logger=None, headless=False, webdriver_kwargs=None,
-):
-    def func_decorator(func):
-        def wrapper(*args, **kwargs):
+    browser_name: str | None = None,
+    timeout: float = 5,
+    logger: Logger = None,
+    *,
+    headless: bool = False,
+    webdriver_kwargs: dict[str, Any] | None = None,
+) -> Any:  # noqa: ANN401
+    """Python decorator with Browser initialization."""
+
+    def func_decorator(func: callable) -> Any:  # noqa: ANN401
+        def wrapper(*args: list[Any], **kwargs: dict[str, Any]) -> Any:  # noqa: ANN401
             browser = None
             return_value = None
             try:
@@ -49,11 +65,11 @@ def browser_decorator(
                 kwargs["browser"] = browser
                 value = func(*args, **kwargs)
                 return_value = value
-            except Exception:
+            except Exception:  # noqa: BLE001
                 try:
                     if browser:
                         browser.save_screenshot()
-                except Exception:
+                except Exception:  # noqa: BLE001, S110
                     pass
                 traceback.print_exc()
             finally:
@@ -68,17 +84,26 @@ def browser_decorator(
 
 
 class Browser:
-    FF = "ff"
-    FF_HEADLESS = "ff_headless"
-    GC = "gc"
-    GC_HEADLESS = "gc_headless"
-    IE = "ie"
-    EDGE = "edge"
+    """Browser class."""
+
+    FF: Final = "ff"
+    FF_HEADLESS: Final = "ff_headless"
+    GC: Final = "gc"
+    GC_HEADLESS: Final = "gc_headless"
+    IE: Final = "ie"
+    EDGE: Final = "edge"
     DEFAULT_BROWSER = None
 
-    __BROWSERS = [FF, FF_HEADLESS, GC, GC_HEADLESS, IE, EDGE]
+    __BROWSERS: Final = [
+        FF,
+        FF_HEADLESS,
+        GC,
+        GC_HEADLESS,
+        IE,
+        EDGE,
+    ]
 
-    __DRIVERS_MAPPING = {
+    __DRIVERS_MAPPING: Final = {
         FF: ("geckodriver", Firefox, FirefoxService),
         FF_HEADLESS: ("geckodriver", Firefox, FirefoxService),
         IE: ("IEDriverServer", Ie, IeService),
@@ -86,7 +111,7 @@ class Browser:
         GC: ("chromedriver", Chrome, ChromeService),
         GC_HEADLESS: ("chromedriver", Chrome, ChromeService),
     }
-    __LOCATOR_MAPPINGS = {
+    __LOCATOR_MAPPINGS: Final = {
         "by_name": By.NAME,
         "by_id": By.ID,
         "by_xpath": By.XPATH,
@@ -97,14 +122,17 @@ class Browser:
         "by_css": By.CSS_SELECTOR,
     }
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
-        browser_name=None,
-        logger=None,
-        timeout=5,
-        headless=False,
-        webdriver_kwargs=None,
-    ):
+        browser_name: str | None = None,
+        logger: Logger | None = None,
+        timeout: float = 5,
+        *,
+        headless: bool = False,
+        maximize: bool = True,
+        webdriver_kwargs: dict[str, Any] | None = None,
+    ) -> None:
+        """Initialize."""
         if webdriver_kwargs is None:
             webdriver_kwargs = {}
 
@@ -115,19 +143,34 @@ class Browser:
 
         headless = headless or "headless" in self.__browser_name
         if self.is_gc():
-            self.__set_chrome_kwargs(headless, webdriver_kwargs)
+            self.__set_chrome_kwargs(
+                headless=headless,
+                webdriver_kwargs=webdriver_kwargs,
+            )
         elif self.is_ff():
-            self.__set_firefox_kwargs(headless, webdriver_kwargs)
+            self.__set_firefox_kwargs(
+                headless=headless,
+                webdriver_kwargs=webdriver_kwargs,
+            )
 
         self._driver = self.__create_driver(self.__browser_name, webdriver_kwargs)
-        self.__screenshot_path = os.path.join(gettempdir(), "easelenium_screenshots")
+        if maximize:
+            self._driver.maximize_window()
 
-        if not os.path.exists(self.__screenshot_path):
-            os.makedirs(self.__screenshot_path)
+        screenshot_path = Path(gettempdir()) / "easelenium_screenshots"
+        self.__screenshot_path = str(screenshot_path)
+
+        if not screenshot_path.exists():
+            screenshot_path.mkdir(parents=True, exist_ok=True)
 
         self.mouse = Mouse(self)
 
-    def __set_chrome_kwargs(self, headless, webdriver_kwargs):
+    def __set_chrome_kwargs(
+        self,
+        *,
+        headless: bool,
+        webdriver_kwargs: dict[str, Any],
+    ) -> None:
         options = webdriver_kwargs.get("options", ChromeOptions())
         is_root = os.getuid() == 0
         if is_root:
@@ -136,21 +179,28 @@ class Browser:
             options.add_argument("--headless")
         webdriver_kwargs["options"] = options
 
-    def __set_firefox_kwargs(self, headless, webdriver_kwargs):
+    def __set_firefox_kwargs(
+        self,
+        *,
+        headless: bool,
+        webdriver_kwargs: dict[str, Any],
+    ) -> None:
         options = webdriver_kwargs.get("options", FirefoxOptions())
         if headless:
             options.add_argument("--headless")
         webdriver_kwargs["options"] = options
 
     @classmethod
-    def supports(cls, browser_name):
+    def supports(cls: type[Browser], browser_name: str) -> bool:
+        """Return True if browser is supported, False otherwise."""
         return cls._find_driver_path(browser_name) is not None
 
     @classmethod
     @lru_cache(maxsize=None)
-    def _find_driver_path(cls, browser_name):
-        assert browser_name in cls.__BROWSERS
-        assert browser_name in cls.__DRIVERS_MAPPING
+    def _find_driver_path(cls: type[Browser], browser_name: str) -> str:
+        """Return driver path."""
+        assert browser_name in cls.__BROWSERS  # noqa: S101
+        assert browser_name in cls.__DRIVERS_MAPPING  # noqa: S101
 
         service_klass = cls.__DRIVERS_MAPPING[browser_name][2]
 
@@ -161,28 +211,25 @@ class Browser:
             else:
                 driver_path = GeckoDriverManager().install()
             return driver_path
-        else:
-            if service_klass == ChromeService:
-                manager = ChromeDriverManager
-            elif service_klass == IeService:
-                manager = IEDriverManager
-            elif service_klass == EdgeService:
-                manager = EdgeChromiumDriverManager
-            else:
-                raise ValueError("Failed to find driver manager")
+        if service_klass == ChromeService:
+            manager = ChromeDriverManager
+        elif service_klass == IeService:
+            manager = IEDriverManager
+        elif service_klass == EdgeService:
+            manager = EdgeChromiumDriverManager
 
-            return manager().install()
-
-        return None
+        return manager().install()
 
     @classmethod
-    def get_supported_browsers(cls):
+    def get_supported_browsers(cls: type[Browser]) -> list[str]:
+        """Return supported browsers."""
         return cls.__BROWSERS
 
-    def get_browser_initials(self):
+    def get_browser_initials(self) -> str | None:
+        """Return browser initials."""
         return self.__browser_name
 
-    def __create_driver(self, name, webdriver_kwargs):
+    def __create_driver(self, name: str, webdriver_kwargs: dict[str, Any]) -> WebDriver:
         if os.environ.get("TMPDIR") is None:
             # fix TMPDIR if not exists
             os.environ["TMPDIR"] = tempfile.gettempdir()
@@ -191,39 +238,37 @@ class Browser:
 
         if driver_filename_and_constructor is None:
             browsers = "', '".join(self.__BROWSERS)
-            raise ValueError(
-                f"Unsupported browser '{name}', supported browsers: ['{browsers}']",
-            )
+            msg = f"Unsupported browser '{name}', supported browsers: ['{browsers}']"
+            raise ValueError(msg)
 
         driver_filename, constructor, service_klass = driver_filename_and_constructor
 
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
             name,
         )
+        if not driver_path:
+            msg = "Failed to find driver manager"
+            raise ValueError(msg)
 
         webdriver_kwargs["service"] = service_klass(driver_path)
         if "executable_path" in webdriver_kwargs:
             webdriver_kwargs.pop("executable_path")
 
-        driver = constructor(**webdriver_kwargs)
+        return constructor(**webdriver_kwargs)
 
-        if driver and not self.is_gc():
-            driver.maximize_window()
-
-        return driver
-
-    def get_by_query(
+    def get_by_query(  # noqa: PLR0913
         self,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
-        # TODO: move outside
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> TypeElement:
+        """Return element as tuple[str, str] by query."""
+        # TODO: move outside  # noqa: TD003, FIX002, TD002
         for locator, value in (
             ("by_id", by_id),
             ("by_xpath", by_xpath),
@@ -236,22 +281,23 @@ class Browser:
         ):
             if value is not None:
                 return (self.__LOCATOR_MAPPINGS[locator], value)
-        else:
-            raise ValueError("Failed to find element")
 
-    def _get_element(
+        msg = "Failed to find element"
+        raise ValueError(msg)
+
+    def _get_element(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
-        assert (
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> TypeElement | WebElement:
+        assert (  # noqa: S101
             element is not None
             or by_id is not None
             or by_xpath is not None
@@ -265,31 +311,31 @@ class Browser:
 
         if element:
             return element
-        else:
-            return self.get_by_query(
-                by_id=by_id,
-                by_xpath=by_xpath,
-                by_link=by_link,
-                by_partial_link=by_partial_link,
-                by_name=by_name,
-                by_tag=by_tag,
-                by_css=by_css,
-                by_class=by_class,
-            )
 
-    def __get_webelements(
+        return self.get_by_query(
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+
+    def __get_webelements(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> list[WebElement]:
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -303,35 +349,31 @@ class Browser:
         )
         if isinstance(element, WebElement):
             return [element]
-        elif type(element) in [list, tuple] and len(element) == 2:
-            if parent:
+
+        if parent:
+            assert isinstance(element, (list, tuple))  # noqa: S101
+            if isinstance(parent, WebElement):
                 return parent.find_elements(*element)
-            else:
-                return self._driver.find_elements(*element)
-        else:
-            raise Exception("Unsupported element - %s" % str(element))
 
-    def __get_by_and_locator(self, element):
-        # TODO: remove not needed
-        if (type(element) == list or type(element) == tuple) and len(element) == 2:
-            by, locator = element
-            return by, locator
-        else:
-            return None
+            parent = self._driver.find_element(*parent)
+            return parent.find_elements(*element)
 
-    def _to_string(
+        return self._driver.find_elements(*element)
+
+    def to_string(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
-        # TODO: move outside
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> str:
+        """Return element as string."""
+        # TODO: move outside  # noqa: TD002, TD003, FIX002
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -343,13 +385,7 @@ class Browser:
             by_css=by_css,
             by_class=by_class,
         )
-        by_and_locator = self.__get_by_and_locator(element)
-        if by_and_locator:
-            return "Element {By: '%s', value: '%s'}" % (
-                by_and_locator[0],
-                by_and_locator[1],
-            )
-        else:
+        if isinstance(element, WebElement):
             string = "tag_name: '%s'" % element.tag_name
             _id = element.get_attribute("id")
             if _id:
@@ -368,19 +404,24 @@ class Browser:
                 string += ", name: '%s'" % name
             return "Element {%s}" % string
 
-    def is_ff(self):
+        return f"Element {{By: '{element[0]}', value: '{element[1]}'}}"
+
+    def is_ff(self) -> bool:
+        """Return True if browser is Firefox."""
         return self.__browser_name.startswith(Browser.FF)
 
-    def is_ie(self):
+    def is_ie(self) -> bool:
+        """Return True if browser is Internet Explorer."""
         return self.__browser_name == Browser.IE
 
-    def is_gc(self):
+    def is_gc(self) -> bool:
+        """Return True if browser is Google Chrome."""
         return self.__browser_name.startswith(Browser.GC)
 
-    def _safe_log(self, *args):
+    def _safe_log(self, *args: list[Any]) -> None:
         if self.logger:
             args = [
-                self._to_string(arg) if isinstance(arg, WebElement) else arg
+                self.to_string(arg) if isinstance(arg, WebElement) else str(arg)
                 for arg in args
             ]
             self.logger.info(*args)
@@ -389,20 +430,21 @@ class Browser:
         WebElement's wrapped functions
     """
 
-    def type(
+    def type(  # noqa: PLR0913, A003
         self,
-        element=None,
-        text=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        text: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Type text at element."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -421,25 +463,26 @@ class Browser:
             element.clear()
         except WebDriverException as e:
             if e.msg != "Element must be user-editable in order to clear it.":
-                raise e
+                raise
 
         self._safe_log("Typing '%s' at '%s'", text, element)
 
         element.send_keys(text)
 
-    def click(
+    def click(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Click on element."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -458,18 +501,19 @@ class Browser:
 
         element.click()
 
-    def get_parent(
+    def get_parent(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> WebElement:
+        """Return parent element."""
         element = self.find_element(
             element=element,
             by_id=by_id,
@@ -483,20 +527,22 @@ class Browser:
         )
         return self.find_descendant(parent=element, by_xpath="./..")
 
-    def get_text(
+    def get_text(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-        visible=True,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+        *,
+        visible: bool = True,
+    ) -> str:
+        """Return text of the element."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -517,22 +563,24 @@ class Browser:
 
         return text
 
-    def get_attribute(
+    def get_attribute(  # noqa: PLR0913
         self,
-        element=None,
-        attr=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-        visible=False,
-    ):
-        assert attr is not None, "attr is not specified"
+        element: TypeElement | WebElement | None = None,
+        attr: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+        *,
+        visible: bool = False,
+    ) -> str:
+        """Return attribute of the element."""
+        assert attr is not None, "attr is not specified"  # noqa: S101
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -553,19 +601,20 @@ class Browser:
 
         return value
 
-    def get_tag_name(
+    def get_tag_name(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> str:
+        """Return tag name of the element."""
         return self.find_element(
             element=element,
             parent=parent,
@@ -579,20 +628,22 @@ class Browser:
             by_class=by_class,
         ).tag_name
 
-    def get_id(
+    def get_id(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-        visible=False,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+        *,
+        visible: bool = False,
+    ) -> str:
+        """Return id of the element."""
         return self.get_attribute(
             element=element,
             attr="id",
@@ -608,20 +659,22 @@ class Browser:
             visible=visible,
         )
 
-    def get_class(
+    def get_class(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-        visible=False,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+        *,
+        visible: bool = False,
+    ) -> str:
+        """Return class of the element."""
         return self.get_attribute(
             element=element,
             attr="class",
@@ -637,20 +690,22 @@ class Browser:
             visible=visible,
         )
 
-    def get_value(
+    def get_value(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-        visible=True,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+        *,
+        visible: bool = True,
+    ) -> str:
+        """Return value of the element."""
         return self.get_attribute(
             element=element,
             attr="value",
@@ -666,18 +721,18 @@ class Browser:
             visible=visible,
         )
 
-    def get_location(
+    def get_location(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> tuple[int, int]:
         """Return tuple like (x, y)."""
         location = self.find_element(
             element=element,
@@ -695,18 +750,18 @@ class Browser:
 
         return int(location["x"]), int(location["y"])
 
-    def get_dimensions(
+    def get_dimensions(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> tuple[int | float, int | float]:
         """Return tuple like (width, height)."""
         size = self.find_element(
             element=element,
@@ -728,19 +783,20 @@ class Browser:
         Dropdown list related methods
     """
 
-    def get_selected_value_from_dropdown(
+    def get_selected_value_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> str:
+        """Return value of the selected option."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -761,19 +817,20 @@ class Browser:
 
         return value
 
-    def get_selected_text_from_dropdown(
+    def get_selected_text_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> str:
+        """Return text of the selected option."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -795,20 +852,21 @@ class Browser:
 
         return text
 
-    def select_option_by_value_from_dropdown(
+    def select_option_by_value_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        value=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        value: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Select option by value."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -824,26 +882,27 @@ class Browser:
 
         element = self.find_element(element=element, parent=parent)
         select = Select(element)
-        assert value is not None, "value not specified"
+        assert value is not None, "value not specified"  # noqa: S101
 
         self._safe_log(f"Selecting by value {value} from {element}")
 
         select.select_by_value(value)
 
-    def select_option_by_text_from_dropdown(
+    def select_option_by_text_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        text=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        text: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Select option by text."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -864,20 +923,21 @@ class Browser:
 
         select.select_by_visible_text(text)
 
-    def select_option_by_index_from_dropdown(
+    def select_option_by_index_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        index=0,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        index: int = 0,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Select option by index."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -899,20 +959,21 @@ class Browser:
 
         select.select_by_index(index)
 
-    def select_random_option_from_dropdown(
+    def select_random_option_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        texts_to_skip=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        texts_to_skip: set[str] | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Select random option from dropdown."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -937,19 +998,20 @@ class Browser:
             text=option_to_select,
         )
 
-    def get_texts_from_dropdown(
+    def get_texts_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> list[str]:
+        """Return list of texts from dropdown."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -963,28 +1025,27 @@ class Browser:
         )
         self.wait_for_visible(element=element, parent=parent)
 
-        texts = []
         element = self.find_element(element=element, parent=parent)
-        for option in Select(element).options:
-            texts.append(option.text)
+        texts = [option.text for option in Select(element).options]
 
         self._safe_log("Getting texts from '%s' -> '%s'", element, str(texts))
 
         return texts
 
-    def get_values_from_dropdown(
+    def get_values_from_dropdown(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> list[str]:
+        """Return list of values from dropdown."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -998,10 +1059,8 @@ class Browser:
         )
         self.wait_for_visible(element=element, parent=parent)
 
-        values = []
         element = self.find_element(element=element, parent=parent)
-        for option in Select(element).options:
-            values.append(option.get_attribute("value"))
+        values = [option.get_attribute("value") for option in Select(element).options]
 
         self._safe_log("Getting values from '%s' -> '%s'", element, str(values))
 
@@ -1011,31 +1070,36 @@ class Browser:
         WebDriver's wrapped functions
     """
 
-    def get_action_chains(self):
+    def get_action_chains(self) -> ActionChains:
+        """Return ActionChains instance."""
         return ActionChains(self._driver)
 
-    def open(self, url):
+    def open(self, url: str) -> None:  # noqa: A003
+        """Open url."""
         self.get(url)
 
-    def get(self, url):
+    def get(self, url: str) -> None:
+        """Open url."""
         self._driver.get(url)
 
-    def execute_js(self, js_script, *args):
+    def execute_js(self, js_script: str, *args: list[str]) -> str:
+        """Execute javascript."""
         return self._driver.execute_script(js_script, *args)
 
-    def find_element(
+    def find_element(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> WebElement:
+        """Find element."""
         return self.find_descendant(
             element=element,
             parent=parent,
@@ -1049,19 +1113,20 @@ class Browser:
             by_class=by_class,
         )
 
-    def find_descendant(
+    def find_descendant(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> WebElement:
+        """Find descendant."""
         found_elements = self.find_descendants(
             element=element,
             parent=parent,
@@ -1074,56 +1139,27 @@ class Browser:
             by_css=by_css,
             by_class=by_class,
         )
-        if len(found_elements) == 0:
-            raise NoSuchElementException(
-                "Didn't find any elements for selector - %s" % str(element),
-            )
-        else:
+        if found_elements:
             return found_elements[0]
 
-    def find_elements(
-        self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-        parent=None,
-    ):
-        elements = self.__get_webelements(
-            element=element,
-            parent=parent,
-            by_id=by_id,
-            by_xpath=by_xpath,
-            by_link=by_link,
-            by_partial_link=by_partial_link,
-            by_name=by_name,
-            by_tag=by_tag,
-            by_css=by_css,
-            by_class=by_class,
+        raise NoSuchElementException(
+            "Didn't find any elements for selector - %s" % str(element),
         )
-        if type(elements) == list:
-            return elements
-        else:
-            return [elements]
 
-    def find_descendants(
+    def find_elements(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+    ) -> list[WebElement]:
+        """Find element."""
         return self.__get_webelements(
             element=element,
             parent=parent,
@@ -1137,29 +1173,57 @@ class Browser:
             by_class=by_class,
         )
 
-    def wait_for_text_is_changed(
+    def find_descendants(  # noqa: PLR0913
         self,
-        element=None,
-        old_text=None,
-        parent=None,
-        msg=None,
-        timeout=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> list[WebElement]:
+        """Find descendant."""
+        return self.__get_webelements(
+            element=element,
+            parent=parent,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
+
+    def wait_for_text_is_changed(  # noqa: PLR0913
+        self,
+        element: TypeElement | WebElement | None = None,
+        old_text: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+        msg: str | None = None,
+        timeout: float | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Wait for text is changed."""
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = "%s text was not changed for %s seconds" % (element, timeout)
+            msg = f"{element} text was not changed for {timeout} seconds"
 
         self.webdriver_wait(
-            lambda driver: old_text
+            lambda _driver: old_text
             != self.get_text(
                 element,
                 parent=parent,
@@ -1176,30 +1240,45 @@ class Browser:
             timeout,
         )
 
-    def wait_for_attribute_is_changed(
+    def wait_for_attribute_is_changed(  # noqa: PLR0913
         self,
-        element=None,
-        attr=None,
-        old_value=None,
-        parent=None,
-        msg=None,
-        timeout=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        attr: str | None = None,
+        old_value: str | None = None,
+        parent: TypeElement | WebElement | None = None,
+        msg: str | None = None,
+        timeout: float | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Wait for attribute is changed."""
+        element = self._get_element(
+            element=element,
+            by_id=by_id,
+            by_xpath=by_xpath,
+            by_link=by_link,
+            by_partial_link=by_partial_link,
+            by_name=by_name,
+            by_tag=by_tag,
+            by_css=by_css,
+            by_class=by_class,
+        )
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = "%s attribute was not changed for %s seconds" % (element, timeout)
+            msg = (
+                f"{self.to_string(element)} attribute "
+                f"was not changed for {timeout} seconds"
+            )
 
         self.webdriver_wait(
-            lambda driver: old_value
+            lambda _driver: old_value
             != self.get_attribute(
                 element=element,
                 attr=attr,
@@ -1218,21 +1297,22 @@ class Browser:
             timeout,
         )
 
-    def wait_for_visible(
+    def wait_for_visible(  # noqa: PLR0913
         self,
-        element=None,
-        msg=None,
-        timeout=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        msg: str | None = None,
+        timeout: float | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Wait until element is visible."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -1247,28 +1327,29 @@ class Browser:
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = "%s is not visible for %s seconds" % (element, timeout)
+            msg = f"{element} is not visible for {timeout} seconds"
         self.webdriver_wait(
-            lambda driver: self.is_visible(element=element, parent=parent),
+            lambda _driver: self.is_visible(element=element, parent=parent),
             msg,
             timeout,
         )
 
-    def wait_for_not_visible(
+    def wait_for_not_visible(  # noqa: PLR0913
         self,
-        element=None,
-        msg=None,
-        timeout=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        msg: str | None = None,
+        timeout: float | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Wait until element not is visible."""
         element = self._get_element(
             element=element,
             by_id=by_id,
@@ -1283,35 +1364,36 @@ class Browser:
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = "%s is visible for %s seconds" % (element, timeout)
+            msg = f"{element} is visible for {timeout} seconds"
 
         self.webdriver_wait(
-            lambda driver: not self.is_visible(element=element, parent=parent),
+            lambda _driver: not self.is_visible(element=element, parent=parent),
             msg,
             timeout,
         )
 
-    def wait_for_present(
+    def wait_for_present(  # noqa: PLR0913
         self,
-        element=None,
-        msg=None,
-        timeout=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        msg: str | None = None,
+        timeout: float | None = None,
+        parent: TypeElement | WebElement | None = None,  # noqa: ARG002
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Wait until element is present."""
         if not timeout:
             timeout = self.__timeout
-            msg = "%s is not present for %s seconds" % (element, timeout)
+            msg = f"{element} is not present for {timeout} seconds"
 
         self.webdriver_wait(
-            lambda driver: self.is_present(
+            lambda _driver: self.is_present(
                 element,
                 by_id=by_id,
                 by_xpath=by_xpath,
@@ -1326,40 +1408,56 @@ class Browser:
             timeout,
         )
 
-    def wait_for_not_present(
+    def wait_for_not_present(  # noqa: PLR0913
         self,
-        element=None,
-        msg=None,
-        timeout=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        msg: str | None = None,
+        timeout: float | None = None,
+        parent: TypeElement | WebElement | None = None,  # noqa: ARG002
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Wait until element is not present."""
         if not timeout:
             timeout = self.__timeout
-            msg = "%s is present for %s seconds" % (element, timeout)
+            msg = f"{element} is present for {timeout} seconds"
 
-        self.webdriver_wait(lambda driver: not self.is_present(element), msg, timeout)
+        self.webdriver_wait(
+            lambda _driver: not self.is_present(
+                element,
+                by_id=by_id,
+                by_xpath=by_xpath,
+                by_link=by_link,
+                by_partial_link=by_partial_link,
+                by_name=by_name,
+                by_tag=by_tag,
+                by_css=by_css,
+                by_class=by_class,
+            ),
+            msg,
+            timeout,
+        )
 
-    def is_visible(
+    def is_visible(  # noqa: PLR0913
         self,
-        element=None,
-        parent=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        parent: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> bool:
+        """Return True if element is visible."""
         if parent:
             elements = self.find_descendants(
                 element=element,
@@ -1387,18 +1485,19 @@ class Browser:
             )
         return len(elements) > 0 and elements[0].is_displayed()
 
-    def is_present(
+    def is_present(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> bool:
+        """Return True if element is present."""
         return (
             len(
                 self.find_elements(
@@ -1416,33 +1515,40 @@ class Browser:
             > 0
         )
 
-    def get_screenshot_as_png(self):
+    def get_screenshot_as_png(self) -> Any:  # noqa: ANN401
+        """Return screenshot in bytes."""
         return self._driver.get_screenshot_as_png()
 
-    def save_screenshot(self, saving_dir=None, filename=None):
+    def save_screenshot(
+        self,
+        saving_dir: str | None = None,
+        filename: str | None = None,
+    ) -> str:
+        """Save screenshot to file."""
         if not saving_dir:
             saving_dir = self.__screenshot_path
         if not filename:
             filename = get_timestamp() + ".png"
-        path_to_file = os.path.abspath(os.path.join(saving_dir, filename))
+        path_to_file = str((Path(saving_dir) / filename).absolute())
 
         self._safe_log("Saving screenshot to '%s'", path_to_file)
 
         self._driver.save_screenshot(path_to_file)
         return path_to_file
 
-    def get_elements_count(
+    def get_elements_count(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> int:
+        """Return number of elements."""
         return len(
             self.find_elements(
                 element=element,
@@ -1457,18 +1563,19 @@ class Browser:
             ),
         )
 
-    def switch_to_frame(
+    def switch_to_frame(  # noqa: PLR0913
         self,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Switch context to new frame."""
         element = self.find_element(
             element=element,
             by_id=by_id,
@@ -1485,19 +1592,20 @@ class Browser:
 
         self._driver.switch_to.frame(element)
 
-    def switch_to_new_window(
+    def switch_to_new_window(  # noqa: PLR0913
         self,
-        function,
-        element=None,
-        by_id=None,
-        by_xpath=None,
-        by_link=None,
-        by_partial_link=None,
-        by_name=None,
-        by_tag=None,
-        by_css=None,
-        by_class=None,
-    ):
+        function: callable,
+        element: TypeElement | WebElement | None = None,
+        by_id: str | None = None,
+        by_xpath: str | None = None,
+        by_link: str | None = None,
+        by_partial_link: str | None = None,
+        by_name: str | None = None,
+        by_tag: str | None = None,
+        by_css: str | None = None,
+        by_class: str | None = None,
+    ) -> None:
+        """Switch context to new window."""
         initial_handles = self._driver.window_handles
 
         function(
@@ -1523,57 +1631,76 @@ class Browser:
 
         self._safe_log("Switching to '%s' window", self._driver.title)
 
-    def switch_to_default_content(self):
+    def switch_to_default_content(self) -> None:
+        """Switch to default content."""
         self._safe_log("Switching to default content")
 
         self._driver.switch_to.default_content()
 
-    def close_current_window_and_focus_to_previous_one(self):
+    def close_current_window_and_focus_to_previous_one(self) -> None:
+        """Close current window and switch to previous one."""
         handles = self._driver.window_handles
         self.close()
         self._driver.switch_to.window(handles[-2])
 
-    def get_page_source(self):
+    def get_page_source(self) -> str:
+        """Return page source."""
         return self._driver.page_source
 
-    def get_title(self):
+    def get_title(self) -> str:
+        """Return page title."""
         return self._driver.title
 
-    def get_current_url(self):
+    def get_current_url(self) -> str:
+        """Return current url."""
         return self._driver.current_url
 
-    def get_current_frame_url(self):
+    def get_current_frame_url(self) -> str:
+        """Return current frame url."""
         return self.execute_js("return document.location.href")
 
-    def go_back(self):
+    def go_back(self) -> None:
+        """Go back."""
         self._driver.back()
 
-    def delete_all_cookies(self):
+    def delete_all_cookies(self) -> None:
+        """Delete all cookies."""
         self._driver.delete_all_cookies()
 
-    def alert_accept(self):
+    def alert_accept(self) -> None:
+        """Accept modal window."""
         self._safe_log("Clicking Accept/OK in alert box")
 
         self._driver.switch_to.alert.accept()
 
-    def alert_dismiss(self):
+    def alert_dismiss(self) -> None:
+        """Dismiss model window."""
         self._safe_log("Clicking Dismiss/Cancel in alert box")
 
         self._driver.switch_to.alert.dismiss()
 
-    def refresh_page(self):
+    def refresh_page(self) -> None:
+        """Refresh page."""
         self._driver.refresh()
 
-    def webdriver_wait(self, function, msg="", timeout=None):
+    def webdriver_wait(
+        self,
+        function: callable,
+        msg: str = "",
+        timeout: float | None = None,
+    ) -> None:
+        """Wait for condition."""
         if not timeout:
             timeout = self.__timeout
         try:
             WebDriverWait(self._driver, timeout).until(function, msg)
-        except Exception:
-            raise TimeoutException(msg)
+        except Exception as exc:  # noqa: BLE001
+            raise TimeoutException(msg) from exc
 
-    def close(self):
+    def close(self) -> None:
+        """Close browser."""
         self._driver.close()
 
-    def quit(self):
+    def quit(self) -> None:  # noqa: A003
+        """Close browser."""
         self._driver.quit()

@@ -1,3 +1,6 @@
+"""Image panel."""
+from typing import Any
+
 from wx import (
     BITMAP_TYPE_ANY,
     BLACK_PEN,
@@ -13,15 +16,19 @@ from wx import (
     Rect,
     ScrolledWindow,
     StaticBitmap,
+    Window,
 )
 
-from easelenium.ui.utils import FLAG_ALL_AND_EXPAND
+from easelenium.ui.utils import FLAG_ALL_AND_EXPAND, TypeArea, TypePoint
 
 
 class ImagePanel(ScrolledWindow):
+    """Image panel."""
+
     MIN_SCROLL = 10
 
-    def __init__(self, parent):
+    def __init__(self, parent: Window) -> None:
+        """Initialize."""
         ScrolledWindow.__init__(self, parent)
 
         self.wx_image = None
@@ -35,18 +42,21 @@ class ImagePanel(ScrolledWindow):
 
         self.SetSizer(sizer)
 
-    def was_image_loaded(self):
-        return (
+    def was_image_loaded(self) -> bool:
+        """Return if image was loaded."""
+        return bool(
             self.img_path
             and self.wx_image
             and self.original_bitmap
-            and self.greyscaled_bitmap
+            and self.greyscaled_bitmap,
         )
 
-    def get_image_dimensions(self):
+    def get_image_dimensions(self) -> TypePoint:
+        """Get image dimensions."""
         return (self.original_bitmap.GetWidth(), self.original_bitmap.GetHeight())
 
-    def load_image(self, path, area=None):
+    def load_image(self, path: str, area: TypeArea = None) -> None:
+        """Load image."""
         self.Scroll(0, 0)
         self.img_path = path
         self.wx_image = Image(path, BITMAP_TYPE_ANY)
@@ -64,7 +74,13 @@ class ImagePanel(ScrolledWindow):
             )
 
             self.original_bitmap = self._get_bitmap(
-                bitmap, bitmap_to_draw, x, y, w, h, False,
+                bitmap,
+                bitmap_to_draw,
+                x,
+                y,
+                w,
+                h,
+                draw_frame=False,
             )
         else:
             self.original_bitmap = Bitmap(self.wx_image)
@@ -82,7 +98,17 @@ class ImagePanel(ScrolledWindow):
             height / self.MIN_SCROLL,
         )
 
-    def _get_bitmap(self, bitmap, bitmap_to_draw, x, y, w, h, draw_frame=True):
+    def _get_bitmap(  # noqa: PLR0913
+        self,
+        bitmap: Any,  # noqa: ANN401
+        bitmap_to_draw: Any,  # noqa: ANN401
+        x: int,
+        y: int,
+        w: int,
+        h: int,
+        *,
+        draw_frame: bool = True,
+    ) -> Any:  # noqa: ANN401
         bitmap = bitmap.GetSubBitmap(Rect(0, 0, bitmap.GetWidth(), bitmap.GetHeight()))
 
         dc = MemoryDC()

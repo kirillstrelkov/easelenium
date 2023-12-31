@@ -1,3 +1,6 @@
+"""Finder UI."""
+from __future__ import annotations
+
 from threading import Thread
 
 from wx import (
@@ -6,9 +9,11 @@ from wx import (
     SP_3D,
     SP_LIVE_UPDATE,
     Button,
+    Event,
     GridBagSizer,
     Panel,
     SplitterWindow,
+    Window,
 )
 from wx.grid import EVT_GRID_SELECT_CELL
 
@@ -27,7 +32,10 @@ from easelenium.utils import Logger
 
 
 class SelectorFinderTab(Panel):
-    def __init__(self, parent):
+    """Selector finder tab."""
+
+    def __init__(self, parent: Window) -> None:
+        """Initialize."""
         Panel.__init__(self, parent)
 
         self.main_frame = self.GetTopLevelParent()
@@ -35,7 +43,7 @@ class SelectorFinderTab(Panel):
 
         self.__create_widgets()
 
-    def __create_widgets(self):
+    def __create_widgets(self) -> None:
         sizer = GridBagSizer(5, 5)
 
         row = 0
@@ -68,28 +76,31 @@ class SelectorFinderTab(Panel):
 
         self.SetSizer(sizer)
 
-    def __update_table(self):
+    def __update_table(self) -> None:
         if self.po_fields:
             self.table.load_data(self.po_fields)
 
-    def __on_mouse_move(self, evt):
+    def __on_mouse_move(self, evt: Event) -> None:
         ImageAndTableHelper.select_field_on_mouse_move(
-            evt, self.po_fields, self.image_panel, self.table,
+            evt,
+            self.po_fields,
+            self.image_panel,
+            self.table,
         )
 
-    def __on_cell_select(self, evt):
+    def __on_cell_select(self, evt: Event) -> None:
         self.table.selected_row = evt.GetRow()
-        self.image_panel.draw_selected_field(self.table.get_selected_data(), True)
+        self.image_panel.draw_selected_field(self.table.get_selected_data(), focus=True)
         evt.Skip()
 
-    def __load_img(self, evt=None):
+    def __load_img(self, _evt: Event | None = None) -> None:
         browser = self.main_frame.get_browser()
         if browser:
             img_path = browser.save_screenshot(self.main_frame.get_tmp_dir())
             self.image_panel.load_image(img_path)
             self.main_frame.set_url(browser.get_current_url())
 
-    def __find_selectors(self, evt):
+    def __find_selectors(self, _evt: Event | None) -> None:
         browser = self.main_frame.get_browser()
         if browser:
             url = self.main_frame.get_url()
@@ -104,7 +115,7 @@ class SelectorFinderTab(Panel):
 
                 generator = PageObjectGenerator(browser, logger)
 
-                def find_selectors():
+                def find_selectors() -> None:
                     dialog.btn_ok.Disable()
                     self.po_fields = generator.get_all_po_fields(url, None)
                     logger.info("DONE")
@@ -112,5 +123,5 @@ class SelectorFinderTab(Panel):
                     dialog.btn_ok.Enable()
 
                 thread = Thread(target=find_selectors)
-                thread.setDaemon(True)
+                thread.daemon = True
                 thread.start()

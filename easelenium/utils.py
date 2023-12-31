@@ -1,54 +1,71 @@
+"""easelenium utilities."""
+from __future__ import annotations
+
 import logging
 import os
 import re
 import sys
 from datetime import datetime
+from pathlib import Path
 from random import choice
+from typing import Any
 
 from loguru import logger
 
 LINESEP = os.linesep
 
 
-def get_match(regexp, string, single_match=True):
+def get_match(
+    regexp: str,
+    string: str,
+    *,
+    single_match: bool = True,
+) -> str | None:
+    """Return first match."""
     found = re.findall(regexp, string)
-    if len(found) > 0:
+    if found:
         return found[0] if single_match else found
-    else:
-        return None
+
+    return None
 
 
-def is_windows():
+def is_windows() -> bool:
+    """Return True if running on Windows."""
     return sys.platform.startswith("win")
 
 
-def get_timestamp():
-    timetuple = datetime.now().timetuple()
-    timestamp = "%d%02d%02d%02d%02d%02d" % timetuple[:6]
-    return timestamp
+def get_timestamp() -> str:
+    """Return current timestamp."""
+    timetuple = datetime.now().timetuple()  # noqa: DTZ005
+    return "%d%02d%02d%02d%02d%02d" % timetuple[:6]
 
 
-def is_string(obj):
-    return type(obj) == str
+def is_string(obj: Any) -> bool:  # noqa: ANN401
+    """Return True if object is string."""
+    return isinstance(obj, str)
 
 
-def get_random_value(_list, *val_to_skip):
-    _tmp = list(_list)
+def get_random_value(values: list[Any], *val_to_skip: str[Any]) -> Any:  # noqa: ANN401
+    """Return random value from list."""
+    tmp_values = list(values)
     for skipped in val_to_skip:
-        _tmp.remove(skipped)
-    value = choice(_tmp)
-    return value
+        tmp_values.remove(skipped)
+    return choice(tmp_values)  # noqa: S311
 
 
 class Logger:
-    def __init__(
+    """Logger class."""
+
+    def __init__(  # noqa: PLR0913
         self,
-        name=None,
-        log_to_console=True,
-        file_path=None,
-        handler=None,
-        level=logging.INFO,
-    ):
+        name: str | None = None,
+        *,
+        log_to_console: bool = True,
+        file_path: str | None = None,
+        handler: callable | None = None,
+        level: int = logging.INFO,
+    ) -> None:
+        """Initialize."""
         self.__logger = logger
 
         if log_to_console:
@@ -60,22 +77,26 @@ class Logger:
         if handler:
             self.__logger.add(handler, filter=name, level=level)
 
-    def debug(self, msg, *args, **kwargs):
+    def debug(self, msg: str, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+        """Log debug message."""
         self.__logger.info(msg, *args, **kwargs)
 
-    def info(self, msg, *args, **kwargs):
+    def info(self, msg: str, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+        """Log info message."""
         self.__logger.info(msg, *args, **kwargs)
 
-    def warn(self, msg, *args, **kwargs):
+    def warn(self, msg: str, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+        """Log warning message."""
         self.__logger.warning(msg, *args, **kwargs)
 
 
-def get_class_name_from_file(path):
-    filename, _ = os.path.splitext(os.path.basename(path))
-    return "".join([w.capitalize() for w in filename.split("_")])
+def get_class_name_from_file(path: str) -> str:
+    """Return class name from file."""
+    return "".join([w.capitalize() for w in Path(path).stem.split("_")])
 
 
-def get_py_file_name_from_class_name(class_name):
+def get_py_file_name_from_class_name(class_name: str) -> str:
+    """Return py file name from class name."""
     words = re.findall("[A-Z]*[a-z0-9]*", class_name)
-    words = [w for w in words if len(w) > 0]
+    words = [w for w in words if w]
     return "_".join(words).lower() + ".py"

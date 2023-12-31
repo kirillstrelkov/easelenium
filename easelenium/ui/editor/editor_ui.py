@@ -1,5 +1,9 @@
+"""Editor UI."""
+from __future__ import annotations
+
 import os
 import traceback
+from pathlib import Path
 
 from wx import (
     ALL,
@@ -15,11 +19,13 @@ from wx import (
     BoxSizer,
     Button,
     ComboBox,
+    Event,
     FileDialog,
     GridBagSizer,
     Panel,
     SplitterWindow,
     StaticText,
+    Window,
 )
 
 from easelenium.ui.editor.field_context_menu import FieldContextMenu
@@ -28,6 +34,7 @@ from easelenium.ui.file_utils import is_correct_python_file, read_file
 from easelenium.ui.generator.page_object_class import PageObjectClass
 from easelenium.ui.parser.parsed_class import (
     ParsedBrowserClass,
+    ParsedClass,
     ParsedMouseClass,
     ParsedPageObjectClass,
 )
@@ -43,7 +50,10 @@ from easelenium.ui.widgets.utils import (
 
 
 class EditorTab(Panel):
-    def __init__(self, parent):
+    """Editor tab."""
+
+    def __init__(self, parent: Window) -> None:
+        """Initialize."""
         Panel.__init__(self, parent)
         sizer = GridBagSizer(5, 5)
         self.SetSizer(sizer)
@@ -51,7 +61,8 @@ class EditorTab(Panel):
         self.__cur_po_class = None
         self.__create_widgets()
 
-    def __create_widgets(self):
+    def __create_widgets(self) -> None:
+        """Create widgets."""
         sizer = self.GetSizer()
 
         # Next row
@@ -90,7 +101,7 @@ class EditorTab(Panel):
         sizer.AddGrowableRow(row, 1)
         sizer.AddGrowableCol(0, 1)
 
-    def __get_parsed_classes(self, field):
+    def __get_parsed_classes(self, field: str | None) -> list[ParsedClass]:
         classes = ParsedPageObjectClass.get_parsed_classes(
             self.__cur_po_class.file_path,
         )
@@ -101,7 +112,8 @@ class EditorTab(Panel):
             classes += ParsedBrowserClass.get_parsed_classes()
         return classes
 
-    def show_content_menu(self, field):
+    def show_content_menu(self, field: str | None) -> None:
+        """Show content menu."""
         tabs = self.table_and_test_file_tabs.tabs
         count = tabs.GetPageCount()
         if count > 1:
@@ -111,7 +123,10 @@ class EditorTab(Panel):
                 txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
                 parsed_classes = self.__get_parsed_classes(field)
                 context_menu = FieldContextMenu(
-                    field, parsed_classes, file_path, txt_ctrl_ui,
+                    field,
+                    parsed_classes,
+                    file_path,
+                    txt_ctrl_ui,
                 )
                 self.PopupMenu(context_menu)
                 context_menu.Destroy()
@@ -128,16 +143,16 @@ class EditorTab(Panel):
                 "Test file was not created/opened",
             )
 
-    def __on_load_po_class(self, evt):
+    def __on_load_po_class(self, _evt: Event) -> None:
         path = self.cb_class_path.GetValue()
         if len(path) > 0:
             self.__load_po_class(path)
 
-    def __on_right_click(self, evt):
+    def __on_right_click(self, evt: Event) -> None:
         field = self.__get_current_field(evt)
         self.show_content_menu(field)
 
-    def __on_mouse_move(self, evt):
+    def __on_mouse_move(self, evt: Event) -> None:
         if self.__cur_po_class:
             ImageAndTableHelper.select_field_on_mouse_move(
                 evt,
@@ -146,33 +161,31 @@ class EditorTab(Panel):
                 self.table_and_test_file_tabs.table,
             )
 
-    def __get_current_field(self, evt):
+    def __get_current_field(self, evt: Event) -> str | None:
         return self.image_panel.get_field(evt.GetPosition())
 
-    def __open_class(self, evt):
+    def __open_class(self, _evt: Event) -> None:
         folder = self.GetTopLevelParent().get_root_folder()
         if folder:
             if RootFolder.PO_FOLDER in os.listdir(folder):
-                folder = os.path.join(folder, RootFolder.PO_FOLDER)
+                folder = (Path(folder) / RootFolder.PO_FOLDER).as_posix()
             dialog = FileDialog(self, defaultDir=folder, wildcard="*.py")
             if dialog.ShowModal() == ID_OK:
                 self.__load_po_class(dialog.GetPath())
         else:
             show_dialog_path_doesnt_exist(self, folder)
 
-    def __load_po_class(self, path):
+    def __load_po_class(self, path: str) -> None:
         self.table_and_test_file_tabs.table.clear_table()
 
-        if not os.path.exists(path):
+        if not Path(path).exists():
             show_dialog_path_doesnt_exist(self, path)
         if not is_correct_python_file(path):
             show_dialog(self, "File name is incorrect: %s" % path, "Bad file name")
         else:
-            folder = os.path.dirname(path)
+            folder = Path(path).parent
             files = [
-                os.path.join(folder, p)
-                for p in os.listdir(folder)
-                if is_correct_python_file(p)
+                str(folder / p) for p in os.listdir(folder) if is_correct_python_file(p)
             ]
             self.cb_class_path.Clear()
             self.cb_class_path.AppendItems(files)
@@ -188,8 +201,10 @@ class EditorTab(Panel):
                 self.cb_class_path.SetValue(self.__cur_po_class.file_path)
 
                 self.table_and_test_file_tabs.load_po_class(self.__cur_po_class)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 self.__cur_po_class = None
                 show_error_dialog(
-                    self, traceback.format_exc(), "Failed to open file %s" % path,
+                    self,
+                    traceback.format_exc(),
+                    "Failed to open file %s" % path,
                 )

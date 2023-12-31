@@ -1,61 +1,73 @@
+"""File utility functions."""
+from __future__ import annotations
+
 import codecs
 import os
+from pathlib import Path
 
 __ENCODING = "utf8"
 __WRITE_MODE = "wb"
 __READ_MODE = "rb"
 
 
-def is_correct_python_file(filename):
-    name = os.path.basename(filename)
+def is_correct_python_file(filename: str) -> bool:
+    """Return True if the file is a python file else False."""
+    name = Path(filename).name
     return name.endswith(".py") and not name.startswith("__")
 
 
-def check_if_path_exists(path):
-    if not os.path.exists(path):
-        raise Exception("Path not found '%s'" % path)
+def check_if_path_exists(path: str) -> bool:
+    """Check if the path exists."""
+    if not Path(path).exists():
+        msg = f"Path not found '{path}'"
+        raise FileNotFoundError(msg)
     return True
 
 
-def safe_remove_path(path):
-    if os.path.exists(path):
-        os.remove(path)
+def safe_remove_path(path: str) -> bool:
+    """Remove existing file."""
+    if Path(path).exists():
+        Path(path).unlink()
         return True
     return False
 
 
-def safe_create_path(path):
-    if os.path.exists(path):
-        return False
-    is_dir = len(os.path.splitext(path)[-1]) == 0
-    if is_dir:
-        os.makedirs(path)
+def safe_create_path(path: str) -> None:
+    """Create path if it doesn't exist."""
+    if Path(path).exists():
+        return
+
+    if Path(path).is_dir():
+        Path(path).mkdir()
     else:
-        basedir = os.path.dirname(path)
-        if not os.path.exists(basedir):
-            os.makedirs(basedir)
+        basedir = Path(path).parent
+        if not Path(basedir).exists():
+            Path(basedir).mkdir()
         codecs.open(path, __WRITE_MODE, __ENCODING).close()
 
 
-def save_file(path, content, is_text=True):
+def save_file(path: str, content: str, *, is_text: bool = True) -> None:
+    """Save file."""
     if is_text:
         with codecs.open(path, __WRITE_MODE, encoding=__ENCODING) as f:
             f.write(content)
     else:
-        with open(path, __WRITE_MODE) as f:
+        with Path(path).open(__WRITE_MODE) as f:
             f.write(content)
 
 
-def read_file(path):
+def read_file(path: str) -> str:
+    """Read file."""
     with codecs.open(path, __READ_MODE, encoding=__ENCODING) as f:
         return f.read()
 
 
-def get_list_of_files(path, recursively=False):
+def get_list_of_files(path: str, *, recursively: bool = False) -> list[str]:
+    """Get list of files."""
     files = []
     for f in os.listdir(path):
-        file_path = os.path.join(path, f)
-        if os.path.isdir(file_path) and recursively:
+        file_path = (Path(path) / f).as_posix()
+        if Path(file_path).is_dir() and recursively:
             files += get_list_of_files(file_path, recursively)
         else:
             files.append(file_path)

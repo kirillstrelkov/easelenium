@@ -1,3 +1,5 @@
+"""Module for main UI."""
+
 import shutil
 import traceback
 from tempfile import mkdtemp
@@ -9,11 +11,13 @@ from wx import (
     Button,
     Choice,
     DirDialog,
+    Event,
     Frame,
     GridBagSizer,
     Panel,
     StaticText,
     TextCtrl,
+    Window,
 )
 
 from easelenium.browser import Browser
@@ -28,7 +32,10 @@ from easelenium.ui.widgets.utils import Tabs, show_dialog, show_error_dialog
 
 
 class MainFrame(Frame):
-    def __init__(self, parent):
+    """Main UI class."""
+
+    def __init__(self, parent: Window) -> None:
+        """Initialize main UI."""
         Frame.__init__(self, parent)
         self.__browser = None
         self.__tmp_dir = mkdtemp()
@@ -39,7 +46,7 @@ class MainFrame(Frame):
         self.__create_widgets()
         self.Bind(EVT_CLOSE, self.__on_close)
 
-    def __create_widgets(self):
+    def __create_widgets(self) -> None:
         panel = Panel(self)
 
         sizer = GridBagSizer(5, 5)
@@ -70,8 +77,9 @@ class MainFrame(Frame):
 
         col += 1
         self.__txt_url = TextCtrl(
-            panel, value="https://www.google.com/",
-        )  # TODO: remove url
+            panel,
+            value="https://www.google.com/",
+        )  # TODO: remove url  # noqa: TD003, TD002, FIX002
         sizer.Add(self.__txt_url, pos=(row, col), flag=FLAG_ALL_AND_EXPAND)
 
         col += 1
@@ -111,21 +119,22 @@ class MainFrame(Frame):
         panel.SetSizer(sizer)
         self.Layout()
 
-    def get_root_folder(self):
+    def get_root_folder(self) -> str:
+        """Get root folder path."""
         text = self.__txt_root_path.GetValue()
-        if text and len(text) > 0:
+        if text:
             return text
-        else:
-            return None
 
-    def __set_root_folder(self, evt):
+        return None
+
+    def __set_root_folder(self, _evt: Event) -> None:
         dialog = DirDialog(self)
         if dialog.ShowModal() == ID_OK:
             path = dialog.GetPath()
             RootFolder.prepare_folder(path)
             self.__txt_root_path.SetValue(path)
 
-    def __open_url(self, evt):
+    def __open_url(self, _evt: Event) -> None:
         url = self.__txt_url.GetValue()
         if StringUtils.is_url_correct(url):
             self.bth_open_url.Disable()
@@ -138,41 +147,48 @@ class MainFrame(Frame):
                     self.__browser = Browser(name)
                 elif not self.__browser:
                     self.__browser = Browser(name)
-            except Exception:
+            except Exception:  # noqa: BLE001
                 show_error_dialog(
-                    self, traceback.format_exc(), "Failed to open browser",
+                    self,
+                    traceback.format_exc(),
+                    "Failed to open browser",
                 )
                 self.__browser = None
 
             if self.__browser:
                 self.__browser.open(url)
-            # TODO: if generator or selector -> load image
+            # TODO: if generator or selector -> load image  # noqa: TD002, TD003, FIX002
             self.bth_open_url.Enable()
         else:
             show_dialog(self, "Bad url: %s" % url, "Bad url")
 
-    def __close_browser(self, evt):
+    def __close_browser(self, _evt: Event) -> None:
         if self.__browser:
             self.__browser.quit()
             self.__browser = None
 
-    def __on_close(self, evt):
+    def __on_close(self, evt: Event) -> None:
         self.__close_browser(evt)
 
         shutil.rmtree(self.__tmp_dir, ignore_errors=True)
         self.Destroy()
 
-    def get_url(self):
+    def get_url(self) -> str:
+        """Get url from text control."""
         return self.__txt_url.GetValue()
 
-    def set_url(self, url):
+    def set_url(self, url: str) -> None:
+        """Set url to text control."""
         self.__txt_url.SetValue(url)
 
-    def get_browser(self):
+    def get_browser(self) -> Browser:
+        """Get browser."""
         return self.__browser
 
-    def get_browser_initials(self):
+    def get_browser_initials(self) -> str:
+        """Get browser initials."""
         return self.__cb_browser.GetStringSelection()
 
-    def get_tmp_dir(self):
+    def get_tmp_dir(self) -> str:
+        """Get temporary directory."""
         return self.__tmp_dir
