@@ -7,7 +7,7 @@ long_description = (Path(__file__).parent / "README.md").read_text(encoding="utf
 
 setup(
     name="easelenium",
-    version="0.7.0",
+    version="0.7.1",
     description="easelenium - Selenium-based Test Automation Framework",
     author="Kirill Strelkov",
     author_email="kirillstrelkov@users.noreply.github.com",
@@ -22,7 +22,7 @@ setup(
         "easelenium.ui.selector_finder",
         "easelenium.ui.parser",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     scripts=[
         "easelenium/scripts/easelenium_cli.py",
         "easelenium/scripts/easelenium_ui.py",
