@@ -3,10 +3,10 @@ pytest
 pytest-html
 pytest-dotenv
 selenium
-wxPython
 black
 loguru
 pytest-profiling
 pytest-cov
 ruff
 webdriver-manager
+wxPython
