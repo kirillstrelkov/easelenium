@@ -27,15 +27,15 @@ setup(
         "easelenium/scripts/easelenium_cli.py",
         "easelenium/scripts/easelenium_ui.py",
     ],
-    requires=[
+    install_requires=[
         "wheel",
         "selenium",
         "attrdict3",
-        "wxPython",
         "pytest",
         "pytest_html",
         "loguru",
         "webdriver-manager",
+        "wxPython",
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
