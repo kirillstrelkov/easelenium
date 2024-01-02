@@ -1,11 +1,14 @@
 """Table UI."""
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from wx.grid import Grid, Window
+from wx.grid import Grid
 
 from easelenium.ui.generator.page_object_class import get_by_as_code_str
+
+if TYPE_CHECKING:
+    from wx import Window
 
 
 class Table(Grid):
