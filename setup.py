@@ -22,7 +22,7 @@ setup(
         "easelenium.ui.selector_finder",
         "easelenium.ui.parser",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.8",
     scripts=[
         "easelenium/scripts/easelenium_cli.py",
         "easelenium/scripts/easelenium_ui.py",

@@ -6,7 +6,7 @@ import tempfile
 import traceback
 from pathlib import Path
 from threading import Thread
-from typing import Any
+from typing import Any, List, Tuple, Union
 
 from wx import ALL, EXPAND
 
@@ -16,9 +16,9 @@ from easelenium.ui.parser.parsed_class import ParsedClass
 FLAG_ALL_AND_EXPAND = ALL | EXPAND
 
 
-TypeArea = tuple[int, int, int, int] | list[int, int, int, int]
-TypePoint = tuple[int, int] | list[int, int]
-TypeBy = tuple[str, str] | list[str, str]
+TypeArea = Union[Tuple[int, int, int, int], List[int]]
+TypePoint = Union[Tuple[int, int], List[int]]
+TypeBy = Union[Tuple[str, str], List[str]]
 
 
 def run_in_separate_thread(

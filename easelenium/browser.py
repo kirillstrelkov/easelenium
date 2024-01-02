@@ -7,7 +7,7 @@ import traceback
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, Tuple, Union
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -36,7 +36,7 @@ from easelenium.utils import Logger, get_random_value, get_timestamp
 if TYPE_CHECKING:
     from selenium.webdriver.remote.webdriver import WebDriver
 
-TypeElement = WebElement | tuple[str, str]
+TypeElement = Union[WebElement, Tuple[str, str]]
 
 
 def browser_decorator(
@@ -197,7 +197,7 @@ class Browser:
 
     @classmethod
     @lru_cache(maxsize=None)
-    def _find_driver_path(cls: type[Browser], browser_name: str) -> str:
+    def _find_driver_path(cls: type[Browser], browser_name: str) -> str | None:
         """Return driver path."""
         assert browser_name in cls.__BROWSERS  # noqa: S101
         assert browser_name in cls.__DRIVERS_MAPPING  # noqa: S101
@@ -218,7 +218,10 @@ class Browser:
         elif service_klass == EdgeService:
             manager = EdgeChromiumDriverManager
 
-        return manager().install()
+        try:
+            return manager().install()
+        except AttributeError:
+            return None
 
     @classmethod
     def get_supported_browsers(cls: type[Browser]) -> list[str]:
@@ -247,7 +250,7 @@ class Browser:
             name,
         )
         if not driver_path:
-            msg = "Failed to find driver manager"
+            msg = f"Failed to find driver manager for {name}"
             raise ValueError(msg)
 
         webdriver_kwargs["service"] = service_klass(driver_path)

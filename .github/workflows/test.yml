@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.9, "3.10", "3.11", "3.12"]
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
@@ -23,9 +23,6 @@ jobs:
           sudo apt -f install
           sudo apt install -y xvfb firefox python3-pip
           pip install pytest pytest-html pytest-dotenv selenium loguru webdriver-manager
-      - name: Set PYTHONPATH
-        run: |
-          echo "PYTHONPATH=." >> $GITHUB_ENV
       - name: Run tests
         run: |
-          xvfb-run --server-args="-screen 0 1366x768x24" pytest tests
+          xvfb-run --server-args="-screen 0 1366x768x24" python -m pytest tests
