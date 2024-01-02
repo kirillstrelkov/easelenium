@@ -11,11 +11,17 @@ sys.path.append(str(Path(__file__).parent / "../.."))
 
 from easelenium.ui.main_ui import MainFrame  # noqa: E402
 
-if __name__ == "__main__":
+
+def main() -> None:
+    """Run easelenium UI."""
     app = App(redirect=False)
     main_ui = MainFrame(None)
     main_ui.Show()
     app.MainLoop()
+
+
+if __name__ == "__main__":
+    main()
 
 # TODO: use relative path in generator # noqa: FIX002, TD002, TD003
 # TODO: better naming for generated fields # noqa: FIX002, TD002, TD003

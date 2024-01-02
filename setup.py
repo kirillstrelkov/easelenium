@@ -1,17 +1,8 @@
 """Setup tools."""
-from pathlib import Path
 
 from setuptools import setup
 
-long_description = (Path(__file__).parent / "README.md").read_text(encoding="utf-8")
-
 setup(
-    name="easelenium",
-    version="0.7.2",
-    description="easelenium - Selenium-based Test Automation Framework",
-    author="Kirill Strelkov",
-    author_email="kirillstrelkov@users.noreply.github.com",
-    url="https://github.com/kirillstrelkov/easelenium",
     packages=[
         "easelenium",
         "easelenium.ui",
@@ -22,21 +13,4 @@ setup(
         "easelenium.ui.selector_finder",
         "easelenium.ui.parser",
     ],
-    python_requires=">=3.8",
-    scripts=[
-        "easelenium/scripts/easelenium_cli.py",
-        "easelenium/scripts/easelenium_ui.py",
-    ],
-    install_requires=[
-        "wheel",
-        "selenium",
-        "attrdict3",
-        "pytest",
-        "pytest_html",
-        "loguru",
-        "webdriver-manager",
-        "wxPython",
-    ],
-    long_description=long_description,
-    long_description_content_type="text/markdown",
 )

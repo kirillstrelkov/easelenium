@@ -30,5 +30,10 @@ class EaseleniumPlugin:
         Browser.DEFAULT_BROWSER = config.option.BROWSER
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Run pytest with easelenium plugin."""
     sys.exit(pytest.main(plugins=[EaseleniumPlugin()]))
+
+
+if __name__ == "__main__":
+    main()
