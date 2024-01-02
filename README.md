@@ -19,7 +19,7 @@ Supportive classes:
 - [base_page_object.py](/easelenium/base_page_object.py)
 - [base_test.py](/easelenium/base_test.py)
 
-GUI [easelenium_ui.py](/easelenium/scripts/easelenium_ui.py):
+GUI [easelenium_ui](/easelenium/scripts/easelenium_ui.py):
 
 - Generator
 - Editor
@@ -62,7 +62,7 @@ Check [browser_test.py](/easelenium/test/browser_test.py) for more examples.
 
 ## Continuous Integration
 
-Done via command line script [easelenium_cli.py](/easelenium/scripts/easelenium_cli.py)
+Done via command line script [easelenium_cli](/easelenium/scripts/easelenium_cli.py)
 
 ## Installation
 
