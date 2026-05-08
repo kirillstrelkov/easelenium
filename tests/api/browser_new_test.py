@@ -1,8 +1,10 @@
 """New Browser API tests."""
+
 import pytest
 
 from easelenium.base_test import BaseTest
 from easelenium.browser import Browser
+from tests.api import EASELENIUM_TEST_URL
 
 
 @pytest.mark.skipif(not Browser.supports("gc"), reason="Browser not supported")
@@ -41,22 +43,22 @@ class BrowserTest(BaseTest):
         """Check type, click, get text."""
         self.browser.get("https://duckduckgo.com/")
 
-        text_field = "searchbox_input"
-        css_search_btn = "[aria-label='Search']"
-        results = "article"
+        css_search_field = "input[class*='search-input']"
+        css_search_btn = "button[title='Search']"
+        css_results = "article h2"
 
-        self.browser.type(by_id=text_field, text="selenium python docs")
+        self.browser.type(by_css=css_search_field, text="selenium python docs")
         self.browser.click(by_css=css_search_btn)
 
-        self.browser.wait_for_visible(by_css=results)
-        assert "Selenium with Python" in self.browser.get_text(by_css=results)
+        self.browser.wait_for_visible(by_css=css_results)
+        assert "Selenium with Python" in self.browser.get_text(by_css=css_results)
 
     def test_mouse_left_right_clicks(self) -> None:
         """Check mouse left, right clicks."""
         self.browser.get("https://www.openstreetmap.org/")
 
         map_element = "map"
-        context_menu = "#map .leaflet-contextmenu"
+        context_menu = "#map-context-menu"
         welcome_close = ".welcome .btn-close"
 
         self.browser.wait_for_visible(by_css=welcome_close)
@@ -86,25 +88,23 @@ class BrowserTest(BaseTest):
         """Check mouse hover."""
         self.browser.get("https://www.openstreetmap.org/")
 
-        edit_buton = ".control-button.zoomin"
+        edit_buton = "#editanchor"
         tooltip = ".tooltip"
 
         self.browser.mouse.hover(by_css=edit_buton)
         self.browser.wait_for_visible(by_css=tooltip)
-        assert self.browser.get_text(by_css=tooltip) == "Zoom In"
+        assert "Zoom in" in self.browser.get_text(by_css=tooltip)
 
     def test_select(self) -> None:
         """Check select."""
-        self.browser.get(
-            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html",
-        )
+        self.browser.get(EASELENIUM_TEST_URL)
 
         select_element = "select[name]"
 
         old_option = self.browser.get_selected_text_from_dropdown(by_css=select_element)
         self.browser.select_random_option_from_dropdown(
             by_css=select_element,
-            texts_to_skip=[old_option],
+            texts_to_skip={old_option},
         )
         new_option = self.browser.get_selected_text_from_dropdown(by_css=select_element)
         new_option_value = self.browser.get_selected_value_from_dropdown(
@@ -124,39 +124,27 @@ class BrowserTest(BaseTest):
             by_css=select_element,
             text=new_option,
         )
-        assert (
-            self.browser.get_selected_text_from_dropdown(by_css=select_element)
-            == new_option
-        )
+        assert self.browser.get_selected_text_from_dropdown(by_css=select_element) == new_option
 
         new_option = "third"
         self.browser.select_option_by_value_from_dropdown(
             by_css=select_element,
             value=new_option,
         )
-        assert (
-            self.browser.get_selected_value_from_dropdown(by_css=select_element)
-            == new_option
-        )
+        assert self.browser.get_selected_value_from_dropdown(by_css=select_element) == new_option
 
         index = 0
         self.browser.select_option_by_index_from_dropdown(
             by_css=select_element,
             index=index,
         )
-        assert (
-            self.browser.get_selected_value_from_dropdown(by_css=select_element)
-            == "first"
-        )
+        assert self.browser.get_selected_value_from_dropdown(by_css=select_element) == "first"
         index = 2
         self.browser.select_option_by_index_from_dropdown(
             by_css=select_element,
             index=index,
         )
-        assert (
-            self.browser.get_selected_value_from_dropdown(by_css=select_element)
-            == "third"
-        )
+        assert self.browser.get_selected_value_from_dropdown(by_css=select_element) == "third"
 
         texts = self.browser.get_texts_from_dropdown(by_css=select_element)
         values = self.browser.get_values_from_dropdown(by_css=select_element)
@@ -166,17 +154,17 @@ class BrowserTest(BaseTest):
 
     def test_js_script(self) -> None:
         """Check JavaScript execution."""
-        self.browser.get("https://duckduckgo.com/")
-        js_statement = "return document.getElementsByTagName('h2')[0].textContent;"
+        self.browser.get(EASELENIUM_TEST_URL)
+        js_statement = "return document.getElementsByTagName('span')[0].textContent;"
         value = self.browser.execute_js(js_statement)
 
-        assert "We can help" in value
+        assert value == "About dropdowns"
 
     def test_open_close_new_window(self) -> None:
         """Check open and close new window."""
-        self.browser.get("https://duckduckgo.com/")
+        self.browser.get("https://html.com/attributes/a-target/")
 
-        a_element = "a[class*='learnMore']"
+        a_element = "a[target*='blank']"
 
         title_before_click = self.browser.get_title()
         self.browser.switch_to_new_window(self.browser.click, by_css=a_element)
@@ -204,22 +192,19 @@ class BrowserTest(BaseTest):
     def test_get_attribute(self) -> None:
         """Check get attribute."""
         self.browser.get("https://duckduckgo.com/")
-        element = self.browser.find_element(by_css="a[class*='header_logoHorizontal']")
-        assert "header" in self.browser.get_class(element)
+        element = self.browser.find_element(by_css="nav ul a[class*='footer']")
+        assert "footer" in self.browser.get_class(element)
         assert self.browser.get_tag_name(element) == "a"
-        assert (
-            self.browser.get_attribute(element, attr="href")
-            == "https://duckduckgo.com/about"
-        )
+        assert self.browser.get_attribute(element, attr="href") == "https://duckduckgo.com/about"
 
     def test_get_attribute_with_parent(self) -> None:
         """Check get attribute with parent."""
         self.browser.get("https://duckduckgo.com/")
-        parent = self.browser.find_element(by_tag="main")
+        parent = self.browser.find_element(by_tag="footer")
 
         assert (
             self.browser.get_attribute(
-                by_css="a[class*='header_logoHorizontal']",
+                by_css="a[class*='footer']",
                 attr="href",
                 parent=parent,
             )
@@ -230,7 +215,7 @@ class BrowserTest(BaseTest):
         """Check wait for attribute is changed with parent."""
         self.browser.get("https://material.angular.io/components/expansion/overview")
 
-        css_parent = ".docs-markdown #expansion-overview"
+        css_parent = "#expansion-overview"
         self.browser.wait_for_visible(by_css=css_parent)
         parent = self.browser.find_element(by_css=css_parent)
 

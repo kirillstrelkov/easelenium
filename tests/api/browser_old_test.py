@@ -3,6 +3,7 @@
 from selenium.webdriver.common.by import By
 
 from easelenium.base_test import BaseTest
+from tests.api import EASELENIUM_TEST_URL
 
 
 class BrowserTest(BaseTest):
@@ -30,22 +31,22 @@ class BrowserTest(BaseTest):
         """Check type, click, get text."""
         self.browser.get("https://duckduckgo.com/")
 
-        text_field = (By.ID, "searchbox_input")
-        search_btn = (By.CSS_SELECTOR, "[aria-label='Search']")
-        results = (By.CSS_SELECTOR, "article")
+        css_search_field = (By.CSS_SELECTOR, "input[class*='search-input']")
+        css_search_btn = (By.CSS_SELECTOR, "button[title='Search']")
+        css_results = (By.CSS_SELECTOR, "article h2")
 
-        self.browser.type(text_field, "selenium python io")
-        self.browser.click(search_btn)
+        self.browser.type(css_search_field, "selenium python io")
+        self.browser.click(css_search_btn)
 
-        self.browser.wait_for_visible(results)
-        assert "Selenium with Python" in self.browser.get_text(results)
+        self.browser.wait_for_visible(css_results)
+        assert "Selenium with Python" in self.browser.get_text(css_results)
 
     def test_mouse_left_right_clicks(self) -> None:
         """Check mouse left and right clicks."""
         self.browser.get("https://www.openstreetmap.org/")
 
         map_element = (By.ID, "map")
-        context_menu = (By.CSS_SELECTOR, "#map .leaflet-contextmenu")
+        context_menu = (By.CSS_SELECTOR, "#map-context-menu")
         welcome_close = (By.CSS_SELECTOR, ".welcome .btn-close")
 
         self.browser.wait_for_visible(welcome_close)
@@ -67,25 +68,23 @@ class BrowserTest(BaseTest):
         """Check mouse hover."""
         self.browser.get("https://www.openstreetmap.org/")
 
-        edit_buton = (By.CSS_SELECTOR, ".control-button.zoomin")
+        edit_buton = (By.ID, "editanchor")
         tooltip = (By.CSS_SELECTOR, ".tooltip")
 
         self.browser.mouse.hover(edit_buton)
         self.browser.wait_for_visible(tooltip)
-        assert self.browser.get_text(tooltip) == "Zoom In"
+        assert "Zoom in" in self.browser.get_text(tooltip)
 
     def test_select(self) -> None:
         """Check select."""
-        self.browser.get(
-            "https://yari-demos.prod.mdn.mozit.cloud/en-US/docs/Web/HTML/Element/select/_sample_.Basic_select.html",
-        )
+        self.browser.get(EASELENIUM_TEST_URL)
 
         select_element = (By.CSS_SELECTOR, "select[name]")
 
         old_option = self.browser.get_selected_text_from_dropdown(select_element)
         self.browser.select_random_option_from_dropdown(
             select_element,
-            texts_to_skip=(old_option,),
+            texts_to_skip={old_option},
         )
         new_option = self.browser.get_selected_text_from_dropdown(select_element)
         new_option_value = self.browser.get_selected_value_from_dropdown(select_element)
@@ -97,15 +96,11 @@ class BrowserTest(BaseTest):
 
         new_option = "Second Value"
         self.browser.select_option_by_text_from_dropdown(select_element, new_option)
-        assert (
-            self.browser.get_selected_text_from_dropdown(select_element) == new_option
-        )
+        assert self.browser.get_selected_text_from_dropdown(select_element) == new_option
 
         new_option = "third"
         self.browser.select_option_by_value_from_dropdown(select_element, new_option)
-        assert (
-            self.browser.get_selected_value_from_dropdown(select_element) == new_option
-        )
+        assert self.browser.get_selected_value_from_dropdown(select_element) == new_option
 
         index = 0
         self.browser.select_option_by_index_from_dropdown(select_element, index)
@@ -119,14 +114,6 @@ class BrowserTest(BaseTest):
         assert len(texts) == len(values)
         assert texts == ["First Value", "Second Value", "Third Value"]
         assert values == ["first", "second", "third"]
-
-    def test_js_script(self) -> None:
-        """Check JavaScript execution."""
-        self.browser.get("https://duckduckgo.com/")
-        js_statement = "return document.getElementsByTagName('h2')[0].textContent;"
-        value = self.browser.execute_js(js_statement)
-
-        assert "We can help" in value
 
     def test_open_close_new_window(self) -> None:
         """Check open and close new window."""
@@ -162,7 +149,7 @@ class BrowserTest(BaseTest):
         self.browser.get("https://duckduckgo.com/")
         assert (
             self.browser.get_attribute(
-                (By.CSS_SELECTOR, "a[class*='header_logoHorizontal']"),
+                (By.CSS_SELECTOR, "a[class*='footer']"),
                 "href",
             )
             == "https://duckduckgo.com/about"
@@ -171,10 +158,10 @@ class BrowserTest(BaseTest):
     def test_get_attribute_with_parent(self) -> None:
         """Check get attribute with parent."""
         self.browser.get("https://duckduckgo.com/")
-        parent = self.browser.find_element(by_tag="main")
+        parent = self.browser.find_element(by_tag="footer")
         assert (
             self.browser.get_attribute(
-                (By.CSS_SELECTOR, "a[class*='header_logoHorizontal']"),
+                (By.CSS_SELECTOR, "a[class*='footer']"),
                 "href",
                 parent=parent,
             )
