@@ -1,0 +1,18 @@
+target-version = "py313"
+line-length = 120
+indent-width = 4
+
+[lint]
+select = ["ALL"]
+ignore = ["INP001", "D203", "D213", "COM812"]
+unfixable = ["B"]
+
+[lint.per-file-ignores]
+"**/*_test.py" = ["S101", "FBT001", "D103"]
+"**/test_*" = ["S101", "FBT001", "D103"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
