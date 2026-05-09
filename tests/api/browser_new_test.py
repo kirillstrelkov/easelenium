@@ -4,7 +4,7 @@ import pytest
 
 from easelenium.base_test import BaseTest
 from easelenium.browser import Browser
-from tests.api import EASELENIUM_TEST_URL
+from tests import EASELENIUM_TEST_URL
 
 
 @pytest.mark.skipif(not Browser.supports("gc"), reason="Browser not supported")

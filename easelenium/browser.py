@@ -1,4 +1,5 @@
 """Browser module."""
+
 from __future__ import annotations
 
 import os
@@ -423,10 +424,7 @@ class Browser:
 
     def _safe_log(self, *args: list[Any]) -> None:
         if self.logger:
-            args = [
-                self.to_string(arg) if isinstance(arg, WebElement) else str(arg)
-                for arg in args
-            ]
+            args = [self.to_string(arg) if isinstance(arg, WebElement) else str(arg) for arg in args]
             self.logger.info(*args)
 
     """
@@ -1226,18 +1224,20 @@ class Browser:
             msg = f"{element} text was not changed for {timeout} seconds"
 
         self.webdriver_wait(
-            lambda _driver: old_text
-            != self.get_text(
-                element,
-                parent=parent,
-                by_id=by_id,
-                by_xpath=by_xpath,
-                by_link=by_link,
-                by_partial_link=by_partial_link,
-                by_name=by_name,
-                by_tag=by_tag,
-                by_css=by_css,
-                by_class=by_class,
+            lambda _driver: (
+                old_text
+                != self.get_text(
+                    element,
+                    parent=parent,
+                    by_id=by_id,
+                    by_xpath=by_xpath,
+                    by_link=by_link,
+                    by_partial_link=by_partial_link,
+                    by_name=by_name,
+                    by_tag=by_tag,
+                    by_css=by_css,
+                    by_class=by_class,
+                )
             ),
             msg,
             timeout,
@@ -1275,26 +1275,25 @@ class Browser:
         if not timeout:
             timeout = self.__timeout
         if not msg:
-            msg = (
-                f"{self.to_string(element)} attribute "
-                f"was not changed for {timeout} seconds"
-            )
+            msg = f"{self.to_string(element)} attribute was not changed for {timeout} seconds"
 
         self.webdriver_wait(
-            lambda _driver: old_value
-            != self.get_attribute(
-                element=element,
-                attr=attr,
-                parent=parent,
-                by_id=by_id,
-                by_xpath=by_xpath,
-                by_link=by_link,
-                by_partial_link=by_partial_link,
-                by_name=by_name,
-                by_tag=by_tag,
-                by_css=by_css,
-                by_class=by_class,
-                visible=False,
+            lambda _driver: (
+                old_value
+                != self.get_attribute(
+                    element=element,
+                    attr=attr,
+                    parent=parent,
+                    by_id=by_id,
+                    by_xpath=by_xpath,
+                    by_link=by_link,
+                    by_partial_link=by_partial_link,
+                    by_name=by_name,
+                    by_tag=by_tag,
+                    by_css=by_css,
+                    by_class=by_class,
+                    visible=False,
+                )
             ),
             msg,
             timeout,
@@ -1432,16 +1431,18 @@ class Browser:
             msg = f"{element} is present for {timeout} seconds"
 
         self.webdriver_wait(
-            lambda _driver: not self.is_present(
-                element,
-                by_id=by_id,
-                by_xpath=by_xpath,
-                by_link=by_link,
-                by_partial_link=by_partial_link,
-                by_name=by_name,
-                by_tag=by_tag,
-                by_css=by_css,
-                by_class=by_class,
+            lambda _driver: (
+                not self.is_present(
+                    element,
+                    by_id=by_id,
+                    by_xpath=by_xpath,
+                    by_link=by_link,
+                    by_partial_link=by_partial_link,
+                    by_name=by_name,
+                    by_tag=by_tag,
+                    by_css=by_css,
+                    by_class=by_class,
+                )
             ),
             msg,
             timeout,

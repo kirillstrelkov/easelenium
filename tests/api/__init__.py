@@ -1,4 +1,11 @@
-import os
+from easelenium.browser import Browser
 
 
-EASELENIUM_TEST_URL = os.environ.get("EASELENIUM_TEST_URL", "https://kirillstrelkov.github.io/easelenium/")
+def is_headless(browser: Browser) -> bool:
+    if browser.is_ff():
+        return browser._driver.caps.get("moz:headless", False)
+
+    if browser.is_gc():
+        return "Headless" in browser.execute_js("return navigator.userAgent")
+
+    raise NotImplementedError

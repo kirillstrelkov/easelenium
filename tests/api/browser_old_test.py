@@ -3,7 +3,7 @@
 from selenium.webdriver.common.by import By
 
 from easelenium.base_test import BaseTest
-from tests.api import EASELENIUM_TEST_URL
+from tests import EASELENIUM_TEST_URL
 
 
 class BrowserTest(BaseTest):

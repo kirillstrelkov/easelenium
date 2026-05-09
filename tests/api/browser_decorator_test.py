@@ -1,10 +1,12 @@
 """Browser decorator tests."""
+
 from unittest import TestCase
 
 import pytest
 from selenium import webdriver
 
 from easelenium.browser import Browser, browser_decorator
+from tests.api import is_headless
 
 
 def __open_duck_and_assert_title(browser: Browser) -> bool:
@@ -13,36 +15,38 @@ def __open_duck_and_assert_title(browser: Browser) -> bool:
 
 
 @browser_decorator(browser_name="gc")
-def func_default_decorator_gc(browser: Browser = None) -> bool:
+def func_default_decorator_gc(browser: Browser) -> bool:
     """Chrome decorator."""
     return __open_duck_and_assert_title(browser)
 
 
-__CHROME_OPTIONS = webdriver.ChromeOptions()
-__CHROME_OPTIONS.add_argument("window-size=1366,768")
+def _make_chrome_options() -> webdriver.ChromeOptions:
+    options = webdriver.ChromeOptions()
+    options.add_argument("window-size=1366,768")
+    return options
 
 
 @browser_decorator(
     browser_name="gc",
     headless=True,
-    webdriver_kwargs={"options": __CHROME_OPTIONS},
+    webdriver_kwargs={"options": _make_chrome_options()},
 )
-def func_decorator_gc_with_params(browser: Browser = None) -> bool:
+def func_decorator_gc_with_params(browser: Browser) -> bool:
     """Chrome decorator with options."""
-    result = __open_duck_and_assert_title(browser)
-    assert browser.execute_js("return window.chrome") is None
-    assert browser.execute_js("return window.screen.height") == 768  # noqa: PLR2004
-    return result
+    assert is_headless(browser), "headless not found"
+    # window-size resets to screen size (800px) after any navigation in headless Chrome
+    assert browser.execute_js("return window.innerWidth") == 1366  # noqa: PLR2004
+    return __open_duck_and_assert_title(browser)
 
 
 @browser_decorator(browser_name="ff")
-def func_decorator_ff(browser: Browser = None) -> bool:
+def func_decorator_ff(browser: Browser) -> bool:
     """Firefox decorator."""
     return __open_duck_and_assert_title(browser)
 
 
 @browser_decorator()
-def func_default_decorator(browser: Browser = None) -> bool:
+def func_default_decorator(browser: Browser) -> bool:
     """Firefox default decorator."""
     return __open_duck_and_assert_title(browser)
 

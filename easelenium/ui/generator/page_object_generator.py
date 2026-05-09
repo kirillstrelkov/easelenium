@@ -1,4 +1,5 @@
 """PageObjectGenerator class."""
+
 from __future__ import annotations
 
 import re
@@ -34,9 +35,7 @@ class PageObjectGenerator:
     )
     ELEMENTS_SELECTOR = (
         By.CSS_SELECTOR,
-        "[onclick], [jsaction], a, select, button, input, "
-        "span, p, h1, h2, h3, h4, h5, h6, "
-        "frame, iframe, .btn",
+        "[onclick], [jsaction], a, select, button, input, span, p, h1, h2, h3, h4, h5, h6, frame, iframe, .btn",
     )
     FRAMES_SELECTOR = (By.CSS_SELECTOR, "frame, iframe")
 
@@ -90,11 +89,7 @@ class PageObjectGenerator:
         else:
             is_element_inside = True
 
-        return (
-            self.browser.is_visible(element)
-            and element.tag_name not in bad_element_tags
-            and is_element_inside
-        )
+        return self.browser.is_visible(element) and element.tag_name not in bad_element_tags and is_element_inside
 
     def __get_po_fields_from_page(
         self,
