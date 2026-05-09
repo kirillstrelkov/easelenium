@@ -390,23 +390,23 @@ class Browser:
             by_class=by_class,
         )
         if isinstance(element, WebElement):
-            string = "tag_name: '%s'" % element.tag_name
+            string = f"tag_name: '{element.tag_name}'"
             _id = element.get_attribute("id")
             if _id:
-                string += ", id: '%s'" % _id
+                string += f", id: '{_id}'"
             class_name = element.get_attribute("class")
             if class_name:
-                string += ", class: '%s'" % class_name
+                string += f", class: '{class_name}'"
             text = element.text
             if text:
-                string += ", text: '%s'" % text
+                string += f", text: '{text}'"
             value = element.get_attribute("value")
             if value:
-                string += ", value: '%s'" % value
+                string += f", value: '{value}'"
             name = element.get_attribute("name")
             if name and element.tag_name in ["frame", "iframe"]:
-                string += ", name: '%s'" % name
-            return "Element {%s}" % string
+                string += f", name: '{name}'"
+            return f"Element {{{string}}}"
 
         return f"Element {{By: '{element[0]}', value: '{element[1]}'}}"
 
@@ -422,7 +422,7 @@ class Browser:
         """Return True if browser is Google Chrome."""
         return self.__browser_name.startswith(Browser.GC)
 
-    def _safe_log(self, *args: list[Any]) -> None:
+    def _safe_log(self, *args: Any) -> None:  # noqa: ANN401
         if self.logger:
             args = [self.to_string(arg) if isinstance(arg, WebElement) else str(arg) for arg in args]
             self.logger.info(*args)
@@ -466,7 +466,7 @@ class Browser:
             if e.msg != "Element must be user-editable in order to clear it.":
                 raise
 
-        self._safe_log("Typing '%s' at '%s'", text, element)
+        self._safe_log("Typing '{}' at '{}'", text, element)
 
         element.send_keys(text)
 
@@ -498,7 +498,7 @@ class Browser:
         self.wait_for_visible(element=element, parent=parent)
         element = self.find_element(element=element, parent=parent)
 
-        self._safe_log("Clicking at '%s'", element)
+        self._safe_log("Clicking at '{}'", element)
 
         element.click()
 
@@ -560,7 +560,7 @@ class Browser:
         element = self.find_element(element=element, parent=parent)
         text = element.text
 
-        self._safe_log("Getting text from '%s' -> '%s'", element, text)
+        self._safe_log("Getting text from '{}' -> '{}'", element, text)
 
         return text
 
@@ -814,7 +814,7 @@ class Browser:
         element = self.find_element(element=element, parent=parent)
         value = Select(element).first_selected_option.get_attribute("value")
 
-        self._safe_log("Getting selected value from '%s' -> '%s'", element, value)
+        self._safe_log("Getting selected value from '{}' -> '{}'", element, value)
 
         return value
 
@@ -849,7 +849,7 @@ class Browser:
 
         text = Select(element).first_selected_option.text
 
-        self._safe_log("Getting selected text from '%s' -> '%s'", element, text)
+        self._safe_log("Getting selected text from '{}' -> '{}'", element, text)
 
         return text
 
@@ -1029,7 +1029,7 @@ class Browser:
         element = self.find_element(element=element, parent=parent)
         texts = [option.text for option in Select(element).options]
 
-        self._safe_log("Getting texts from '%s' -> '%s'", element, str(texts))
+        self._safe_log("Getting texts from '{}' -> '{}'", element, str(texts))
 
         return texts
 
@@ -1063,7 +1063,7 @@ class Browser:
         element = self.find_element(element=element, parent=parent)
         values = [option.get_attribute("value") for option in Select(element).options]
 
-        self._safe_log("Getting values from '%s' -> '%s'", element, str(values))
+        self._safe_log("Getting values from '{}' -> '{}'", element, str(values))
 
         return values
 
@@ -1144,7 +1144,7 @@ class Browser:
             return found_elements[0]
 
         raise NoSuchElementException(
-            "Didn't find any elements for selector - %s" % str(element),
+            "Didn't find any elements for selector - {}" % str(element),
         )
 
     def find_elements(  # noqa: PLR0913
@@ -1535,7 +1535,7 @@ class Browser:
             filename = get_timestamp() + ".png"
         path_to_file = str((Path(saving_dir) / filename).absolute())
 
-        self._safe_log("Saving screenshot to '%s'", path_to_file)
+        self._safe_log("Saving screenshot to '{}'", path_to_file)
 
         self._driver.save_screenshot(path_to_file)
         return path_to_file
@@ -1592,7 +1592,7 @@ class Browser:
             by_class=by_class,
         )
 
-        self._safe_log("Switching to '%s' frame", element)
+        self._safe_log("Switching to '{}' frame", element)
 
         self._driver.switch_to.frame(element)
 
@@ -1633,7 +1633,7 @@ class Browser:
 
         self._driver.switch_to.window(new_handles[0])
 
-        self._safe_log("Switching to '%s' window", self._driver.title)
+        self._safe_log("Switching to '{}' window", self._driver.title)
 
     def switch_to_default_content(self) -> None:
         """Switch to default content."""
