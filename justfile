@@ -21,3 +21,7 @@ init:
 
 test:
     uv run pytest
+
+bump part="patch":
+    uv version --bump {{part}}
+    git tag "$(uv version --short)"

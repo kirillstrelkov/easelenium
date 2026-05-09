@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "easelenium"
-version = "0.7.2"
+version = "0.8.0"
 requires-python = ">=3.8"
 readme = { file = "README.md", content-type = "text/markdown" }
 description = "easelenium - Selenium-based Test Automation Framework."
