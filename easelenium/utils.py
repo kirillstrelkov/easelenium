@@ -1,4 +1,5 @@
 """easelenium utilities."""
+
 from __future__ import annotations
 
 import logging
@@ -56,7 +57,7 @@ def get_random_value(values: list[Any], *val_to_skip: str[Any]) -> Any:  # noqa:
 class Logger:
     """Logger class."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         name: str | None = None,
         *,

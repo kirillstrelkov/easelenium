@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 import traceback
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
@@ -462,7 +462,7 @@ class Browser:
         WebElement's wrapped functions
     """
 
-    def type(  # noqa: PLR0913, A003
+    def type(  # noqa: PLR0913
         self,
         element: TypeElement | WebElement | None = None,
         text: str | None = None,
@@ -1106,7 +1106,7 @@ class Browser:
         """Return ActionChains instance."""
         return ActionChains(self._driver)
 
-    def open(self, url: str) -> None:  # noqa: A003
+    def open(self, url: str) -> None:
         """Open url."""
         self.get(url)
 
@@ -1729,13 +1729,13 @@ class Browser:
             timeout = self.__timeout
         try:
             WebDriverWait(self._driver, timeout).until(function, msg)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise TimeoutException(msg) from exc
 
     def close(self) -> None:
         """Close browser."""
         self._driver.close()
 
-    def quit(self) -> None:  # noqa: A003
+    def quit(self) -> None:
         """Close browser."""
         self._driver.quit()

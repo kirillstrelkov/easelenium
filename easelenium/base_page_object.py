@@ -1,6 +1,5 @@
 """Base page object."""
 
-
 from easelenium.browser import Browser
 from easelenium.utils import Logger
 

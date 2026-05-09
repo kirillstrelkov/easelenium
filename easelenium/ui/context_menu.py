@@ -1,4 +1,5 @@
 """Right click menu."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -34,9 +35,7 @@ class ContextMenu(Menu):
         Menu.__init__(self)
 
         self.__id_and_item_data = self.__get_ids_and_item_data(data)
-        self.__text_and_item_data = {
-            d.text: d for d in self.__id_and_item_data.values()
-        }
+        self.__text_and_item_data = {d.text: d for d in self.__id_and_item_data.values()}
 
         self.__create_menu(data)
         self._bind_evt_menu(self.__on_menu_click)

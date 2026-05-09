@@ -1,4 +1,5 @@
 """UI utilities."""
+
 from __future__ import annotations
 
 import os
@@ -189,7 +190,7 @@ class PyFileUI(Panel):
             dialog = MultipleTextEntry(self, "Please enter values", [var])
             if dialog.ShowModal() == ID_OK:
                 self.append_text(
-                    f"\n        assert {dialog.values[var]}",  # noqa: PD011
+                    f"\n        assert {dialog.values[var]}",
                 )
             return
 
@@ -208,16 +209,9 @@ class PyFileUI(Panel):
         lowered_class_name = po_class.name.lower()
 
         is_assert_method = method_name.startswith("assert")
-        is_browser_method = (
-            method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
-        )
-        is_mouse_method = (
-            method_name in ParsedMouseClass.get_parsed_classes()[0].methods
-        )
-        is_page_object_method = (
-            method_name
-            in ParsedPageObjectClass.get_parsed_classes(po_class.file_path)[0].methods
-        )
+        is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
+        is_mouse_method = method_name in ParsedMouseClass.get_parsed_classes()[0].methods
+        is_page_object_method = method_name in ParsedPageObjectClass.get_parsed_classes(po_class.file_path)[0].methods
 
         # replacing 'element' with correctly formatted string - self.obj.field
         element_txt = "element"
@@ -244,27 +238,22 @@ class PyFileUI(Panel):
         method_kwargs = {}
         if is_getter_method_and_no_args:
             var = method_name.replace(get_prefix, "")
-            method_call_template = (
-                "        {var} = {caller}.{method}({method_args})" + LINESEP
-            )
+            method_call_template = "        {var} = {caller}.{method}({method_args})" + LINESEP
             method_kwargs["var"] = var
         elif caller is None:
             method_call_template = "        {method}({method_args})" + LINESEP
         else:
             method_call_template = "        {caller}.{method}({method_args})" + LINESEP
 
-        if (
-            len(args) > 1
-            and (is_browser_method or is_mouse_method)
-            or len(args) > 0
-            and (is_assert_method or is_page_object_method)
+        if (len(args) > 1 and (is_browser_method or is_mouse_method)) or (
+            len(args) > 0 and (is_assert_method or is_page_object_method)
         ):
             if is_assert_method or is_page_object_method:
                 dialog = MultipleTextEntry(self, "Please enter values", args)
             else:
                 dialog = MultipleTextEntry(self, "Please enter values", args[1:])
             if dialog.ShowModal() == ID_OK:
-                for name, value in dialog.values.items():  # noqa: PD011
+                for name, value in dialog.values.items():
                     args[args.index(name)] = value
                 method_kwargs.update(
                     {
@@ -480,10 +469,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                 Path(self.__cur_po_class.file_path).name,
             )
 
-        if (
-            not more_than_1_tab
-            and self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE
-        ):
+        if not more_than_1_tab and self.tabs.GetSelection() != self.TAB_INDEX_FOR_PO_CLASS_FILE:
             self.tabs.SetSelection(self.TAB_INDEX_FOR_PO_CLASS_FILE)
 
         self.tabs.set_tabs_text(file_name, self.TAB_INDEX_FOR_PO_CLASS_FILE)
@@ -511,9 +497,7 @@ class FieldsTableAndTestFilesTabs(Panel):
             else:
                 show_dialog(
                     self,
-                    "Selected tab is not supported"
-                    + LINESEP
-                    + "Please selected test file or page object class",
+                    "Selected tab is not supported" + LINESEP + "Please selected test file or page object class",
                     "Bad selected tab",
                 )
         else:

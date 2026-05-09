@@ -1,4 +1,5 @@
 """Page object class tests."""
+
 from __future__ import annotations
 
 import codecs
@@ -74,10 +75,7 @@ class PageObjectClassTest(TestCase):
     ID_FOOTER_HOMEPAGE_DIV_1_SPAN_1_BR_1 = (By.XPATH, u'id("footer_homepage")/DIV[1]/SPAN[1]/BR[1]') # location: (747, 572) dimensions: (0, 20)
     DDGSI_ADD_TO_BROWSER_BADGE_CLOSE_JS_ADD_TO_BROWSER_CLOSE = (By.CSS_SELECTOR, u'.ddgsi.add-to-browser-badge__close.js-add-to-browser-close') # location: (754, 559) dimensions: (30, 38)
 """
-            assert (
-                self.po_class_object._get_fields_as_code().strip()
-                == expected_fields.strip()
-            )
+            assert self.po_class_object._get_fields_as_code().strip() == expected_fields.strip()
 
     def test_get_file_content(self) -> None:
         """Check get file content."""
@@ -87,10 +85,7 @@ class PageObjectClassTest(TestCase):
             )
         else:
             expected_string = read_file(self.expected_duckduckgo_class_path)
-            assert (
-                self.po_class_object._get_file_content().strip()
-                == expected_string.strip()
-            )
+            assert self.po_class_object._get_file_content().strip() == expected_string.strip()
 
     def test_get_by_as_code_str(self) -> None:
         """Check get by as code str."""
@@ -116,10 +111,7 @@ class PageObjectClassTest(TestCase):
             )
         else:
             expected_string = read_file(self.expected_duckduckgo_class_path)
-            assert (
-                self.po_class_object._get_file_content().strip()
-                == expected_string.strip()
-            )
+            assert self.po_class_object._get_file_content().strip() == expected_string.strip()
 
             po_class = PageObjectClass.parse_string_to_po_class(
                 read_file(self.expected_duckduckgo_class_path),

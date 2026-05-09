@@ -1,4 +1,5 @@
 """String utilities tests."""
+
 from unittest.case import TestCase
 
 from easelenium.ui.string_utils import StringUtils

@@ -1,4 +1,5 @@
 """Parsed class."""
+
 from __future__ import annotations
 
 import inspect
@@ -97,11 +98,7 @@ class ParsedClass:
 
         def filter_private_members(members: list[str, callable]) -> list[str, callable]:
             """Filter private and protected methods."""
-            return [
-                m
-                for m in members
-                if cls.PROTECTED_PREFIX not in m[0] or cls.PRIVATE_PREFIX not in m[0]
-            ]
+            return [m for m in members if cls.PROTECTED_PREFIX not in m[0] or cls.PRIVATE_PREFIX not in m[0]]
 
         parsed_classes = []
         for class_name, _class in classes:
@@ -144,10 +141,7 @@ class ParsedBrowserClass(ParsedClass):
                 n: v
                 for n, v in _class.methods.items()
                 if not n.startswith("_")
-                and (
-                    cls._LOCATOR_NAME in _class.get_arg_spec(n).args
-                    or n in cls._GOOD_METHODS
-                )
+                and (cls._LOCATOR_NAME in _class.get_arg_spec(n).args or n in cls._GOOD_METHODS)
             }
         return parsed_classes
 
@@ -166,9 +160,7 @@ class ParsedMouseClass(ParsedClass):
         parsed_classes = ParsedClass.get_parsed_classes(Mouse)
         for _class in parsed_classes:
             _class.methods = {
-                n: v
-                for n, v in _class.methods.items()
-                if cls._LOCATOR_NAME in _class.get_arg_spec(n).args
+                n: v for n, v in _class.methods.items() if cls._LOCATOR_NAME in _class.get_arg_spec(n).args
             }
         return parsed_classes
 

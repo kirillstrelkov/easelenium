@@ -1,4 +1,5 @@
 """Utilities tests."""
+
 from unittest.case import TestCase
 
 from easelenium.utils import (

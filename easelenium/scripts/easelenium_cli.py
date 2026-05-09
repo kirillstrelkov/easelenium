@@ -10,7 +10,7 @@ import pytest
 
 sys.path.append((Path(__file__).parent / "../..").as_posix())
 
-from easelenium.browser import Browser  # noqa: E402
+from easelenium.browser import Browser
 
 
 class EaseleniumPlugin:
@@ -21,8 +21,7 @@ class EaseleniumPlugin:
         group.addoption(
             "--browser",
             dest="BROWSER",
-            help="Specify browser by using initials. "
-            "If value was not passed then 'ff' will be used. ",
+            help="Specify browser by using initials. If value was not passed then 'ff' will be used. ",
             choices=Browser.get_supported_browsers(),
         )
 

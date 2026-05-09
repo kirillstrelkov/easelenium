@@ -1,4 +1,5 @@
 """Page object class."""
+
 from __future__ import annotations
 
 import ast
@@ -53,7 +54,7 @@ def get_by_from_code_str(by_as_string: str) -> str:
 class PageObjectClassField:
     """Page object class field."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         name: str,
         by: str,
@@ -71,9 +72,7 @@ class PageObjectClassField:
     def __eq__(self, other: PageObjectClass) -> bool:
         """Return True if two PageObjectClassField are equal else False."""
         return (other is not None) and (
-            self.name == other.name
-            and self.by == other.by
-            and self.selector == other.selector
+            self.name == other.name and self.by == other.by and self.selector == other.selector
         )
 
     def __repr__(self) -> str:
@@ -189,7 +188,7 @@ class {name}(BasePageObject):
                 field_location,
                 field_dimensions,
             ) in tmp_fields:
-                by, selector = eval(field_by_and_selector)  # noqa: S307, PGH001
+                by, selector = eval(field_by_and_selector)  # noqa: S307
                 location = ast.literal_eval(field_location)
                 dimensions = ast.literal_eval(field_dimensions)
                 po_class_field = PageObjectClassField(

@@ -1,4 +1,5 @@
 """Test Runner UI."""
+
 from __future__ import annotations
 
 import os
@@ -199,11 +200,7 @@ class TestRunnerTab(Panel):
         window = SplitterWindow(self, style=SP_3D | SP_LIVE_UPDATE)
         self.tree_ctrl = CustomTreeCtrl(
             window,
-            style=TR_SINGLE
-            | TR_HAS_BUTTONS
-            | TR_AUTO_CHECK_CHILD
-            | TR_AUTO_CHECK_PARENT
-            | TR_AUTO_TOGGLE_CHILD,
+            style=TR_SINGLE | TR_HAS_BUTTONS | TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD,
         )
         self.tree_ctrl.SetBackgroundColour(self.GetBackgroundColour())
         self.tree_ctrl.SetForegroundColour(self.GetForegroundColour())
@@ -226,7 +223,7 @@ class TestRunnerTab(Panel):
     def __on_show_help(self, _evt: Event) -> None:
         # TODO: simplify  # noqa: TD003, FIX002, TD002
         text = check_output(
-            [  # noqa: S603
+            [
                 os.sys.executable,
                 str(
                     (Path(__file__).parent / "../scripts/easelenium_cli.py").absolute(),
@@ -304,7 +301,7 @@ class TestRunnerTab(Panel):
             if path_for_subfolder.exists():
                 return str(path_for_subfolder)
 
-        return folder if folder else "."
+        return folder or "."
 
     def __load_tests_to_tree(
         self,
@@ -318,11 +315,7 @@ class TestRunnerTab(Panel):
         else:
             python_files = []
 
-        python_files = [
-            f
-            for f in python_files
-            if "test" in Path(f).name and Path(f).suffix == ".py"
-        ]
+        python_files = [f for f in python_files if "test" in Path(f).name and Path(f).suffix == ".py"]
         if python_files:
             syspath = list(os.sys.path)
             try:
@@ -350,9 +343,7 @@ class TestRunnerTab(Panel):
                             checkbox_type,
                         )
 
-                        test_methods = [
-                            k for k in parsed_class.methods if k.startswith("test_")
-                        ]
+                        test_methods = [k for k in parsed_class.methods if k.startswith("test_")]
                         for tc_name in test_methods:
                             self.tree_ctrl.AppendItem(item, tc_name, checkbox_type)
 
@@ -392,7 +383,7 @@ class TestRunnerTab(Panel):
             for _class in _file.GetChildren():
                 for test_case in _class.GetChildren():
                     if test_case.IsChecked():
-                        # TODO: fix for files that contain spaces  # noqa: TD002, TD003, FIX002, E501
+                        # TODO: fix for files that contain spaces  # noqa: TD002, TD003, FIX002
                         test_path = _file.GetText()
                         test_class = _class.GetText()
                         test_method = test_case.GetText()
@@ -407,23 +398,17 @@ class TestRunnerTab(Panel):
             f"--rootdir={self.__get_safe_path_from_root_folder()}",
         ]
 
-        use_html_report = (
-            self.cb_html_output.IsChecked() and len(self.txt_html_report.GetValue()) > 0
-        )
+        use_html_report = self.cb_html_output.IsChecked() and len(self.txt_html_report.GetValue()) > 0
         if use_html_report:
             report_path = self.txt_html_report.GetValue()
             args.append(f"--html={report_path}")
 
-        use_xml_report = (
-            self.cb_xml_output.IsChecked() and len(self.txt_xml_report.GetValue()) > 0
-        )
+        use_xml_report = self.cb_xml_output.IsChecked() and len(self.txt_xml_report.GetValue()) > 0
         if use_xml_report:
             report_path = self.txt_xml_report.GetValue()
             args.append(f"--junitxml={report_path}")
 
-        use_options = (
-            self.cb_options.IsChecked() and len(self.txt_options.GetValue()) > 0
-        )
+        use_options = self.cb_options.IsChecked() and len(self.txt_options.GetValue()) > 0
         if use_options:
             report_path = self.txt_options.GetValue()
             args.append(report_path)

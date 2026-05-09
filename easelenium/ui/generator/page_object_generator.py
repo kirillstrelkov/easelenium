@@ -258,8 +258,7 @@ class PageObjectGenerator:
         return None
 
     def _get_css_selector(self, element: TypeElement) -> TypeBy | None:
-        """
-        Recursively tries to find unique CSS selector for given element.
+        """Recursively tries to find unique CSS selector for given element.
 
         Goes up through DOM tree until HTML or BODY tag is found. If
         doesn't find unique selector returns None.

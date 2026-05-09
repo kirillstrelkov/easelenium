@@ -1,4 +1,5 @@
 """Parsed classes and module."""
+
 import inspect
 from pathlib import Path
 from unittest.case import TestCase

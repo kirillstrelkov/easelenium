@@ -1,4 +1,5 @@
 """Editor UI."""
+
 from __future__ import annotations
 
 import os
@@ -184,9 +185,7 @@ class EditorTab(Panel):
             show_dialog(self, "File name is incorrect: %s" % path, "Bad file name")
         else:
             folder = Path(path).parent
-            files = [
-                str(folder / p) for p in os.listdir(folder) if is_correct_python_file(p)
-            ]
+            files = [str(folder / p) for p in os.listdir(folder) if is_correct_python_file(p)]
             self.cb_class_path.Clear()
             self.cb_class_path.AppendItems(files)
             self.cb_class_path.Select(files.index(path))

@@ -1,4 +1,5 @@
 """Image panel."""
+
 from typing import Any
 
 from wx import (
@@ -45,10 +46,7 @@ class ImagePanel(ScrolledWindow):
     def was_image_loaded(self) -> bool:
         """Return if image was loaded."""
         return bool(
-            self.img_path
-            and self.wx_image
-            and self.original_bitmap
-            and self.greyscaled_bitmap,
+            self.img_path and self.wx_image and self.original_bitmap and self.greyscaled_bitmap,
         )
 
     def get_image_dimensions(self) -> TypePoint:
@@ -67,11 +65,7 @@ class ImagePanel(ScrolledWindow):
             bitmap = Bitmap(self.wx_image)
             bitmap_to_draw = bitmap.GetSubBitmap(Rect(x, y, w, h))
 
-            bitmap = (
-                bitmap.ConvertToImage()
-                .ConvertToGreyscale(0.156, 0.308, 0.060)
-                .ConvertToBitmap()
-            )
+            bitmap = bitmap.ConvertToImage().ConvertToGreyscale(0.156, 0.308, 0.060).ConvertToBitmap()
 
             self.original_bitmap = self._get_bitmap(
                 bitmap,
@@ -85,9 +79,7 @@ class ImagePanel(ScrolledWindow):
         else:
             self.original_bitmap = Bitmap(self.wx_image)
         self.greyscaled_bitmap = (
-            self.original_bitmap.ConvertToImage()
-            .ConvertToGreyscale(0.209, 0.411, 0.080)
-            .ConvertToBitmap()
+            self.original_bitmap.ConvertToImage().ConvertToGreyscale(0.209, 0.411, 0.080).ConvertToBitmap()
         )
 
         self.static_bitmap.SetBitmap(self.original_bitmap)

@@ -1,4 +1,5 @@
 """Table UI."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -24,11 +25,7 @@ class Table(Grid):
 
     def get_selected_data(self) -> Any:  # noqa: ANN401
         """Get selected data."""
-        return (
-            self.__data[self.selected_row]
-            if self.selected_row is not None
-            else self.selected_row
-        )
+        return self.__data[self.selected_row] if self.selected_row is not None else self.selected_row
 
     def load_data(self, data: dict[str, Any]) -> None:
         """Load data."""

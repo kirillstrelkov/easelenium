@@ -1,4 +1,5 @@
 """Selectable image panel."""
+
 from wx import EVT_LEFT_DOWN, EVT_MOTION, HORIZONTAL, VERTICAL, Event, Rect, Window
 
 from easelenium.ui.utils import TypeArea, TypePoint
@@ -28,7 +29,7 @@ class SelectableImagePanel(ImagePanel):
     def on_mouse_move(self, evt: Event) -> None:
         """Handle mouse move."""
         if self.was_image_loaded() and evt.Dragging() and self.__start_position:
-            # TODO: doesn't work in Windows if window is scrolled  # noqa: TD002, TD003, FIX002, E501
+            # TODO: doesn't work in Windows if window is scrolled  # noqa: TD002, TD003, FIX002
             start_position = self._get_fixed_position(self.__start_position)
             end_position = self._get_fixed_position(evt.GetPosition())
             self._draw_selected_area(start_position, end_position)
@@ -43,8 +44,8 @@ class SelectableImagePanel(ImagePanel):
 
     def _draw_selected_area(self, start_pos: int, end_pos: int) -> None:
         # TODO: reimplement - remove lagging  # noqa: TD002, FIX002, TD003
-        x = start_pos[0] if start_pos[0] < end_pos[0] else end_pos[0]
-        y = start_pos[1] if start_pos[1] < end_pos[1] else end_pos[1]
+        x = min(end_pos[0], start_pos[0])
+        y = min(end_pos[1], start_pos[1])
         w = abs(end_pos[0] - start_pos[0])
         h = abs(end_pos[1] - start_pos[1])
 
