@@ -2,97 +2,184 @@
 
 [![Test](https://github.com/kirillstrelkov/easelenium/actions/workflows/test.yml/badge.svg?branch=master&event=push)](https://github.com/kirillstrelkov/easelenium/actions/workflows/test.yml)
 
-Framework based on Selenium WebDriver. Contains wrapper around Selenium WebDriver functionaly and UI to facilitate in development.
+Selenium WebDriver wrapper and GUI toolkit for test automation. Provides a high-level `Browser` API, the [PageObject pattern](https://selenium-python.readthedocs.io/page-objects.html), and an optional wxPython GUI for generating and running tests without writing boilerplate.
 
-Features:
+**Features:**
 
-- Supports Firefox, Chrome, IE, Opera and PhantomJS.
-- Supports [PageObject pattern](https://code.google.com/p/selenium/wiki/PageObjects)
-- Supports Continuous Integration
-- Suits for novice users.
-- Supports only Python 3.8+(for older python versions check [0.3](https://github.com/kirillstrelkov/easelenium/releases/tag/0.3) tag)
+- Supports Firefox, Chrome, and Edge
+- PageObject pattern with code generation
+- Context manager and decorator APIs for browser lifecycle
+- Optional wxPython GUI (Generator, Editor, Test Runner tabs)
+- CI-friendly CLI wrapper around pytest
+- Python 3.8+
 
-Framework can be used as standalone framework with UI and/or as a library.
-Supportive classes:
-
-- [browser.py](/easelenium/browser.py)
-- [base_page_object.py](/easelenium/base_page_object.py)
-- [base_test.py](/easelenium/base_test.py)
-
-GUI [easelenium_ui](/easelenium/scripts/easelenium_ui.py):
-
-- Generator
-- Editor
-- Test runner
-
-## Dependencies
-
-1. Python
-2. wxPython
-3. Selenium WebDriver
-4. pytest
-5. pytest-html
-6. pytest-dotenv
-7. loguru
-
-## Simple usage
-
-Most of `Browser` functions support both `WebElement` object and tuple/list which represents html element. This tuple/list object should contain selector/locator as first element and value as a second element. Example: `input = (By.NAME, 'q')`
-
-Here is simple example:
-
-```python
->>> from easelenium.browser import Browser
-
->>> browser = Browser('gc') # create browser
-
->>> browser.get('https://www.duckduckgo.com') # go to page
-
->>> browser.type(by_name='q', text='selenium') # type 'selenium' into search field
-
->>> browser.click(by_id='search_button_homepage') # click search button
-
->>> browser.get_text(by_css='h2.result__title') # get first result title
-'SeleniumHQ Browser Automation'
-
->>> browser.quit() # close browser
-```
-
-Check [browser_test.py](/easelenium/test/browser_test.py) for more examples.
-
-## Continuous Integration
-
-Done via command line script [easelenium_cli](/easelenium/scripts/easelenium_cli.py)
+---
 
 ## Installation
 
-### Using `pip`
+### Pip
 
 ```shell
-pip install easelenium
+pip install easelenium           # library only
+pip install "easelenium[gui]"    # with GUI
 ```
 
-### Manual
+### With uv
 
-1. Download latest code from GitHub
-2. Extract it
-3. Open terminal or command line console
-4. Navigate to extracted folder
-5. Install all required libraries
+```shell
+uv add easelenium           # library only
+uv add "easelenium[gui]"    # with GUI
+```
 
-   ```shell
-   python -m pip install -r requirements.txt
-   ```
+---
 
-6. Go to `easelenium` folder and install with command:
+## Usage
 
-   ```shell
-   python setup.py install
-   ```
+### Direct API
+
+```python
+from easelenium.browser import Browser
+from selenium.webdriver.common.by import By
+
+browser = Browser("gc")                          # gc=Chrome, ff=Firefox, edge=Edge
+browser.get("https://duckduckgo.com")
+browser.type(by_name="q", text="selenium")
+browser.click(by_id="search_button_homepage")
+print(browser.get_text(by_css="h2.result__title"))
+browser.quit()
+```
+
+Most `Browser` methods accept either a `WebElement`, `by_*=` or a `(By, selector)` tuple:
+
+```python
+search_input = (By.NAME, "q")
+browser.type(search_input, text="selenium")
+browser.click((By.ID, "search_button_homepage"))
+```
+
+### Context manager
+
+```python
+from easelenium.browser import browser_context
+
+with browser_context("gc", headless=True) as browser:
+    browser.get("https://duckduckgo.com")
+    print(browser.get_title())
+# browser.quit() called automatically; screenshot saved on exception
+```
+
+### Decorator
+
+```python
+from easelenium.browser import browser_decorator
+
+@browser_decorator(browser_name="gc", headless=True)
+def run_search(browser=None):
+    browser.get("https://duckduckgo.com")
+    browser.type(by_name="q", text="selenium")
+```
+
+### PageObject pattern
+
+```python
+from selenium.webdriver.common.by import By
+from easelenium.base_page_object import BasePageObject
+
+class DuckDuckGo(BasePageObject):
+    SEARCH_INPUT = (By.NAME, "q")
+    SEARCH_BUTTON = (By.ID, "search_button_homepage")
+
+    def search(self, text):
+        self.browser.get("https://duckduckgo.com")
+        self.browser.type(self.SEARCH_INPUT, text=text)
+        self.browser.click(self.SEARCH_BUTTON)
+```
+
+### Test base class
+
+```python
+from easelenium.base_test import BaseTest
+
+class MyTest(BaseTest):
+    BROWSER_NAME = "gc"
+
+    def test_title(self):
+        self.browser.get("https://duckduckgo.com")
+        assert "DuckDuckGo" in self.browser.get_title()
+```
+
+`BaseTest` handles browser setup/teardown and saves a screenshot on failure.
+
+---
+
+## GUI
+
+Requires the `[gui]` extra. Launch with:
+
+```shell
+easelenium_ui
+# or
+python easelenium/scripts/easelenium_ui.py
+```
+
+| Tab             | Purpose                                            |
+| --------------- | -------------------------------------------------- |
+| Generator       | Open a URL, click elements, emit PageObject source |
+| Editor          | Edit generated PageObject files                    |
+| Selector Finder | Interactively test CSS/XPath selectors             |
+| Test Runner     | Run pytest suites and view results                 |
+
+---
+
+## CLI (CI)
+
+```shell
+easelenium_cli --browser GC tests/
+# or
+python easelenium/scripts/easelenium_cli.py --browser GC tests/
+```
+
+Wraps pytest and injects the chosen browser into fixtures via a pytest plugin.
+
+---
+
+## Development
+
+Requires [uv](https://docs.astral.sh/uv/) and [just](https://github.com/casey/just).
+
+```shell
+just init        # create .venv and install dependencies
+just fmt         # ruff format
+just fix         # ruff check --fix + pyright
+just test        # run pytest
+just bump minor  # bump version and create git tag (major / minor / patch)
+```
+
+On Linux, run tests with a virtual display:
+
+```shell
+xvfb-run --server-args="-screen 0 1366x768x24" pytest tests/
+```
+
+---
+
+## Dependencies
+
+| Package              | Role                               |
+| -------------------- | ---------------------------------- |
+| selenium             | WebDriver core                     |
+| webdriver-manager    | Auto-download browser drivers      |
+| loguru               | Logging                            |
+| pytest / pytest-html | Test runner                        |
+| wxPython             | GUI (optional — `easelenium[gui]`) |
+
+---
 
 ## License
 
-MIT License [easelenium_license.txt](/easelenium/licenses/easelenium_license.txt)
+MIT — [easelenium/licenses/easelenium_license.txt](/easelenium/licenses/easelenium_license.txt)
+
+---
 
 ## Tutorial
 
