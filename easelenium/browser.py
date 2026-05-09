@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 import traceback
+from contextlib import contextmanager, suppress
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
@@ -32,9 +33,12 @@ from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager, IEDriverManager
 
 from easelenium.mouse import Mouse
-from easelenium.utils import Logger, get_random_value, get_timestamp
+from easelenium.utils import get_random_value, get_timestamp
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from loguru import Logger
     from selenium.webdriver.remote.webdriver import WebDriver
 
 TypeElement = Union[WebElement, Tuple[str, str]]
@@ -43,7 +47,7 @@ TypeElement = Union[WebElement, Tuple[str, str]]
 def browser_decorator(
     browser_name: str | None = None,
     timeout: float = 5,
-    logger: Logger = None,
+    logger: Logger | None = None,
     *,
     headless: bool = False,
     webdriver_kwargs: dict[str, Any] | None = None,
@@ -51,7 +55,7 @@ def browser_decorator(
     """Python decorator with Browser initialization."""
 
     def func_decorator(func: callable) -> Any:  # noqa: ANN401
-        def wrapper(*args: list[Any], **kwargs: dict[str, Any]) -> Any:  # noqa: ANN401
+        def wrapper(*args: object, **kwargs: object) -> Any:  # noqa: ANN401
             browser = None
             return_value = None
             try:
@@ -82,6 +86,32 @@ def browser_decorator(
         return wrapper
 
     return func_decorator
+
+
+@contextmanager
+def browser_context(
+    browser_name: str | None = None,
+    timeout: float = 5,
+    logger: Logger | None = None,
+    *,
+    headless: bool = False,
+    webdriver_kwargs: dict[str, Any] | None = None,
+) -> Generator[Browser]:
+    """Context manager that yields a Browser and quits it on exit."""
+    browser = Browser(
+        browser_name=browser_name,
+        logger=logger,
+        timeout=timeout,
+        headless=headless,
+        webdriver_kwargs=webdriver_kwargs,
+    )
+    try:
+        yield browser
+    except Exception:  # noqa: BLE001
+        browser.save_screenshot()
+        traceback.print_exc()
+    finally:
+        browser.quit()
 
 
 class Browser:
@@ -422,10 +452,11 @@ class Browser:
         """Return True if browser is Google Chrome."""
         return self.__browser_name.startswith(Browser.GC)
 
-    def _safe_log(self, *args: Any) -> None:  # noqa: ANN401
-        if self.logger:
-            args = [self.to_string(arg) if isinstance(arg, WebElement) else str(arg) for arg in args]
-            self.logger.info(*args)
+    def _safe_log(self, *args: object) -> None:
+        if not self.logger:
+            return
+        converted = [self.to_string(arg) if isinstance(arg, WebElement) else str(arg) for arg in args]
+        self.logger.info(*converted)
 
     """
         WebElement's wrapped functions
