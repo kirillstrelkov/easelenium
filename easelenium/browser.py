@@ -52,7 +52,7 @@ def browser_decorator(
     headless: bool = False,
     webdriver_kwargs: dict[str, Any] | None = None,
 ) -> Any:  # noqa: ANN401
-    """Python decorator with Browser initialization."""
+    """Wrap a function with browser setup, screenshot on failure, and teardown."""
 
     def func_decorator(func: callable) -> Any:  # noqa: ANN401
         def wrapper(*args: object, **kwargs: object) -> Any:  # noqa: ANN401
@@ -163,7 +163,7 @@ class Browser:
         maximize: bool = True,
         webdriver_kwargs: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize."""
+        """Open a browser session with the given driver and options."""
         if webdriver_kwargs is None:
             webdriver_kwargs = {}
 
@@ -458,9 +458,6 @@ class Browser:
         converted = [self.to_string(arg) if isinstance(arg, WebElement) else str(arg) for arg in args]
         self.logger.info(*converted)
 
-    """
-        WebElement's wrapped functions
-    """
 
     def type(  # noqa: PLR0913
         self,
@@ -811,9 +808,6 @@ class Browser:
 
         return size["width"], size["height"]
 
-    """
-        Dropdown list related methods
-    """
 
     def get_selected_value_from_dropdown(  # noqa: PLR0913
         self,
@@ -1098,16 +1092,13 @@ class Browser:
 
         return values
 
-    """
-        WebDriver's wrapped functions
-    """
 
     def get_action_chains(self) -> ActionChains:
         """Return ActionChains instance."""
         return ActionChains(self._driver)
 
     def open(self, url: str) -> None:
-        """Open url."""
+        """Alias for get()."""
         self.get(url)
 
     def get(self, url: str) -> None:
@@ -1158,7 +1149,7 @@ class Browser:
         by_css: str | None = None,
         by_class: str | None = None,
     ) -> WebElement:
-        """Find descendant."""
+        """Return the first matching descendant element, raise if none found."""
         found_elements = self.find_descendants(
             element=element,
             parent=parent,
@@ -1191,7 +1182,7 @@ class Browser:
         by_class: str | None = None,
         parent: TypeElement | WebElement | None = None,
     ) -> list[WebElement]:
-        """Find element."""
+        """Return all elements matching the locator."""
         return self.__get_webelements(
             element=element,
             parent=parent,
@@ -1218,7 +1209,7 @@ class Browser:
         by_css: str | None = None,
         by_class: str | None = None,
     ) -> list[WebElement]:
-        """Find descendant."""
+        """Return all matching descendant elements."""
         return self.__get_webelements(
             element=element,
             parent=parent,
@@ -1703,13 +1694,13 @@ class Browser:
         self._driver.delete_all_cookies()
 
     def alert_accept(self) -> None:
-        """Accept modal window."""
+        """Accept the active modal dialog."""
         self._safe_log("Clicking Accept/OK in alert box")
 
         self._driver.switch_to.alert.accept()
 
     def alert_dismiss(self) -> None:
-        """Dismiss model window."""
+        """Dismiss the active modal dialog."""
         self._safe_log("Clicking Dismiss/Cancel in alert box")
 
         self._driver.switch_to.alert.dismiss()
@@ -1733,9 +1724,9 @@ class Browser:
             raise TimeoutException(msg) from exc
 
     def close(self) -> None:
-        """Close browser."""
+        """Close the current window."""
         self._driver.close()
 
     def quit(self) -> None:
-        """Close browser."""
+        """Quit the browser and end the session."""
         self._driver.quit()
