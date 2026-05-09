@@ -1,73 +1,39 @@
 [build-system]
-requires = ["setuptools", "setuptools-scm", "setuptools-git-versioning"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "easelenium"
+version = "0.7.2"
 requires-python = ">=3.8"
-dynamic = ["version"]
 readme = { file = "README.md", content-type = "text/markdown" }
 description = "easelenium - Selenium-based Test Automation Framework."
-license = { file = "licenses/easelenium_license.txt" }
 authors = [
     { name = "Kirill Strelkov", email = "kirillstrelkov@users.noreply.github.com" },
 ]
 dependencies = [
-    "wheel",
     "selenium",
     "attrdict3",
     "pytest",
-    "pytest_html",
+    "pytest-html",
     "loguru",
     "webdriver-manager",
-    "wxPython",
 ]
+
+[project.optional-dependencies]
+gui = ["wxPython"]
 
 [project.scripts]
 easelenium_cli = "easelenium.scripts.easelenium_cli:main"
 easelenium_ui = "easelenium.scripts.easelenium_ui:main"
 
-
-[tool.setuptools.dynamic]
-readme = { file = ["README.md"] }
-
-[tool.setuptools-git-versioning]
-enabled = true
-
-[tool.ruff]
-target-version = "py38"
-exclude = [
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "build",
-    "dist",
-    "site-packages",
-    "venv",
+[dependency-groups]
+dev = [
+    "pytest-cov",
+    "pytest-dotenv",
+    "pytest-profiling",
+    "ruff",
 ]
 
-line-length = 88
-indent-width = 4
-
-[tool.ruff.lint]
-select = ["ALL"]
-ignore = ["D203", "D212", "ANN101"]
-
-fixable = ["ALL"]
-unfixable = []
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-docstring-code-format = false
-docstring-code-line-length = "dynamic"
-
-[tool.ruff.lint.per-file-ignores]
-"**/{tests}/*" = ["S101", "E501", "INP001", "SLF001"]
-"**/tests/**/data/*" = ["ALL"]
+[tool.hatch.build.targets.wheel]
+packages = ["easelenium"]

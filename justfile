@@ -6,7 +6,7 @@ fmt:
 	ruff format
 
 fix:
-	ruff check --fix --unsafe-fixes
+	ruff check --fix
 
 clean:
 	ruff clean
@@ -16,12 +16,8 @@ clean:
 
 
 init:
-	env | grep PYTHON
 	rm -rf .venv || true
-	uv venv --no-project
-	source .venv/bin/activate
-	which python
-	uv pip install -r requirements.txt
+	uv sync --no-install-project
 
 test:
     uv run pytest
