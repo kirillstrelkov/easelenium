@@ -9,9 +9,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from random import choice
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 LINESEP = os.linesep
 
@@ -21,7 +24,7 @@ def get_match(
     string: str,
     *,
     single_match: bool = True,
-) -> str | None:
+) -> str | list[str] | None:
     """Return first match."""
     found = re.findall(regexp, string)
     if found:
@@ -38,7 +41,8 @@ def is_windows() -> bool:
 def get_timestamp() -> str:
     """Return current timestamp."""
     timetuple = datetime.now().timetuple()  # noqa: DTZ005
-    return "%d%02d%02d%02d%02d%02d" % timetuple[:6]
+    t = timetuple[:6]
+    return f"{t[0]}{t[1]:02d}{t[2]:02d}{t[3]:02d}{t[4]:02d}{t[5]:02d}"
 
 
 def is_string(obj: Any) -> bool:  # noqa: ANN401
@@ -46,7 +50,7 @@ def is_string(obj: Any) -> bool:  # noqa: ANN401
     return isinstance(obj, str)
 
 
-def get_random_value(values: list[Any], *val_to_skip: str[Any]) -> Any:  # noqa: ANN401
+def get_random_value(values: list[Any], *val_to_skip: str) -> Any:  # noqa: ANN401
     """Return random value from list."""
     tmp_values = list(values)
     for skipped in val_to_skip:
@@ -63,7 +67,7 @@ class Logger:
         *,
         log_to_console: bool = True,
         file_path: str | None = None,
-        handler: callable | None = None,
+        handler: logging.Handler | Callable[..., Any] | None = None,
         level: int = logging.INFO,
     ) -> None:
         """Initialize."""
@@ -78,15 +82,15 @@ class Logger:
         if handler:
             self.__logger.add(handler, filter=name, level=level)
 
-    def debug(self, msg: str, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def debug(self, msg: str, *args: object, **kwargs: object) -> None:
         """Log debug message."""
         self.__logger.info(msg, *args, **kwargs)
 
-    def info(self, msg: str, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def info(self, msg: str, *args: object, **kwargs: object) -> None:
         """Log info message."""
         self.__logger.info(msg, *args, **kwargs)
 
-    def warn(self, msg: str, *args: list[Any], **kwargs: dict[str, Any]) -> None:
+    def warn(self, msg: str, *args: object, **kwargs: object) -> None:
         """Log warning message."""
         self.__logger.warning(msg, *args, **kwargs)
 

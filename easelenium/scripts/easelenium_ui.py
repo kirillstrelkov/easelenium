@@ -11,15 +11,15 @@ sys.path.append(str(Path(__file__).parent / "../.."))
 def main() -> None:
     """Run easelenium UI."""
     try:
-        from wx import App
+        from wx import App  # noqa: PLC0415
 
-        from easelenium.ui.main_ui import MainFrame
+        from easelenium.ui.main_ui import MainFrame  # noqa: PLC0415
     except ImportError:
         print("GUI dependencies are not installed. Run: pip install easelenium[gui]")  # noqa: T201
         sys.exit(1)
 
     app = App(redirect=False)
-    main_ui = MainFrame(None)
+    main_ui = MainFrame(None)  # type: ignore[arg-type]
     main_ui.Show()
     app.MainLoop()
 

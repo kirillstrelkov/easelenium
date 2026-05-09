@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 from selenium.webdriver.common.by import By
 
 from easelenium.ui.file_utils import safe_create_path, save_file
 from easelenium.utils import LINESEP, get_match
+
+if TYPE_CHECKING:
+    from easelenium.ui.utils import TypeArea
 
 
 def get_by_as_code_str(by: str) -> str:
@@ -54,6 +58,8 @@ def get_by_from_code_str(by_as_string: str) -> str:
 class PageObjectClassField:
     """Page object class field."""
 
+    __hash__ = None  # type: ignore[assignment]
+
     def __init__(
         self,
         name: str,
@@ -69,11 +75,11 @@ class PageObjectClassField:
         self.location = location
         self.dimensions = dimensions
 
-    def __eq__(self, other: PageObjectClass) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Return True if two PageObjectClassField are equal else False."""
-        return (other is not None) and (
-            self.name == other.name and self.by == other.by and self.selector == other.selector
-        )
+        if not isinstance(other, PageObjectClassField):
+            return NotImplemented
+        return self.name == other.name and self.by == other.by and self.selector == other.selector
 
     def __repr__(self) -> str:
         """Return a string representation of the object."""
@@ -86,6 +92,8 @@ class PageObjectClassField:
 
 class PageObjectClass:
     """Page object class."""
+
+    __hash__ = None  # type: ignore[assignment]
 
     IMAGE_FOLDER = "img"
     TEMPLATE = """# coding=utf8
@@ -108,11 +116,11 @@ class {name}(BasePageObject):
         self,
         name: str,
         url: str,
-        fields: list[str],
-        area: tuple[int, int] | None = None,
+        fields: list[PageObjectClassField],
+        area: TypeArea | None = None,
         file_path: str | None = None,
         img_path: str | None = None,
-        img_as_png: str | None = None,
+        img_as_png: str | bytes | None = None,
     ) -> None:
         """Initialize."""
         self.name = name
@@ -126,16 +134,20 @@ class {name}(BasePageObject):
     def save(self, new_folder: str | None = None) -> None:
         """Save the class to a file."""
         if new_folder:
+            assert self.file_path is not None  # noqa: S101
+            assert self.img_path is not None  # noqa: S101
             py_filename = Path(self.file_path).name
             img_filename = Path(self.img_path).name
             self.file_path = str(Path(new_folder) / py_filename)
             self.img_path = str(
                 (Path(new_folder) / self.IMAGE_FOLDER / img_filename),
             )
+        assert self.file_path is not None  # noqa: S101
+        assert self.img_path is not None  # noqa: S101
         safe_create_path(self.file_path)
         safe_create_path(self.img_path)
         save_file(self.file_path, self._get_file_content())
-        save_file(self.img_path, self.img_as_png, is_text=False)
+        save_file(self.img_path, self.img_as_png, is_text=False)  # type: ignore[arg-type]
 
     def _get_file_content(self) -> str:
         """Get formatted file content."""
@@ -173,13 +185,15 @@ class {name}(BasePageObject):
         file_path_regexp = r"File path: (.+)"
         fields_regexp = r"\s+(\w+) = (.+) # location: (.+) dimensions: (.+)"
 
-        name = get_match(name_regexp, string)
-        url = get_match(url_regexp, string)
-        area = ast.literal_eval(get_match(area_regexp, string))
-        img_path = get_match(img_path_regexp, string)
-        file_path = get_match(file_path_regexp, string)
+        name = cast("str", get_match(name_regexp, string))
+        url = cast("str", get_match(url_regexp, string))
+        area: TypeArea | None = ast.literal_eval(
+            cast("str", get_match(area_regexp, string)),
+        )
+        img_path = cast("str | None", get_match(img_path_regexp, string))
+        file_path = cast("str | None", get_match(file_path_regexp, string))
         tmp_fields = get_match(fields_regexp, string, single_match=False)
-        fields = []
+        fields: list[PageObjectClassField] = []
 
         if tmp_fields:
             for (
@@ -187,7 +201,7 @@ class {name}(BasePageObject):
                 field_by_and_selector,
                 field_location,
                 field_dimensions,
-            ) in tmp_fields:
+            ) in cast("list[tuple[str, str, str, str]]", tmp_fields):
                 by, selector = eval(field_by_and_selector)  # noqa: S307
                 location = ast.literal_eval(field_location)
                 dimensions = ast.literal_eval(field_dimensions)
@@ -202,8 +216,10 @@ class {name}(BasePageObject):
 
         return PageObjectClass(name, url, fields, area, file_path, img_path)
 
-    def __eq__(self, other: PageObjectClass) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Return True if two PageObjectClass are equal else False."""
+        if not isinstance(other, PageObjectClass):
+            return NotImplemented
         return (
             self.name == other.name
             and self.url == other.url
@@ -213,10 +229,10 @@ class {name}(BasePageObject):
             and self.img_path == other.img_path
         )
 
-    def __repr__(self) -> None:
+    def __repr__(self) -> str:
         """Return a string representation of the object."""
         return str(self)
 
-    def __str__(self) -> None:
+    def __str__(self) -> str:
         """Return a string representation of the object."""
         return f"PageObjectClass({self.__dict__})"

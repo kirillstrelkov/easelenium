@@ -29,6 +29,7 @@ easelenium_ui = "easelenium.scripts.easelenium_ui:main"
 
 [dependency-groups]
 dev = [
+    "pyright>=1.1.409",
     "pytest-cov",
     "pytest-dotenv",
     "pytest-profiling",

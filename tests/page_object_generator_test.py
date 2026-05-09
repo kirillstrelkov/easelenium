@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from time import time
+from typing import Any
 
 import pytest
 from selenium.webdriver.common.by import By
@@ -28,9 +29,9 @@ class PageObjectGeneratorTest(BaseTest):
     LOGGER = None
 
     @classmethod
-    def setUpClass(cls: type[PageObjectGeneratorTest]) -> None:
+    def setUpClass(cls: type[PageObjectGeneratorTest], **kwargs: Any) -> None:
         """Set up class."""
-        super().setUpClass(maximize=False)
+        super().setUpClass(maximize=False, **kwargs)
         cls.generator = PageObjectGenerator(cls.browser)
 
     def setUp(self) -> None:
@@ -104,9 +105,6 @@ class PageObjectGeneratorTest(BaseTest):
                 By.LINK_TEXT,
                 By.XPATH,
             )
-            # TODO: fix
-            # assert field.location != (0, 0)
-            # assert field.dimensions != (0, 0)
 
     def test_get_id_selector_for_element(self) -> None:
         """Check get id selector for element."""
@@ -137,16 +135,24 @@ class PageObjectGeneratorTest(BaseTest):
         """Check get xpath selector for element."""
         by_and_selector = By.XPATH, '//input[contains(@class, "search-input")]'
         element = self.browser.find_element(by_and_selector)
-        assert ".search-input_searchInput" in self.generator._get_css_selector(element)[1]
-        assert "search-input_searchInput" in self.generator._get_selector(element)[1]
+        css_result = self.generator._get_css_selector(element)
+        assert css_result is not None
+        assert ".search-input_searchInput" in css_result[1]
+        sel_result = self.generator._get_selector(element)
+        assert sel_result is not None
+        assert "search-input_searchInput" in sel_result[1]
         assert "SEARCH_INPUT_SEARCHINPUT" in self.generator._get_name_for_field(element)
 
     def test_get_css_selector_for_element(self) -> None:
         """Check get css selector for element."""
         by_and_selector = By.CSS_SELECTOR, "input[class*='search-input']"
         element = self.browser.find_element(by_and_selector)
-        assert ".search-input_searchInput" in self.generator._get_css_selector(element)[1]
-        assert "search-input_searchInput" in self.generator._get_selector(element)[1]
+        css_result = self.generator._get_css_selector(element)
+        assert css_result is not None
+        assert ".search-input_searchInput" in css_result[1]
+        sel_result = self.generator._get_selector(element)
+        assert sel_result is not None
+        assert "search-input_searchInput" in sel_result[1]
         assert "SEARCH_INPUT_SEARCHINPUT" in self.generator._get_name_for_field(element)
 
     def test_duckduckgo_search_results_area(self) -> None:

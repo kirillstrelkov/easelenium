@@ -1,5 +1,7 @@
 """Image panel."""
 
+from __future__ import annotations
+
 from typing import Any
 
 from wx import (
@@ -32,10 +34,10 @@ class ImagePanel(ScrolledWindow):
         """Initialize."""
         ScrolledWindow.__init__(self, parent)
 
-        self.wx_image = None
-        self.original_bitmap = None
-        self.greyscaled_bitmap = None
-        self.img_path = None
+        self.wx_image: Image | None = None
+        self.original_bitmap: Bitmap | None = None
+        self.greyscaled_bitmap: Bitmap | None = None
+        self.img_path: str | None = None
 
         sizer = BoxSizer(VERTICAL)
         self.static_bitmap = StaticBitmap(self)
@@ -51,9 +53,11 @@ class ImagePanel(ScrolledWindow):
 
     def get_image_dimensions(self) -> TypePoint:
         """Get image dimensions."""
+        if self.original_bitmap is None:
+            return (0, 0)
         return (self.original_bitmap.GetWidth(), self.original_bitmap.GetHeight())
 
-    def load_image(self, path: str, area: TypeArea = None) -> None:
+    def load_image(self, path: str, area: TypeArea | None = None) -> None:
         """Load image."""
         self.Scroll(0, 0)
         self.img_path = path
@@ -78,16 +82,18 @@ class ImagePanel(ScrolledWindow):
             )
         else:
             self.original_bitmap = Bitmap(self.wx_image)
+        if self.original_bitmap is None:
+            return
         self.greyscaled_bitmap = (
             self.original_bitmap.ConvertToImage().ConvertToGreyscale(0.209, 0.411, 0.080).ConvertToBitmap()
         )
 
-        self.static_bitmap.SetBitmap(self.original_bitmap)
+        self.static_bitmap.SetBitmap(self.original_bitmap)  # type: ignore[arg-type]
         self.SetScrollbars(
             self.MIN_SCROLL,
             self.MIN_SCROLL,
-            width / self.MIN_SCROLL,
-            height / self.MIN_SCROLL,
+            int(width / self.MIN_SCROLL),
+            int(height / self.MIN_SCROLL),
         )
 
     def _get_bitmap(  # noqa: PLR0913

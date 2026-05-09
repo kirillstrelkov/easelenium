@@ -193,7 +193,7 @@ class BrowserTest(BaseTest):
         """Check get attribute."""
         self.browser.get("https://duckduckgo.com/")
         element = self.browser.find_element(by_css="nav ul a[class*='footer']")
-        assert "footer" in self.browser.get_class(element)
+        assert "footer" in (self.browser.get_class(element) or "")
         assert self.browser.get_tag_name(element) == "a"
         assert self.browser.get_attribute(element, attr="href") == "https://duckduckgo.com/about"
 

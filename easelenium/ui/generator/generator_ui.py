@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import ast
-import os
 import re
 from pathlib import Path
 from threading import Thread
+from typing import TYPE_CHECKING, cast
 
 from selenium.webdriver.common.by import By
 from wx import (
@@ -36,6 +36,9 @@ from easelenium.ui.widgets.utils import (
 )
 from easelenium.utils import LINESEP, Logger, get_py_file_name_from_class_name
 
+if TYPE_CHECKING:
+    from easelenium.ui.main_ui import MainFrame
+
 
 class GeneratorTab(Panel):
     """Generator UI tab."""
@@ -43,7 +46,7 @@ class GeneratorTab(Panel):
     def __init__(self, parent: Window) -> None:
         """Initilize."""
         Panel.__init__(self, parent)
-        self.main_frame = self.GetTopLevelParent()
+        self.main_frame: MainFrame = cast("MainFrame", self.GetTopLevelParent())
 
         self.__create_widgets()
 
@@ -96,7 +99,7 @@ class GeneratorTab(Panel):
 
         self.SetSizer(sizer)
 
-    def __get_root_folder(self) -> str:
+    def __get_root_folder(self) -> str | None:
         return self.main_frame.get_root_folder()
 
     def __load_img(self, _evt: Event | None = None) -> None:
@@ -107,7 +110,7 @@ class GeneratorTab(Panel):
 
             w, h = self.select_image_panel.get_image_dimensions()
 
-            self.txt_selected_area.SetValue("(%d, %d, %d, %d)" % (0, 0, w, h))
+            self.txt_selected_area.SetValue(f"({0}, {0}, {w}, {h})")
             self.main_frame.set_url(browser.get_current_url())
 
     def _on_mouse_move(self, evt: Event) -> None:
@@ -131,7 +134,7 @@ class GeneratorTab(Panel):
             r"\(\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*,\s*[0-9]+\s*\)",
             area,
         ):
-            msg = "Selected area is not correct: '%s'" % area
+            msg = f"Selected area is not correct: '{area}'"
             caption = "Bad selected area"
             show_dialog(self, msg, caption)
             is_correct = False
@@ -139,7 +142,7 @@ class GeneratorTab(Panel):
             show_dialog_path_doesnt_exist(self, root_folder)
             is_correct = False
         elif len(class_name) == 0:  # if bad class_name
-            msg = "Unsupported name for class: '%s'" % class_name
+            msg = f"Unsupported name for class: '{class_name}'"
             caption = "Bad name for class"
             show_dialog(self, msg, caption)
             is_correct = False
@@ -161,12 +164,12 @@ class GeneratorTab(Panel):
         """Generate page object class."""
         if self.__is_gen_data_correct():
             folder = self.__get_root_folder()
-            if RootFolder.PO_FOLDER in os.listdir(folder):
-                folder = Path(folder / RootFolder.PO_FOLDER).as_posix
+            assert folder is not None  # noqa: S101
+            folder_path = Path(folder)
+            if RootFolder.PO_FOLDER in {p.name for p in folder_path.iterdir()}:
+                folder_path = folder_path / RootFolder.PO_FOLDER
             class_name = self.txt_class_name.GetValue()
-            file_path = Path(
-                folder / get_py_file_name_from_class_name(class_name),
-            ).as_posix()
+            file_path = (folder_path / get_py_file_name_from_class_name(class_name)).as_posix()
             area_as_text = self.txt_selected_area.GetValue()
             url = self.main_frame.get_url()
             if Path(file_path).exists():
@@ -176,11 +179,11 @@ class GeneratorTab(Panel):
             elif not StringUtils.is_area_correct(area_as_text):
                 show_dialog(
                     self,
-                    "Bad selected area: %s" % area_as_text,
+                    f"Bad selected area: {area_as_text}",
                     "Bad selected area",
                 )
             elif not StringUtils.is_url_correct(url):
-                show_dialog(self, "Bad url: %s" % url, "Bad url")
+                show_dialog(self, f"Bad url: {url}", "Bad url")
             else:
                 dialog = DialogWithText(self, "Generating page object class...")
                 handler = WxTextCtrlHandler(dialog.txt_ctrl)
@@ -189,15 +192,17 @@ class GeneratorTab(Panel):
                 dialog.Show()
 
                 area = ast.literal_eval(area_as_text)
-                generator = PageObjectGenerator(self.main_frame.get_browser(), logger)
-                folder_path = self.main_frame.get_tmp_dir()
+                browser = self.main_frame.get_browser()
+                assert browser is not None  # noqa: S101
+                generator = PageObjectGenerator(browser, logger)
+                tmp_dir = self.main_frame.get_tmp_dir()
 
                 def generate() -> None:
                     dialog.btn_ok.Disable()
                     po_class = generator.get_po_class_for_url(
                         url,
                         class_name,
-                        folder_path,
+                        tmp_dir,
                         area,
                     )
                     po_class.save(folder)
@@ -208,5 +213,5 @@ class GeneratorTab(Panel):
                     dialog.btn_ok.Enable()
 
                 thread = Thread(target=generate)
-                thread.daemonic = True
+                thread.daemon = True
                 thread.start()

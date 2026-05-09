@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-import os
+import sys
 import tempfile
 import traceback
 from pathlib import Path
 from threading import Thread
-from typing import Any, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Tuple, Union
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from wx import ALL, EXPAND
 
@@ -23,9 +26,9 @@ TypeBy = Union[Tuple[str, str], List[str]]
 
 
 def run_in_separate_thread(
-    target: callable,
+    target: Callable[..., Any],
     name: str | None = None,
-    args: tuple[Any] = (),
+    args: tuple[Any, ...] = (),
     kwargs: dict[str, Any] | None = None,
 ) -> Thread:
     """Run a function in a separate thread."""
@@ -36,10 +39,10 @@ def run_in_separate_thread(
 
 def check_py_code_for_errors(
     code: str,
-    *additional_python_paths: list[str],
+    *additional_python_paths: str,
 ) -> str | None:
     """Check python code for errors."""
-    tmp_file = tempfile.mkstemp()
+    _fd, tmp_file = tempfile.mkstemp()
     save_file(tmp_file, code)
     formatted_exception = check_file_for_errors(tmp_file, *additional_python_paths)
     Path(tmp_file).unlink()
@@ -48,20 +51,20 @@ def check_py_code_for_errors(
 
 def check_file_for_errors(
     path: str,
-    *additional_python_paths: list[str],
+    *additional_python_paths: str,
 ) -> str | None:
     """Check file for errors."""
-    syspath = list(os.sys.path)
+    syspath = list(sys.path)
 
     for py_path in additional_python_paths:
         if Path(py_path).exists():
-            os.sys.path.append(py_path)
+            sys.path.append(py_path)
 
     try:
         ParsedClass.get_parsed_classes(path)
-        os.sys.path = syspath
+        sys.path = syspath
     except Exception:  # noqa: BLE001
-        os.sys.path = syspath
+        sys.path = syspath
         return traceback.format_exc()
 
     return None

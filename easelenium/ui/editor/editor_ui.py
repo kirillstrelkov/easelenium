@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-import os
 import traceback
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from easelenium.ui.widgets.table import Table
 
 from wx import (
     ALL,
@@ -22,6 +25,7 @@ from wx import (
     ComboBox,
     Event,
     FileDialog,
+    FlexGridSizer,
     GridBagSizer,
     Panel,
     SplitterWindow,
@@ -32,7 +36,7 @@ from wx import (
 from easelenium.ui.editor.field_context_menu import FieldContextMenu
 from easelenium.ui.editor.utils import FieldsTableAndTestFilesTabs, PyFileUI, TestFileUI
 from easelenium.ui.file_utils import is_correct_python_file, read_file
-from easelenium.ui.generator.page_object_class import PageObjectClass
+from easelenium.ui.generator.page_object_class import PageObjectClass, PageObjectClassField
 from easelenium.ui.parser.parsed_class import (
     ParsedBrowserClass,
     ParsedClass,
@@ -59,12 +63,12 @@ class EditorTab(Panel):
         sizer = GridBagSizer(5, 5)
         self.SetSizer(sizer)
 
-        self.__cur_po_class = None
+        self.__cur_po_class: PageObjectClass | None = None
         self.__create_widgets()
 
     def __create_widgets(self) -> None:
         """Create widgets."""
-        sizer = self.GetSizer()
+        sizer = cast("FlexGridSizer", self.GetSizer())
 
         # Next row
         inner_sizer = BoxSizer(HORIZONTAL)
@@ -84,7 +88,7 @@ class EditorTab(Panel):
         inner_sizer.Add(self.btn_open_class, flag=ALL)
 
         row = 0
-        sizer.Add(inner_sizer, pos=(row, 0), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(inner_sizer, pos=(row, 0), flag=FLAG_ALL_AND_EXPAND)  # type: ignore[arg-type]
 
         # Next row
         row += 1
@@ -97,12 +101,14 @@ class EditorTab(Panel):
         self.table_and_test_file_tabs = FieldsTableAndTestFilesTabs(splitter, self)
 
         splitter.SplitHorizontally(self.image_panel, self.table_and_test_file_tabs)
-        sizer.Add(splitter, pos=(row, 0), flag=FLAG_ALL_AND_EXPAND)
+        sizer.Add(splitter, pos=(row, 0), flag=FLAG_ALL_AND_EXPAND)  # type: ignore[arg-type]
 
         sizer.AddGrowableRow(row, 1)
         sizer.AddGrowableCol(0, 1)
 
-    def __get_parsed_classes(self, field: str | None) -> list[ParsedClass]:
+    def __get_parsed_classes(self, field: PageObjectClassField | None) -> list[ParsedClass]:
+        if self.__cur_po_class is None:
+            return []
         classes = ParsedPageObjectClass.get_parsed_classes(
             self.__cur_po_class.file_path,
         )
@@ -113,21 +119,22 @@ class EditorTab(Panel):
             classes += ParsedBrowserClass.get_parsed_classes()
         return classes
 
-    def show_content_menu(self, field: str | None) -> None:
+    def show_content_menu(self, field: PageObjectClassField | None) -> None:
         """Show content menu."""
         tabs = self.table_and_test_file_tabs.tabs
         count = tabs.GetPageCount()
         if count > 1:
             selected_tab = tabs.GetPage(tabs.GetSelection())
             if type(selected_tab) in (TestFileUI, PyFileUI):
-                file_path = selected_tab.get_file_path()
-                txt_ctrl_ui = tabs.GetPage(tabs.GetSelection())
+                py_file_ui = cast("PyFileUI", selected_tab)
+                file_path = py_file_ui.get_file_path()
                 parsed_classes = self.__get_parsed_classes(field)
+                field_name = field.name if field is not None else ""
                 context_menu = FieldContextMenu(
-                    field,
+                    field_name,
                     parsed_classes,
                     file_path,
-                    txt_ctrl_ui,
+                    cast("object", py_file_ui),  # type: ignore[arg-type]
                 )
                 self.PopupMenu(context_menu)
                 context_menu.Destroy()
@@ -159,16 +166,16 @@ class EditorTab(Panel):
                 evt,
                 self.__cur_po_class.fields,
                 self.image_panel,
-                self.table_and_test_file_tabs.table,
+                cast("Table", self.table_and_test_file_tabs.table),
             )
 
-    def __get_current_field(self, evt: Event) -> str | None:
-        return self.image_panel.get_field(evt.GetPosition())
+    def __get_current_field(self, evt: Event) -> PageObjectClassField | None:
+        return self.image_panel.get_field(evt.GetPosition())  # type: ignore[attr-defined]
 
     def __open_class(self, _evt: Event) -> None:
-        folder = self.GetTopLevelParent().get_root_folder()
+        folder = self.GetTopLevelParent().get_root_folder()  # type: ignore[attr-defined]
         if folder:
-            if RootFolder.PO_FOLDER in os.listdir(folder):
+            if RootFolder.PO_FOLDER in {p.name for p in Path(folder).iterdir()}:
                 folder = (Path(folder) / RootFolder.PO_FOLDER).as_posix()
             dialog = FileDialog(self, defaultDir=folder, wildcard="*.py")
             if dialog.ShowModal() == ID_OK:
@@ -177,15 +184,15 @@ class EditorTab(Panel):
             show_dialog_path_doesnt_exist(self, folder)
 
     def __load_po_class(self, path: str) -> None:
-        self.table_and_test_file_tabs.table.clear_table()
+        cast("Table", self.table_and_test_file_tabs.table).clear_table()
 
         if not Path(path).exists():
             show_dialog_path_doesnt_exist(self, path)
         if not is_correct_python_file(path):
-            show_dialog(self, "File name is incorrect: %s" % path, "Bad file name")
+            show_dialog(self, f"File name is incorrect: {path}", "Bad file name")
         else:
             folder = Path(path).parent
-            files = [str(folder / p) for p in os.listdir(folder) if is_correct_python_file(p)]
+            files = [str(folder / p.name) for p in Path(folder).iterdir() if is_correct_python_file(p.name)]
             self.cb_class_path.Clear()
             self.cb_class_path.AppendItems(files)
             self.cb_class_path.Select(files.index(path))
@@ -195,9 +202,13 @@ class EditorTab(Panel):
                 )
                 area = self.__cur_po_class.area
                 self.image_panel.set_po_fields(self.__cur_po_class.fields)
-                self.image_panel.load_image(self.__cur_po_class.img_path, area)
+                img_path = self.__cur_po_class.img_path
+                if img_path is not None:
+                    self.image_panel.load_image(img_path, area)
 
-                self.cb_class_path.SetValue(self.__cur_po_class.file_path)
+                file_path = self.__cur_po_class.file_path
+                if file_path is not None:
+                    self.cb_class_path.SetValue(file_path)
 
                 self.table_and_test_file_tabs.load_po_class(self.__cur_po_class)
             except Exception:  # noqa: BLE001
@@ -205,5 +216,5 @@ class EditorTab(Panel):
                 show_error_dialog(
                     self,
                     traceback.format_exc(),
-                    "Failed to open file %s" % path,
+                    f"Failed to open file {path}",
                 )

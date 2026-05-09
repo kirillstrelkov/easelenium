@@ -36,7 +36,7 @@ from easelenium.mouse import Mouse
 from easelenium.utils import get_random_value, get_timestamp
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from collections.abc import Callable, Generator
 
     from loguru import Logger
     from selenium.webdriver.remote.webdriver import WebDriver
@@ -54,7 +54,7 @@ def browser_decorator(
 ) -> Any:  # noqa: ANN401
     """Wrap a function with browser setup, screenshot on failure, and teardown."""
 
-    def func_decorator(func: callable) -> Any:  # noqa: ANN401
+    def func_decorator(func: Callable[..., Any]) -> Any:  # noqa: ANN401
         def wrapper(*args: object, **kwargs: object) -> Any:  # noqa: ANN401
             browser = None
             return_value = None
@@ -123,7 +123,7 @@ class Browser:
     GC_HEADLESS: Final = "gc_headless"
     IE: Final = "ie"
     EDGE: Final = "edge"
-    DEFAULT_BROWSER = None
+    DEFAULT_BROWSER: str | None = None
 
     __BROWSERS: Final = [
         FF,
@@ -237,11 +237,8 @@ class Browser:
 
         if service_klass == FirefoxService:
             geckodriver_snap = Path("/snap/bin/geckodriver")
-            if geckodriver_snap.exists():
-                driver_path = geckodriver_snap.as_posix()
-            else:
-                driver_path = GeckoDriverManager().install()
-            return driver_path
+            return geckodriver_snap.as_posix() if geckodriver_snap.exists() else GeckoDriverManager().install()
+        manager = None
         if service_klass == ChromeService:
             manager = ChromeDriverManager
         elif service_klass == IeService:
@@ -249,6 +246,8 @@ class Browser:
         elif service_klass == EdgeService:
             manager = EdgeChromiumDriverManager
 
+        if manager is None:
+            return None
         try:
             return manager().install()
         except AttributeError:
@@ -275,7 +274,7 @@ class Browser:
             msg = f"Unsupported browser '{name}', supported browsers: ['{browsers}']"
             raise ValueError(msg)
 
-        driver_filename, constructor, service_klass = driver_filename_and_constructor
+        _driver_filename, constructor, service_klass = driver_filename_and_constructor
 
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
             name,
@@ -458,7 +457,6 @@ class Browser:
         converted = [self.to_string(arg) if isinstance(arg, WebElement) else str(arg) for arg in args]
         self.logger.info(*converted)
 
-
     def type(  # noqa: PLR0913
         self,
         element: TypeElement | WebElement | None = None,
@@ -494,6 +492,7 @@ class Browser:
             if e.msg != "Element must be user-editable in order to clear it.":
                 raise
 
+        assert text is not None, "text not specified"  # noqa: S101
         self._safe_log("Typing '{}' at '{}'", text, element)
 
         element.send_keys(text)
@@ -607,7 +606,7 @@ class Browser:
         by_class: str | None = None,
         *,
         visible: bool = False,
-    ) -> str:
+    ) -> str | None:
         """Return attribute of the element."""
         assert attr is not None, "attr is not specified"  # noqa: S101
         element = self._get_element(
@@ -671,7 +670,7 @@ class Browser:
         by_class: str | None = None,
         *,
         visible: bool = False,
-    ) -> str:
+    ) -> str | None:
         """Return id of the element."""
         return self.get_attribute(
             element=element,
@@ -702,7 +701,7 @@ class Browser:
         by_class: str | None = None,
         *,
         visible: bool = False,
-    ) -> str:
+    ) -> str | None:
         """Return class of the element."""
         return self.get_attribute(
             element=element,
@@ -733,7 +732,7 @@ class Browser:
         by_class: str | None = None,
         *,
         visible: bool = True,
-    ) -> str:
+    ) -> str | None:
         """Return value of the element."""
         return self.get_attribute(
             element=element,
@@ -808,7 +807,6 @@ class Browser:
 
         return size["width"], size["height"]
 
-
     def get_selected_value_from_dropdown(  # noqa: PLR0913
         self,
         element: TypeElement | WebElement | None = None,
@@ -821,7 +819,7 @@ class Browser:
         by_tag: str | None = None,
         by_css: str | None = None,
         by_class: str | None = None,
-    ) -> str:
+    ) -> str | None:
         """Return value of the selected option."""
         element = self._get_element(
             element=element,
@@ -945,6 +943,7 @@ class Browser:
         element = self.find_element(element=element, parent=parent)
         select = Select(element)
 
+        assert text is not None, "text not specified"  # noqa: S101
         self._safe_log(f"Selecting by text {text} from {element}")
 
         select.select_by_visible_text(text)
@@ -1012,12 +1011,12 @@ class Browser:
             by_class=by_class,
         )
         self.wait_for_visible(element=element, parent=parent)
-        texts_to_skip = texts_to_skip or []
+        skip = list(texts_to_skip) if texts_to_skip else []
 
         options = self.get_texts_from_dropdown(
             element=element,
         )
-        option_to_select = get_random_value(options, *texts_to_skip)
+        option_to_select = get_random_value(options, *skip)
 
         self.select_option_by_text_from_dropdown(
             element=element,
@@ -1070,7 +1069,7 @@ class Browser:
         by_tag: str | None = None,
         by_css: str | None = None,
         by_class: str | None = None,
-    ) -> list[str]:
+    ) -> list[str | None]:
         """Return list of values from dropdown."""
         element = self._get_element(
             element=element,
@@ -1092,7 +1091,6 @@ class Browser:
 
         return values
 
-
     def get_action_chains(self) -> ActionChains:
         """Return ActionChains instance."""
         return ActionChains(self._driver)
@@ -1105,7 +1103,7 @@ class Browser:
         """Open url."""
         self._driver.get(url)
 
-    def execute_js(self, js_script: str, *args: list[str]) -> str:
+    def execute_js(self, js_script: str, *args: Any) -> Any:  # noqa: ANN401
         """Execute javascript."""
         return self._driver.execute_script(js_script, *args)
 
@@ -1165,9 +1163,8 @@ class Browser:
         if found_elements:
             return found_elements[0]
 
-        raise NoSuchElementException(
-            "Didn't find any elements for selector - {}" % str(element),
-        )
+        msg = f"Didn't find any elements for selector - {element}"
+        raise NoSuchElementException(msg)
 
     def find_elements(  # noqa: PLR0913
         self,
@@ -1620,7 +1617,7 @@ class Browser:
 
     def switch_to_new_window(  # noqa: PLR0913
         self,
-        function: callable,
+        function: Callable[..., Any],
         element: TypeElement | WebElement | None = None,
         by_id: str | None = None,
         by_xpath: str | None = None,
@@ -1711,15 +1708,15 @@ class Browser:
 
     def webdriver_wait(
         self,
-        function: callable,
-        msg: str = "",
+        function: Callable[..., Any],
+        msg: str | None = None,
         timeout: float | None = None,
     ) -> None:
         """Wait for condition."""
         if not timeout:
             timeout = self.__timeout
         try:
-            WebDriverWait(self._driver, timeout).until(function, msg)
+            WebDriverWait(self._driver, timeout).until(function, msg or "")
         except Exception as exc:
             raise TimeoutException(msg) from exc
 

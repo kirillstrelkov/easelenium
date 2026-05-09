@@ -7,8 +7,18 @@ ignore = ["INP001", "D203", "D213", "COM812"]
 unfixable = ["B"]
 
 [lint.per-file-ignores]
-"**/*_test.py" = ["S101", "FBT001", "D103"]
-"**/test_*" = ["S101", "FBT001", "D103"]
+"tests/**/*_test.py" = [
+    "S101",
+    "FBT001",
+    "D103",
+    "SLF001",
+    "E501",
+    "TD002",
+    "TD003",
+    "ANN",
+]
+"tests/**/__init__.py" = ["D104", "D103", "SLF001", "ANN"]
+"tests/data/*" = ["ALL"]
 
 [format]
 quote-style = "double"

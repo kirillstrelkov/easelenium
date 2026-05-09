@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import traceback
-from typing import Any
+from typing import Any, cast
 from unittest.case import TestCase
 
 from easelenium.browser import Browser
@@ -15,11 +15,11 @@ class BaseTest(TestCase):
 
     TC_NAME_WIDTH = 100
     BROWSER_NAME = None
-    FAILED_SCREENSHOT_FOLDER = None
+    FAILED_SCREENSHOT_FOLDER: str | None = None
     LOGGER = Logger(name="easyselenim.base_test.BaseTest")
 
     @classmethod
-    def setUpClass(cls: type[BaseTest], **kwargs: dict[str, Any]) -> None:
+    def setUpClass(cls: type[BaseTest], **kwargs: Any) -> None:  # noqa: ANN401
         """Set up class."""
         super().setUpClass()
 
@@ -51,15 +51,16 @@ class BaseTest(TestCase):
     def tearDown(self) -> None:
         """Tear down."""
         failed = True
+        self_any = cast("Any", self)
         if hasattr(self, "_outcome"):
             # python3
-            failed = self._outcome and not self._outcome.success
+            failed = self_any._outcome and not self_any._outcome.success  # noqa: SLF001
         elif hasattr(self, "_resultForDoCleanups") and hasattr(
-            self._resultForDoCleanups,
+            self_any._resultForDoCleanups,  # noqa: SLF001
             "result",
         ):
             # nose
-            failed = not self._resultForDoCleanups.result.wasSuccessful()
+            failed = not self_any._resultForDoCleanups.result.wasSuccessful()  # noqa: SLF001
 
         if failed:
             name = self.id()
@@ -71,7 +72,8 @@ class BaseTest(TestCase):
                 )
             except Exception:  # noqa: BLE001
                 formatted_exc = traceback.format_exc()
-                self.browser.logger.info(formatted_exc)
+                if self.browser.logger:
+                    self.browser.logger.info(formatted_exc)
         TestCase.tearDown(self)
 
         if self.browser.logger:

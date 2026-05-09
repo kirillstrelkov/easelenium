@@ -16,11 +16,9 @@ from easelenium.ui.generator.page_object_class import (
     PageObjectClassField,
 )
 from easelenium.ui.root_folder import RootFolder
-from easelenium.utils import get_py_file_name_from_class_name
+from easelenium.utils import Logger, get_py_file_name_from_class_name
 
 if TYPE_CHECKING:
-    from loguru import Logger
-
     from easelenium.browser import Browser, TypeElement
     from easelenium.ui.utils import TypeArea, TypeBy, TypePoint
 
@@ -39,26 +37,27 @@ class PageObjectGenerator:
     )
     FRAMES_SELECTOR = (By.CSS_SELECTOR, "frame, iframe")
 
-    def __init__(self, browser: Browser, logger: Logger = None) -> None:
+    def __init__(self, browser: Browser, logger: Logger | None = None) -> None:
         """Initialize."""
         self.browser = browser
         self.logger = logger
 
-    def __log(self, *msgs: list[str]) -> None:
+    def __log(self, *msgs: object) -> None:
         if self.logger:
             self.logger.info(" ".join([str(m) for m in msgs]))
 
     def _get_name_for_field(
         self,
-        element_or_by_and_selector: TypeElement,
+        element_or_by_and_selector: TypeElement | TypeBy,
     ) -> str:
         max_length = 30
         if isinstance(element_or_by_and_selector, WebElement):
             by_and_selector = self._get_selector(element_or_by_and_selector)
+            selector_str = by_and_selector[1] if by_and_selector is not None else ""
         else:
-            by_and_selector = element_or_by_and_selector
+            selector_str = element_or_by_and_selector[1]
         name = "_".join(
-            [w.upper()[:max_length] for w in re.findall(r"\w+", by_and_selector[1])],
+            [w.upper()[:max_length] for w in re.findall(r"\w+", selector_str)],
         )
         name = re.sub(r"_+", "_", name)
         if len(name) == 0:
@@ -68,8 +67,8 @@ class PageObjectGenerator:
     def __is_correct_element(
         self,
         element: TypeElement,
-        area: TypeArea,
-        location_offset: TypePoint,
+        area: TypeArea | None,
+        location_offset: TypePoint | None,
     ) -> bool:
         bad_element_tags = ("option", "script")
 
@@ -77,7 +76,7 @@ class PageObjectGenerator:
             if type(area) not in (tuple, list) or len(area) != 4:  # noqa: PLR2004
                 msg = f"Bad area data '{area}'"
                 raise ValueError(msg)
-            area = Rect(*area)
+            rect = Rect(*area)
             x, y = self.browser.get_location(element)
             if location_offset:
                 # fixing location because it is located inside frame
@@ -85,15 +84,16 @@ class PageObjectGenerator:
                 y += location_offset[1]
             w, h = self.browser.get_dimensions(element)
             element_center = Point(int(x + w / 2), int(y + h / 2))
-            is_element_inside = area.Contains(element_center)
+            is_element_inside = rect.Contains(element_center)
         else:
             is_element_inside = True
 
-        return self.browser.is_visible(element) and element.tag_name not in bad_element_tags and is_element_inside
+        we = self.browser.find_element(element)
+        return self.browser.is_visible(element) and we.tag_name not in bad_element_tags and is_element_inside
 
     def __get_po_fields_from_page(
         self,
-        area: TypeArea,
+        area: TypeArea | None,
         location_offset: TypePoint | None = None,
     ) -> list[PageObjectClassField]:
         fields = []
@@ -103,8 +103,7 @@ class PageObjectGenerator:
         for e in elements:
             if self.logger:
                 self.__log(
-                    "%5d/%d Trying to get PageObjectField for element %s"
-                    % (i, len(elements), self.browser.to_string(e)),
+                    f"{i:5d}/{len(elements)} Trying to get PageObjectField for element {self.browser.to_string(e)}",
                 )
 
             if self.__is_correct_element(e, area, location_offset):
@@ -208,7 +207,7 @@ class PageObjectGenerator:
     def __get_pageobject_field(
         self,
         element: TypeElement,
-        location_offset: TypePoint,
+        location_offset: TypePoint | None,
     ) -> PageObjectClassField | None:
         by_and_selector = self._get_selector(element)
         if by_and_selector:
@@ -233,7 +232,13 @@ class PageObjectGenerator:
                     location[1] + location_offset[1],
                 )
             dimensions = self.browser.get_dimensions(element)
-            return PageObjectClassField(name, by, selector, location, dimensions)
+            return PageObjectClassField(
+                name,
+                by,
+                selector,
+                location,
+                (int(dimensions[0]), int(dimensions[1])),
+            )
         return None
 
     def _get_selector(self, element: TypeElement) -> TypeBy | None:
@@ -266,23 +271,25 @@ class PageObjectGenerator:
         """
         element = self.browser.find_element(element)
         cur_css_selector = ""
-        _id = element.get_attribute("id").strip()
+        _id_attr = element.get_attribute("id")
+        _id = _id_attr.strip() if _id_attr is not None else ""
 
         if _id:
-            cur_css_selector += "#%s" % _id
+            cur_css_selector += f"#{_id}"
         else:
-            class_name = element.get_attribute("class").strip()
+            class_attr = element.get_attribute("class")
+            class_name = class_attr.strip() if class_attr is not None else ""
 
             if class_name:
                 class_name = re.sub(r"\s+", ".", class_name)
-                cur_css_selector += ".%s" % class_name
+                cur_css_selector += f".{class_name}"
 
         cur_css_selector = cur_css_selector.replace(":", r"\:")
         cur_el_tag = element.tag_name
         if cur_el_tag in ("body", "html") or len(cur_css_selector) == 0:
             return None
 
-        by_and_css_selector = By.CSS_SELECTOR, cur_css_selector
+        by_and_css_selector: TypeBy = (By.CSS_SELECTOR, cur_css_selector)
         elements_count = self.browser.get_elements_count(by_and_css_selector)
         if elements_count == 1:
             return by_and_css_selector
@@ -300,17 +307,18 @@ class PageObjectGenerator:
     def _get_xpath_selector(self, element: TypeElement) -> TypeBy:
         return By.XPATH, self.browser.execute_js(self.GET_XPATH_USING_JS, element)
 
-    def _get_link_text_selector(self, element: TypeBy) -> TypeBy | None:
+    def _get_link_text_selector(self, element: TypeElement) -> TypeBy | None:
         text = self.browser.get_text(element)
         if len(self.browser.find_elements((By.LINK_TEXT, text))) == 1 and len(text) > 1:
             return By.LINK_TEXT, text
 
         return None
 
-    def _get_class_name_selector(self, element: TypeBy) -> TypeBy | None:
+    def _get_class_name_selector(self, element: TypeElement) -> TypeBy | None:
         class_name = self.browser.get_class(element)
         if (
-            len(class_name) > 0
+            class_name is not None
+            and len(class_name) > 0
             and " " not in class_name
             and len(self.browser.find_elements((By.CLASS_NAME, class_name))) == 1
         ):

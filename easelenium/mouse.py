@@ -75,7 +75,7 @@ class Mouse:
             element=element,
         )
 
-        if type(element) == tuple:
+        if isinstance(element, tuple):
             element = self.browser.find_element(
                 element=element,
             )
@@ -194,7 +194,7 @@ class Mouse:
             element=element,
         )
 
-        if type(element) == tuple:
+        if isinstance(element, tuple):
             element = self.browser.find_element(
                 element=element,
             )
@@ -237,7 +237,7 @@ class Mouse:
             element=element,
         )
 
-        if type(element) == tuple:
+        if isinstance(element, tuple):
             element = self.browser.find_element(
                 element=element,
             )

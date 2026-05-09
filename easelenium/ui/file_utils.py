@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import codecs
-import os
 from pathlib import Path
 
 __ENCODING = "utf8"
@@ -47,12 +46,14 @@ def safe_create_path(path: str) -> None:
         codecs.open(path, __WRITE_MODE, __ENCODING).close()
 
 
-def save_file(path: str, content: str, *, is_text: bool = True) -> None:
+def save_file(path: str, content: str | bytes, *, is_text: bool = True) -> None:
     """Save file."""
     if is_text:
+        assert isinstance(content, str)  # noqa: S101
         with codecs.open(path, __WRITE_MODE, encoding=__ENCODING) as f:
             f.write(content)
     else:
+        assert isinstance(content, bytes)  # noqa: S101
         with Path(path).open(__WRITE_MODE) as f:
             f.write(content)
 
@@ -66,10 +67,10 @@ def read_file(path: str) -> str:
 def get_list_of_files(path: str, *, recursively: bool = False) -> list[str]:
     """Get list of files."""
     files = []
-    for f in os.listdir(path):
-        file_path = (Path(path) / f).as_posix()
+    for f in Path(path).iterdir():
+        file_path = f.as_posix()
         if Path(file_path).is_dir() and recursively:
-            files += get_list_of_files(file_path, recursively)
+            files += get_list_of_files(file_path, recursively=recursively)
         else:
             files.append(file_path)
     return files

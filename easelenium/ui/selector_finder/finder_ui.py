@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from threading import Thread
+from typing import TYPE_CHECKING, cast
 
 from wx import (
     EVT_BUTTON,
@@ -16,7 +17,7 @@ from wx import (
     SplitterWindow,
     Window,
 )
-from wx.grid import EVT_GRID_SELECT_CELL
+from wx.grid import EVT_GRID_SELECT_CELL, GridEvent
 
 from easelenium.ui.generator.page_object_generator import PageObjectGenerator
 from easelenium.ui.string_utils import StringUtils
@@ -31,6 +32,10 @@ from easelenium.ui.widgets.utils import (
 )
 from easelenium.utils import Logger
 
+if TYPE_CHECKING:
+    from easelenium.ui.generator.page_object_class import PageObjectClassField
+    from easelenium.ui.main_ui import MainFrame
+
 
 class SelectorFinderTab(Panel):
     """Selector finder tab."""
@@ -39,8 +44,8 @@ class SelectorFinderTab(Panel):
         """Initialize."""
         Panel.__init__(self, parent)
 
-        self.main_frame = self.GetTopLevelParent()
-        self.po_fields = None
+        self.main_frame: MainFrame = cast("MainFrame", self.GetTopLevelParent())
+        self.po_fields: list[PageObjectClassField] | None = None
 
         self.__create_widgets()
 
@@ -82,15 +87,17 @@ class SelectorFinderTab(Panel):
             self.table.load_data(self.po_fields)
 
     def __on_mouse_move(self, evt: Event) -> None:
-        ImageAndTableHelper.select_field_on_mouse_move(
-            evt,
-            self.po_fields,
-            self.image_panel,
-            self.table,
-        )
+        if self.po_fields is not None:
+            ImageAndTableHelper.select_field_on_mouse_move(
+                evt,
+                self.po_fields,
+                self.image_panel,
+                self.table,
+            )
 
     def __on_cell_select(self, evt: Event) -> None:
-        self.table.selected_row = evt.GetRow()
+        grid_evt = cast("GridEvent", evt)
+        self.table.selected_row = grid_evt.GetRow()
         self.image_panel.draw_selected_field(self.table.get_selected_data(), focus=True)
         evt.Skip()
 
@@ -106,7 +113,7 @@ class SelectorFinderTab(Panel):
         if browser:
             url = self.main_frame.get_url()
             if not StringUtils.is_url_correct(url):
-                show_dialog(self, "Bad url: %s" % url, "Bad url")
+                show_dialog(self, f"Bad url: {url}", "Bad url")
             else:
                 dialog = DialogWithText(self, "Finding selectors...")
                 handler = WxTextCtrlHandler(dialog.txt_ctrl)

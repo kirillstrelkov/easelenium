@@ -61,10 +61,9 @@ class FirefoxTest(BrowserConstrutorTest):
     def test_constructor_with_executable_path(self) -> None:
         """Test constructor with driver path."""
         new_driver_path = str(Path(gettempdir()) / "geckodriver")
-        shutil.copy(
-            Browser._find_driver_path("ff"),
-            new_driver_path,
-        )
+        ff_driver = Browser._find_driver_path("ff")
+        assert ff_driver is not None
+        shutil.copy(ff_driver, new_driver_path)
         self.browser = Browser(
             webdriver_kwargs={
                 "executable_path": new_driver_path,
@@ -139,7 +138,9 @@ class ChromeTest(BrowserConstrutorTest):
     def test_constructor_with_executable_path(self) -> None:
         """Test constructor with driver path."""
         new_driver_path = str(Path(gettempdir()) / "chromedriver")
-        shutil.copy(Browser._find_driver_path("gc"), new_driver_path)
+        gc_driver = Browser._find_driver_path("gc")
+        assert gc_driver is not None
+        shutil.copy(gc_driver, new_driver_path)
         self.browser = Browser(
             browser_name="gc",
             webdriver_kwargs={"executable_path": new_driver_path},

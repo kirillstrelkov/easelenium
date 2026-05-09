@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from wx.grid import Grid
 
-from easelenium.ui.generator.page_object_class import get_by_as_code_str
+from easelenium.ui.generator.page_object_class import PageObjectClassField, get_by_as_code_str
 
 if TYPE_CHECKING:
     from wx import Window
@@ -19,15 +19,17 @@ class Table(Grid):
         """Initialize."""
         Grid.__init__(self, parent)
 
-        self.selected_row = None
-        self.__data = None
+        self.selected_row: int | None = None
+        self.__data: list[PageObjectClassField] | None = None
         self.__data_attrs = ["name", "by", "selector", "location", "dimensions"]
 
-    def get_selected_data(self) -> Any:  # noqa: ANN401
+    def get_selected_data(self) -> PageObjectClassField | None:
         """Get selected data."""
-        return self.__data[self.selected_row] if self.selected_row is not None else self.selected_row
+        if self.selected_row is not None and self.__data is not None:
+            return self.__data[self.selected_row]
+        return None
 
-    def load_data(self, data: dict[str, Any]) -> None:
+    def load_data(self, data: list[PageObjectClassField]) -> None:
         """Load data."""
         self.clear_table()
 
@@ -47,10 +49,9 @@ class Table(Grid):
             table.SetColLabelValue(self.__data_attrs.index(attr), attr.capitalize())
 
         # filling data
-        for d in self.__data:
-            j = self.__data.index(d)
+        for j, d in enumerate(self.__data):
             for attr in self.__data_attrs:
-                value = getattr(d, attr)
+                value: Any = getattr(d, attr)
                 i = self.__data_attrs.index(attr)
                 is_by = attr == self.__data_attrs[1]
                 is_location_or_dimensions = type(value) in (tuple, list)

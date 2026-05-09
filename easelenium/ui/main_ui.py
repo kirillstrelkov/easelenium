@@ -1,5 +1,7 @@
 """Module for main UI."""
 
+from __future__ import annotations
+
 import shutil
 import traceback
 from tempfile import mkdtemp
@@ -15,6 +17,7 @@ from wx import (
     Frame,
     GridBagSizer,
     Panel,
+    Size,
     StaticText,
     TextCtrl,
     Window,
@@ -41,7 +44,7 @@ class MainFrame(Frame):
         self.__tmp_dir = mkdtemp()
 
         self.SetTitle("Easy Selenium UI")
-        self.SetSize((800, 600))
+        self.SetSize(Size(800, 600))
 
         self.__create_widgets()
         self.Bind(EVT_CLOSE, self.__on_close)
@@ -119,7 +122,7 @@ class MainFrame(Frame):
         panel.SetSizer(sizer)
         self.Layout()
 
-    def get_root_folder(self) -> str:
+    def get_root_folder(self) -> str | None:
         """Get root folder path."""
         text = self.__txt_root_path.GetValue()
         if text:
@@ -160,7 +163,7 @@ class MainFrame(Frame):
             # TODO: if generator or selector -> load image  # noqa: TD002, TD003, FIX002
             self.bth_open_url.Enable()
         else:
-            show_dialog(self, "Bad url: %s" % url, "Bad url")
+            show_dialog(self, f"Bad url: {url}", "Bad url")
 
     def __close_browser(self, _evt: Event) -> None:
         if self.__browser:
@@ -181,7 +184,7 @@ class MainFrame(Frame):
         """Set url to text control."""
         self.__txt_url.SetValue(url)
 
-    def get_browser(self) -> Browser:
+    def get_browser(self) -> Browser | None:
         """Get browser."""
         return self.__browser
 

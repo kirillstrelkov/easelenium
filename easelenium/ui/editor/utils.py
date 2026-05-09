@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import inspect
 import os
 import re
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
+import wx
 from wx import (
     ALIGN_RIGHT,
     DEFAULT_DIALOG_STYLE,
@@ -19,7 +21,6 @@ from wx import (
     HSCROLL,
     ID_CANCEL,
     ID_OK,
-    NORMAL,
     RESIZE_BORDER,
     TE_MULTILINE,
     TE_READONLY,
@@ -63,12 +64,20 @@ from easelenium.ui.widgets.utils import (
 )
 from easelenium.utils import LINESEP, get_class_name_from_file, is_windows
 
+NORMAL: int = wx.NORMAL  # type: ignore[attr-defined]
+
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from easelenium.ui.editor.editor_ui import EditorTab
     from easelenium.ui.generator.page_object_class import PageObjectClass
 
 
 class PyFileUI(Panel):
     """Panel for Python."""
+
+    CHANGED_PREFIX = "*"
+    METHOD_TEMPLATE = "\n    def {method_name}(self):\n        pass\n"
 
     def __init__(
         self,
@@ -105,13 +114,14 @@ class PyFileUI(Panel):
         """Return file path."""
         return self.__file_path
 
+    def __get_tabs_parent(self) -> Tabs:
+        return cast("Tabs", self.GetParent())
+
     def __get_selected_tab_text(self) -> str:
-        parent = self.GetParent()
-        return parent.get_tabs_text()
+        return self.__get_tabs_parent().get_tabs_text()
 
     def __set_selected_tab_text(self, text: str) -> None:
-        parent = self.GetParent()
-        parent.set_tabs_text(text)
+        self.__get_tabs_parent().set_tabs_text(text)
 
     def load_file(self, path: str) -> None:
         """Load file."""
@@ -121,7 +131,7 @@ class PyFileUI(Panel):
 
     def save_file(self) -> None:
         """Save file."""
-        root_folder = self.GetTopLevelParent().get_root_folder()
+        root_folder = self.GetTopLevelParent().get_root_folder()  # type: ignore[attr-defined]
         text = self.__get_selected_tab_text()
         if text.startswith(self.CHANGED_PREFIX):
             self.__set_selected_tab_text(text[1:])
@@ -137,8 +147,8 @@ class PyFileUI(Panel):
             self.__set_selected_tab_text(self.CHANGED_PREFIX + text)
 
     def __on_text_change(self, evt: Event) -> None:
-        key = evt.GetUnicodeKey()
-        ctrl_s_pressed = key == 83 and evt.ControlDown()  # noqa: PLR2004
+        key = evt.GetUnicodeKey()  # type: ignore[attr-defined]
+        ctrl_s_pressed = key == 83 and evt.ControlDown()  # type: ignore[attr-defined]  # noqa: PLR2004
         if key == WXK_TAB:
             indent = "    "
             self.txt_content.WriteText(indent)
@@ -179,7 +189,7 @@ class PyFileUI(Panel):
         self,
         field: str | None = None,
         method_name: str | None = None,
-        _method: callable | None = None,
+        _method: Callable[..., Any] | None = None,
         arg_spec: Any | None = None,  # noqa: ANN401
     ) -> None:
         """Append method call."""
@@ -188,13 +198,16 @@ class PyFileUI(Panel):
         if method_name == "assert":
             var = "expression"
             dialog = MultipleTextEntry(self, "Please enter values", [var])
-            if dialog.ShowModal() == ID_OK:
+            if dialog.ShowModal() == ID_OK and dialog.values is not None:
                 self.append_text(
                     f"\n        assert {dialog.values[var]}",
                 )
             return
 
-        is_po_class_file_selected = type(self) == PyFileUI
+        assert arg_spec is not None  # noqa: S101
+        assert method_name is not None  # noqa: S101
+
+        is_po_class_file_selected = isinstance(self, PyFileUI)
         # removing arguments with default value
         args = arg_spec.args
         if arg_spec.defaults:
@@ -205,25 +218,27 @@ class PyFileUI(Panel):
         if self_txt in args:
             args.remove(self_txt)
 
-        po_class = self.grandparent.get_current_pageobject_class()
+        po_class = cast("FieldsTableAndTestFilesTabs", self.grandparent).get_current_pageobject_class()
+        assert po_class is not None  # noqa: S101
         lowered_class_name = po_class.name.lower()
 
         is_assert_method = method_name.startswith("assert")
         is_browser_method = method_name in ParsedBrowserClass.get_parsed_classes()[0].methods
         is_mouse_method = method_name in ParsedMouseClass.get_parsed_classes()[0].methods
+        assert po_class.file_path is not None  # noqa: S101
         is_page_object_method = method_name in ParsedPageObjectClass.get_parsed_classes(po_class.file_path)[0].methods
 
         # replacing 'element' with correctly formatted string - self.obj.field
         element_txt = "element"
         if element_txt in args:
             element_index = args.index(element_txt)
-            if is_po_class_file_selected:
-                args[element_index] = "self.%s" % field.name
-            else:
-                args[element_index] = f"self.{lowered_class_name}.{field.name}"
+            if is_po_class_file_selected and field is not None:
+                args[element_index] = f"self.{field}"
+            elif field is not None:
+                args[element_index] = f"self.{lowered_class_name}.{field}"
 
         if is_browser_method:
-            caller = "self.browser"
+            caller: str | None = "self.browser"
         elif is_mouse_method:
             caller = "self.browser.mouse"
         elif is_page_object_method and not is_po_class_file_selected:
@@ -235,7 +250,7 @@ class PyFileUI(Panel):
 
         get_prefix = "get_"
         is_getter_method_and_no_args = method_name.startswith(get_prefix)
-        method_kwargs = {}
+        method_kwargs: dict[str, Any] = {}
         if is_getter_method_and_no_args:
             var = method_name.replace(get_prefix, "")
             method_call_template = "        {var} = {caller}.{method}({method_args})" + LINESEP
@@ -252,7 +267,7 @@ class PyFileUI(Panel):
                 dialog = MultipleTextEntry(self, "Please enter values", args)
             else:
                 dialog = MultipleTextEntry(self, "Please enter values", args[1:])
-            if dialog.ShowModal() == ID_OK:
+            if dialog.ShowModal() == ID_OK and dialog.values is not None:
                 for name, value in dialog.values.items():
                     args[args.index(name)] = value
                 method_kwargs.update(
@@ -264,7 +279,7 @@ class PyFileUI(Panel):
                 )
                 code_line = method_call_template.format(**method_kwargs)
                 code = self.txt_content.GetValue() + LINESEP + code_line
-                root_folder = self.GetTopLevelParent().get_root_folder()
+                root_folder = self.GetTopLevelParent().get_root_folder()  # type: ignore[attr-defined]
                 formatted_exception = check_py_code_for_errors(code, root_folder)
 
                 if formatted_exception:
@@ -323,7 +338,7 @@ class {class_name}(BaseTest):
         load_file: bool = False,
     ) -> None:
         """Initialize."""
-        PyFileUI.__init__(self, parent, test_file_path, load_file)
+        PyFileUI.__init__(self, parent, test_file_path, load_file=load_file)
 
         self.__po_class = po_class
 
@@ -336,7 +351,10 @@ class {class_name}(BaseTest):
 
     def __fix_imports(self, po_class: PageObjectClass) -> None:
         # TODO: replace os.path with Path  # noqa: TD002, TD003, FIX002
-        root_folder = os.path.normpath(self.GetTopLevelParent().get_root_folder())
+        root_folder = os.path.normpath(
+            self.GetTopLevelParent().get_root_folder()  # type: ignore[attr-defined]
+        )
+        assert po_class.file_path is not None  # noqa: S101
         path, _ = os.path.splitext(po_class.file_path)  # noqa: PTH122
         path = path.replace(root_folder, "").strip()
         paths = [
@@ -370,14 +388,17 @@ class {class_name}(BaseTest):
         self,
         field: str | None = None,
         method_name: str | None = None,
-        method: callable | None = None,
+        _method: Callable[..., Any] | None = None,
         arg_spec: Any | None = None,  # noqa: ANN401
     ) -> None:
         """Append method call."""
         assert field or method_name  # noqa: S101
         if method_name != "assert":
-            po_class = self.grandparent.get_current_pageobject_class()
-
+            po_class = cast(
+                "FieldsTableAndTestFilesTabs",
+                self.grandparent,
+            ).get_current_pageobject_class()
+            assert po_class is not None  # noqa: S101
             self.__fix_class_initialization(po_class)
             self.__fix_imports(po_class)
 
@@ -385,7 +406,7 @@ class {class_name}(BaseTest):
             self,
             field=field,
             method_name=method_name,
-            method=method,
+            _method=_method,
             arg_spec=arg_spec,
         )
 
@@ -409,7 +430,7 @@ class FieldsTableAndTestFilesTabs(Panel):
         Panel.__init__(self, parent)
 
         self.__editor_tab = editor_tab
-        self.__cur_po_class = None
+        self.__cur_po_class: PageObjectClass | None = None
 
         sizer = GridBagSizer(5, 5)
         full_span = (1, 4)
@@ -437,7 +458,7 @@ class FieldsTableAndTestFilesTabs(Panel):
 
         row += 1
         self.tabs = Tabs(self, [(Table, "Fields' table")])
-        self.table = self.tabs.GetPage(0)
+        self.table = cast("Table", self.tabs.GetPage(0))
         self.table.Bind(EVT_GRID_SELECT_CELL, self.__on_cell_click)
         self.table.Bind(EVT_GRID_CELL_RIGHT_CLICK, self.__on_cell_click)
 
@@ -452,11 +473,12 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.__cur_po_class = po_class
         self.__set_pageobject_class(self.__cur_po_class)
 
+        assert self.__cur_po_class.file_path is not None  # noqa: S101
         file_name = Path(self.__cur_po_class.file_path).name
 
         more_than_1_tab = self.tabs.GetPageCount() > 1
         if more_than_1_tab:
-            py_file_ui = self.tabs.GetPage(self.TAB_INDEX_FOR_PO_CLASS_FILE)
+            py_file_ui = cast("PyFileUI", self.tabs.GetPage(self.TAB_INDEX_FOR_PO_CLASS_FILE))
             py_file_ui.load_file(self.__cur_po_class.file_path)
         else:
             py_file_ui = PyFileUI(
@@ -478,7 +500,7 @@ class FieldsTableAndTestFilesTabs(Panel):
         """Clear table."""
         self.table.ClearGrid()
 
-    def get_current_pageobject_class(self) -> PageObjectClass:
+    def get_current_pageobject_class(self) -> PageObjectClass | None:
         """Return current page object class."""
         return self.__cur_po_class
 
@@ -490,9 +512,9 @@ class FieldsTableAndTestFilesTabs(Panel):
         count = self.tabs.GetPageCount()
         if count > 1:
             page = self.tabs.GetPage(self.tabs.GetSelection())
-            if type(page) == PyFileUI:
+            if isinstance(page, PyFileUI):
                 self.__create_method(page)
-            elif type(page) == TestFileUI:
+            elif isinstance(page, TestFileUI):
                 self.__create_test(page)
             else:
                 show_dialog(
@@ -507,7 +529,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                 "Test file was not created",
             )
 
-    def __create_method(self, page: Window) -> None:
+    def __create_method(self, page: PyFileUI) -> None:
         modal = TextEntryDialog(self, "Enter method name", "Create method")
         if modal.ShowModal() == ID_OK:
             method_name = modal.GetValue()
@@ -516,7 +538,7 @@ class FieldsTableAndTestFilesTabs(Panel):
             else:
                 show_dialog_bad_name(self, method_name, "search", "login", "fill_data")
 
-    def __create_test(self, page: Window) -> None:
+    def __create_test(self, page: TestFileUI) -> None:
         modal = TextEntryDialog(self, "Enter test case name", "Create new test case")
         if modal.ShowModal() == ID_OK:
             test_case_name = modal.GetValue()
@@ -528,17 +550,18 @@ class FieldsTableAndTestFilesTabs(Panel):
     def __on_save_test_file(self, _evt: Event) -> None:
         count = self.tabs.GetPageCount()
         if count > 1:
-            page = self.tabs.GetPage(self.tabs.GetSelection())
+            page = cast("PyFileUI", self.tabs.GetPage(self.tabs.GetSelection()))
             page.save_file()
         else:
             show_dialog(self, "Please create/open test file.", "Nothing to save")
 
     def __open_or_create_test_file(self, style: int) -> None:
         if self.__cur_po_class:
-            folder = self.GetTopLevelParent().get_root_folder()
+            folder = self.GetTopLevelParent().get_root_folder()  # type: ignore[attr-defined]
+            assert self.__cur_po_class.file_path is not None  # noqa: S101
             if not folder:
                 folder = Path(self.__cur_po_class.file_path).parent.as_posix()
-            elif RootFolder.TESTS_FOLDER in os.listdir(folder):
+            elif RootFolder.TESTS_FOLDER in {p.name for p in Path(folder).iterdir()}:
                 folder = (Path(folder) / RootFolder.TESTS_FOLDER).as_posix()
 
             dialog = FileDialog(self, defaultDir=folder, style=style, wildcard="*.py")
@@ -552,7 +575,7 @@ class FieldsTableAndTestFilesTabs(Panel):
                         self.tabs,
                         test_file,
                         self.__cur_po_class,
-                        load_file,
+                        load_file=load_file,
                     )
                     self.tabs.AddPage(test_file_ui, filename)
                     self.tabs.SetSelection(self.tabs.GetPageCount() - 1)
@@ -571,15 +594,16 @@ class FieldsTableAndTestFilesTabs(Panel):
         self.__open_or_create_test_file(FD_SAVE)
 
     def __on_cell_click(self, evt: Event) -> None:
-        self.table.selected_row = evt.GetRow()
+        self.table.selected_row = evt.GetRow()  # type: ignore[attr-defined]
         field = self.table.get_selected_data()
         if field:
-            self.__editor_tab.image_panel.draw_selected_field(
+            editor_tab = cast("EditorTab", self.__editor_tab)
+            editor_tab.image_panel.draw_selected_field(
                 field,
                 focus=True,
             )
             if evt.GetEventType() == EVT_GRID_CELL_RIGHT_CLICK.typeId and field:
-                self.__editor_tab.show_content_menu()
+                editor_tab.show_content_menu(field)
         evt.Skip()
 
 
@@ -599,12 +623,12 @@ class MultipleTextEntry(Dialog):
             title=title,
             style=DEFAULT_DIALOG_STYLE | RESIZE_BORDER,
         )
-        self.values = None
+        self.values: dict[str, str] | None = None
 
         sizer = GridBagSizer(5, 5)
         row = 0
-        self.labels = []
-        self.txt_ctrls = []
+        self.labels: list[StaticText] = []
+        self.txt_ctrls: list[TextCtrl] = []
         for value in values:
             label = StaticText(self, label=value)
             self.labels.append(label)
@@ -625,7 +649,7 @@ class MultipleTextEntry(Dialog):
 
         sizer.AddGrowableCol(1)
         self.SetSizerAndFit(sizer)
-        self.SetSize(400, self.GetSizeTuple()[1])
+        self.SetSize(400, self.GetSizeTuple()[1])  # type: ignore[attr-defined]
 
     def __on_btn(self, evt: Event) -> int:
         errors = []
@@ -650,3 +674,12 @@ class MultipleTextEntry(Dialog):
         else:
             CallAfter(self.EndModal, ID_OK)
         return return_code
+
+
+__all__ = [
+    "FieldsTableAndTestFilesTabs",
+    "MultipleTextEntry",
+    "PyFileUI",
+    "TestFileUI",
+    "inspect",
+]

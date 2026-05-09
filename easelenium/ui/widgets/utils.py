@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from threading import Event as ThreadingEvent
 from time import sleep
 from typing import TYPE_CHECKING, Any
 
@@ -48,17 +49,17 @@ def show_dialog(
     message: str,
     caption: str,
     style: int = OK | CENTER,
-) -> MessageDialog:
+) -> int:
     """Show a message dialog."""
     return MessageDialog(parent, message, caption, style).ShowModal()
 
 
-def show_dialog_path_does_exist(parent: Window, path: str | None) -> MessageDialog:
+def show_dialog_path_does_exist(parent: Window, path: str | None) -> int:
     """Show a message dialog that path exists."""
     return show_dialog(parent, f"Path already exists: '{path}'", "Bad path")
 
 
-def show_dialog_path_doesnt_exist(parent: Window, path: str | None) -> MessageDialog:
+def show_dialog_path_doesnt_exist(parent: Window, path: str | None) -> int:
     """Show a message dialog that path does not exist."""
     return show_dialog(parent, f"Path doesn't exist: '{path}'", "Bad path")
 
@@ -66,8 +67,8 @@ def show_dialog_path_doesnt_exist(parent: Window, path: str | None) -> MessageDi
 def show_dialog_bad_name(
     parent: Window,
     name: str,
-    *expected_names: list[str],
-) -> MessageDialog:
+    *expected_names: str,
+) -> int:
     """Show a message dialog."""
     msg = f"Bad name: '{name}'"
     if len(expected_names) > 0:
@@ -169,7 +170,7 @@ class InfiniteProgressBarDialog(Dialog):
         self.gauge = Gauge(self, style=GA_SMOOTH | GA_HORIZONTAL)
         sizer.Add(self.gauge, flag=FLAG_ALL_AND_EXPAND)
 
-        self.close_event = Event()
+        self.close_event = ThreadingEvent()
 
         def show_progress() -> None:
             while not self.close_event.is_set():
@@ -206,6 +207,6 @@ def show_error_dialog(
     parent: Window,
     message: str,
     caption: str,
-) -> DialogWithText:
+) -> int:
     """Show error dialog."""
     return DialogWithText(parent, caption, message).ShowModal()

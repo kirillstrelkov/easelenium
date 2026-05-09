@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from shutil import rmtree
 from tempfile import mkdtemp
@@ -31,15 +30,11 @@ class RootFolderTest(TestCase):
         """Check root folder structure."""
         RootFolder.prepare_folder(self.tmp_dir)
 
-        files_and_folders = os.listdir(self.tmp_dir)
+        files_and_folders = {p.name for p in Path(self.tmp_dir).iterdir()}
 
         assert RootFolder.PO_FOLDER in files_and_folders
         assert RootFolder.TESTS_FOLDER in files_and_folders
 
-        assert RootFolder.INIT_PY in os.listdir(
-            Path(self.tmp_dir) / RootFolder.PO_FOLDER,
-        )
+        assert RootFolder.INIT_PY in {p.name for p in (Path(self.tmp_dir) / RootFolder.PO_FOLDER).iterdir()}
 
-        assert RootFolder.INIT_PY not in os.listdir(
-            Path(self.tmp_dir) / RootFolder.TESTS_FOLDER,
-        )
+        assert RootFolder.INIT_PY not in {p.name for p in (Path(self.tmp_dir) / RootFolder.TESTS_FOLDER).iterdir()}

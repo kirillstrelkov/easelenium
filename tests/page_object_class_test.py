@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import codecs
 import pickle
 from pathlib import Path
 from unittest.case import TestCase
@@ -30,11 +29,8 @@ class PageObjectClassTest(TestCase):
         cls.expected_duckduckgo_class_path = str(
             cur_path / "data" / "expected_duckduckgo_class_py",
         )
-        cls.po_class_object = pickle.load(  # noqa: S301
-            codecs.open(cls.pickled_object_path, mode="rb"),
-            encoding="utf8",
-            errors="replace",
-        )
+        with open(cls.pickled_object_path, "rb") as f:  # noqa: PTH123
+            cls.po_class_object = pickle.load(f, encoding="utf8", errors="replace")  # noqa: S301
         # Fixing bytes read as string because of Python2 pickling
         cls.po_class_object.img_as_png = cls.po_class_object.img_as_png.encode("utf8")
 

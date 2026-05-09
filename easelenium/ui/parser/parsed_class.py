@@ -6,13 +6,14 @@ import inspect
 from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from pprint import pformat
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 from unittest.case import TestCase
 
 from easelenium.browser import Browser, Mouse
 from easelenium.utils import is_string
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from types import ModuleType
 
 
@@ -26,8 +27,8 @@ class ParsedClass:
         self,
         name: str,
         class_obj: Any,  # noqa: ANN401
-        fields: dict[str, callable],
-        methods: dict[str, callable],
+        fields: dict[str, Any],
+        methods: dict[str, Any],
     ) -> None:
         """Initialize."""
         self.name = name
@@ -35,24 +36,24 @@ class ParsedClass:
         self.fields = fields
         self.methods = methods
 
-    def get_value(self, name: str) -> callable:
+    def get_value(self, name: str) -> Callable[..., Any] | None:
         """Get function or method."""
         return self.fields.get(name) or self.methods.get(name)
 
-    def get_code(self, name_or_method: str | callable) -> str:
+    def get_code(self, name_or_method: str | Callable[..., Any]) -> str:
         """Get function or method code."""
         if inspect.ismethod(name_or_method) or inspect.isfunction(name_or_method):
-            method = name_or_method
+            method: Any = name_or_method
         else:
-            method = self.get_value(name_or_method)
+            method = self.get_value(cast("str", name_or_method))
         return inspect.getsource(method)
 
-    def get_arg_spec(self, name_or_method: str | callable) -> inspect.FullArgSpec:
+    def get_arg_spec(self, name_or_method: str | Callable[..., Any]) -> inspect.FullArgSpec:
         """Get function or method argument spec."""
         if inspect.ismethod(name_or_method) or inspect.isfunction(name_or_method):
-            method = name_or_method
+            method: Any = name_or_method
         else:
-            method = self.get_value(name_or_method)
+            method = self.get_value(cast("str", name_or_method))
         return inspect.getfullargspec(method)
 
     def get_module(self) -> ModuleType | None:
@@ -74,20 +75,21 @@ class ParsedClass:
     @classmethod
     def get_parsed_classes(
         cls: type[ParsedClass],
-        module_or_class_or_path: Any,  # noqa: ANN401
+        module_or_class_or_path: Any = None,  # noqa: ANN401
     ) -> list[ParsedClass]:
         """Return list of ParsedClass objects."""
         is_path = is_string(module_or_class_or_path)
         if inspect.ismodule(module_or_class_or_path) or is_path:
             if is_path:
-                module_name = Path(module_or_class_or_path).stem
+                path_str = str(module_or_class_or_path)
+                module_name = Path(path_str).stem
                 module_or_class_or_path = SourceFileLoader(
                     module_name,
-                    module_or_class_or_path,
+                    path_str,
                 ).load_module()
 
             cur_module = inspect.getmodule(module_or_class_or_path)
-            classes = inspect.getmembers(
+            classes: list[tuple[str, Any]] = inspect.getmembers(
                 module_or_class_or_path,
                 lambda o: inspect.isclass(o) and inspect.getmodule(o) == cur_module,
             )
@@ -96,16 +98,18 @@ class ParsedClass:
         else:
             raise NotImplementedError
 
-        def filter_private_members(members: list[str, callable]) -> list[str, callable]:
+        def filter_private_members(
+            members: list[tuple[str, Any]],
+        ) -> list[tuple[str, Any]]:
             """Filter private and protected methods."""
             return [m for m in members if cls.PROTECTED_PREFIX not in m[0] or cls.PRIVATE_PREFIX not in m[0]]
 
         parsed_classes = []
         for class_name, _class in classes:
-            methods = inspect.getmembers(_class, inspect.ismethod)
+            methods: list[tuple[str, Any]] = inspect.getmembers(_class, inspect.ismethod)
             methods += inspect.getmembers(_class, inspect.isfunction)
             methods = filter_private_members(methods)
-            fields = inspect.getmembers(_class, lambda o: not inspect.isroutine(o))
+            fields: list[tuple[str, Any]] = inspect.getmembers(_class, lambda o: not inspect.isroutine(o))
             fields = filter_private_members(fields)
             parsed_classes.append(
                 ParsedClass(class_name, _class, dict(fields), dict(methods)),
@@ -131,17 +135,21 @@ class ParsedBrowserClass(ParsedClass):
 
     @classmethod
     def get_parsed_classes(
-        cls: type[ParsedBrowserClass],
-        _module_or_class_or_path: Any = None,  # noqa: ANN401
+        cls: type[ParsedClass],
+        module_or_class_or_path: Any = None,  # noqa: ANN401, ARG003
     ) -> list[ParsedClass]:
         """Return list of ParsedClass objects."""
+        browser_cls = cast("type[ParsedBrowserClass]", cls)
         parsed_classes = ParsedClass.get_parsed_classes(Browser)
         for _class in parsed_classes:
             _class.methods = {
                 n: v
                 for n, v in _class.methods.items()
                 if not n.startswith("_")
-                and (cls._LOCATOR_NAME in _class.get_arg_spec(n).args or n in cls._GOOD_METHODS)
+                and (
+                    browser_cls._LOCATOR_NAME in _class.get_arg_spec(n).args  # noqa: SLF001
+                    or n in browser_cls._GOOD_METHODS  # noqa: SLF001
+                )
             }
         return parsed_classes
 
@@ -154,14 +162,13 @@ class ParsedMouseClass(ParsedClass):
     @classmethod
     def get_parsed_classes(
         cls: type[ParsedClass],
-        _module_or_class_or_path: Any = None,  # noqa: ANN401
+        module_or_class_or_path: Any = None,  # noqa: ANN401, ARG003
     ) -> list[ParsedClass]:
         """Return list of ParsedClass objects."""
+        locator_name = cast("ParsedMouseClass", cls)._LOCATOR_NAME  # noqa: SLF001
         parsed_classes = ParsedClass.get_parsed_classes(Mouse)
         for _class in parsed_classes:
-            _class.methods = {
-                n: v for n, v in _class.methods.items() if cls._LOCATOR_NAME in _class.get_arg_spec(n).args
-            }
+            _class.methods = {n: v for n, v in _class.methods.items() if locator_name in _class.get_arg_spec(n).args}
         return parsed_classes
 
 
@@ -171,7 +178,7 @@ class ParsedPageObjectClass(ParsedClass):
     @classmethod
     def get_parsed_classes(
         cls: type[ParsedClass],
-        module_or_class_or_path: Any,  # noqa: ANN401
+        module_or_class_or_path: Any = None,  # noqa: ANN401
     ) -> list[ParsedClass]:
         """Return list of ParsedClass objects."""
         parsed_classes = ParsedClass.get_parsed_classes(module_or_class_or_path)
@@ -180,8 +187,8 @@ class ParsedPageObjectClass(ParsedClass):
         def filter_class_data(
             class1: ParsedClass,
             class2: ParsedClass,
-            methods_or_fields: Any,  # noqa: ANN401
-        ) -> dict[str, callable]:
+            methods_or_fields: str,
+        ) -> dict[str, Any]:
             return {
                 n: v
                 for n, v in getattr(class1, methods_or_fields).items()

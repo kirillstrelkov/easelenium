@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-import os
+import sys
 import traceback
 from pathlib import Path
 from subprocess import check_output
 from typing import Any
 
 import pytest
+import wx
 from wx import (
     DD_DIR_MUST_EXIST,
     EVT_BUTTON,
@@ -21,7 +22,6 @@ from wx import (
     FONTFAMILY_TELETYPE,
     HSCROLL,
     ID_OK,
-    NORMAL,
     SP_3D,
     SP_LIVE_UPDATE,
     TE_MULTILINE,
@@ -64,6 +64,8 @@ from easelenium.ui.widgets.utils import (
     show_dialog_path_doesnt_exist,
     show_error_dialog,
 )
+
+NORMAL: int = wx.NORMAL  # type: ignore[attr-defined]
 
 
 class RedirectText:
@@ -221,17 +223,17 @@ class TestRunnerTab(Panel):
         self.SetSizerAndFit(sizer)
 
     def __on_show_help(self, _evt: Event) -> None:
-        # TODO: simplify  # noqa: TD003, FIX002, TD002
-        text = check_output(
+        # TODO: simplify  # noqa: TD002, TD003, FIX002
+        text = check_output(  # noqa: S603
             [
-                os.sys.executable,
+                sys.executable,
                 str(
                     (Path(__file__).parent / "../scripts/easelenium_cli.py").absolute(),
                 ),
                 "--help",
             ],
         )
-        DialogWithText(self, "Help for nosetests", text).ShowModal()
+        DialogWithText(self, "Help for nosetests", text.decode()).ShowModal()
 
     def __on_select_file(self, evt: Event) -> None:
         folder = self.__get_safe_path_from_root_folder(RootFolder.REPORTS)
@@ -254,14 +256,14 @@ class TestRunnerTab(Panel):
         if dialog.ShowModal() == ID_OK and txt_ctrl:
             txt_ctrl.SetValue(dialog.GetPath())
 
-    def __on_check(self, evt: Event) -> Event:
-        cb_obj = evt.GetEventObject()
-        checkboxes_and_txt_ctrls = {
+    def __on_check(self, evt: Event) -> None:
+        cb_obj: CheckBox = evt.GetEventObject()  # type: ignore[assignment]
+        checkboxes_and_txt_ctrls: dict[CheckBox, TextCtrl] = {
             self.cb_html_output: self.txt_html_report,
             self.cb_options: self.txt_options,
             self.cb_xml_output: self.txt_xml_report,
         }
-        checkboxes_and_btns = {
+        checkboxes_and_btns: dict[CheckBox, Button] = {
             self.cb_html_output: self.btn_select_html,
             self.cb_xml_output: self.btn_select_xml,
         }
@@ -279,9 +281,9 @@ class TestRunnerTab(Panel):
     def __on_tree_check(self, evt: Event) -> None:
         # styles doesn't work:
         # TR_AUTO_CHECK_CHILD | TR_AUTO_CHECK_PARENT | TR_AUTO_TOGGLE_CHILD
-        # TODO: fix if all children are checked  # noqa: FIX002, TD002, TD003
+        # TODO: fix if all children are checked  # noqa: TD002, TD003, FIX002
         # then one child is unchecked - parent is checked
-        item = evt.GetItem()
+        item = evt.GetItem()  # type: ignore[attr-defined]
         checked = item.IsChecked()
         parent = item.GetParent()
 
@@ -295,7 +297,7 @@ class TestRunnerTab(Panel):
             self.tree_ctrl.AutoCheckParent(item, all_children_are_checked(parent))
 
     def __get_safe_path_from_root_folder(self, subfolder: str | None = None) -> str:
-        folder = self.GetTopLevelParent().get_root_folder()
+        folder = self.GetTopLevelParent().get_root_folder()  # type: ignore[attr-defined]
         if subfolder and folder:
             path_for_subfolder = Path(folder) / subfolder
             if path_for_subfolder.exists():
@@ -317,12 +319,12 @@ class TestRunnerTab(Panel):
 
         python_files = [f for f in python_files if "test" in Path(f).name and Path(f).suffix == ".py"]
         if python_files:
-            syspath = list(os.sys.path)
+            syspath = list(sys.path)
             try:
                 root_folder = self.__get_safe_path_from_root_folder()
 
-                if root_folder not in os.sys.path:
-                    os.sys.path.append(root_folder)
+                if root_folder not in sys.path:
+                    sys.path.append(root_folder)
 
                 checkbox_type = 1
                 self.tree_ctrl.DeleteAllItems()
@@ -351,7 +353,7 @@ class TestRunnerTab(Panel):
             except Exception:  # noqa: BLE001
                 show_error_dialog(self, traceback.format_exc(), "Cannot add test cases")
             finally:
-                os.sys.path = syspath
+                sys.path = syspath
 
     def __load_tests_from_directory(self, _evt: Event) -> None:
         folder = self.__get_safe_path_from_root_folder(RootFolder.TESTS_FOLDER)
@@ -376,10 +378,10 @@ class TestRunnerTab(Panel):
         else:
             show_dialog_path_doesnt_exist(self, folder)
 
-    def __get_command(self) -> None:
+    def __get_command(self) -> list[str] | None:
         root = self.tree_ctrl.GetRootItem()
         tests = []
-        for _file in root.GetChildren():
+        for _file in root.GetChildren() if root is not None else []:
             for _class in _file.GetChildren():
                 for test_case in _class.GetChildren():
                     if test_case.IsChecked():
@@ -416,7 +418,7 @@ class TestRunnerTab(Panel):
         return ["easelenium_cli.py", *args, *tests]
 
     def __run_tests(self, _evt: Event) -> None:
-        # TODO: do not run if root folder is not selected  # noqa: TD002, FIX002, TD003
+        # TODO: do not run if root folder is not selected  # noqa: TD002, TD003, FIX002
         self.txt_ctrl.Clear()
 
         dialog = InfiniteProgressBarDialog(
@@ -426,11 +428,11 @@ class TestRunnerTab(Panel):
         )
 
         def wrap_func() -> None:
-            stdout = os.sys.stdout
-            stderr = os.sys.stderr
+            stdout = sys.stdout
+            stderr = sys.stderr
             redirected = RedirectText(self.txt_ctrl)
-            os.sys.stdout = redirected
-            os.sys.stderr = redirected
+            sys.stdout = redirected
+            sys.stderr = redirected
             try:
                 cmd = self.__get_command()
                 browser_name = self.cb_browser.GetStringSelection()
@@ -440,17 +442,17 @@ class TestRunnerTab(Panel):
                 )
                 BaseTest.FAILED_SCREENSHOT_FOLDER = report_folder
 
-                easelenium_cmd = " ".join(cmd).replace(
-                    "easelenium_cli.py",
-                    "easelenium_cli.py --browser " + browser_name,
-                )
-                print(f"Executing command:\n{easelenium_cmd}")  # noqa: T201
-
-                pytest.main(cmd[1:])
+                if cmd is not None:
+                    easelenium_cmd = " ".join(cmd).replace(
+                        "easelenium_cli.py",
+                        "easelenium_cli.py --browser " + browser_name,
+                    )
+                    print(f"Executing command:\n{easelenium_cmd}")  # noqa: T201
+                    pytest.main(cmd[1:])
             finally:
                 dialog.close_event.set()
-                os.sys.stdout = stdout
-                os.sys.stderr = stderr
+                sys.stdout = stdout
+                sys.stderr = stderr
 
         run_in_separate_thread(wrap_func)
         dialog.ShowModal()

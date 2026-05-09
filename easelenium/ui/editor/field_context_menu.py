@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
-from easelenium.ui.context_menu import ContextMenu
+from easelenium.ui.context_menu import ContextMenu, MenuData
 from easelenium.ui.widgets.utils import show_dialog
 
 if TYPE_CHECKING:
-    from wx import Event, TextCtrl
+    from collections.abc import Callable
 
+    from wx import Event, TextCtrl, Window
+
+    from easelenium.ui.editor.utils import PyFileUI
     from easelenium.ui.parser.parsed_class import ParsedClass
 
 
@@ -36,8 +39,9 @@ class FieldContextMenu(ContextMenu):
     def __prepare_data_from_classes(
         self,
         parsed_classes: list[ParsedClass],
-    ) -> list[tuple[str, callable]]:
-        data = []
+    ) -> MenuData:
+        """Prepare menu data from parsed classes."""
+        data: MenuData = []
         for pc in parsed_classes:
             is_asserts = "assert_true" in pc.methods
             is_mouse = "hover" in pc.methods
@@ -58,22 +62,24 @@ class FieldContextMenu(ContextMenu):
 
     def __prepare_context_data(
         self,
-        initial_data: dict[str, callable] | list[tuple[str, callable]],
-    ) -> list[tuple[str, callable]]:
-        if isinstance(initial_data, dict):
-            initial_data = initial_data.items()
+        initial_data: dict[str, Callable[..., Any]] | list[tuple[str, Callable[..., Any]]],
+    ) -> MenuData:
+        """Prepare context data."""
+        items: list[tuple[str, Any]] = (
+            list(initial_data.items()) if isinstance(initial_data, dict) else list(initial_data)
+        )
         # needs to be initially sorted so that submenu items will be sorted as well
-        initial_data = sorted(initial_data, key=lambda x: x[0])
+        items = sorted(items, key=lambda x: x[0])
 
-        data = {}
+        data: dict[str, Any] = {}
 
-        def append_to_data(submenu_text: str, item_text: str, func: callable) -> None:
+        def append_to_data(submenu_text: str, item_text: str, func: Callable[..., Any]) -> None:
             if submenu_text in data:
                 data[submenu_text] += [(item_text, func)]
             else:
                 data[submenu_text] = [(item_text, func)]
 
-        for text, func in initial_data:
+        for text, func in items:
             if text.startswith(("_", "find")):
                 continue
 
@@ -89,32 +95,35 @@ class FieldContextMenu(ContextMenu):
         return sorted(data.items(), key=lambda x: x[0])
 
     def __on_menu_click(self, evt: Event) -> None:
+        """Handle menu click."""
         if self.__test_file:
-            if self.__txt_ctrl_ui.has_one_or_more_methods_or_test_cases():
+            py_file_ui = cast("PyFileUI", self.__txt_ctrl_ui)
+            if py_file_ui.has_one_or_more_methods_or_test_cases():
                 item_data = self._get_menu_item_data(evt.GetId())
-                method_name = item_data.text
-                method = item_data.func
-                for pc in self.__parsed_classes:
-                    if method in pc.methods.values():
-                        arg_spec = pc.get_arg_spec(method)
-                        self.__txt_ctrl_ui.append_method_call(
-                            field=self.__field,
-                            method_name=method_name,
-                            method=method,
-                            arg_spec=arg_spec,
-                        )
-                        break
-                if method_name == "assert":
-                    self.__txt_ctrl_ui.append_method_call(method_name=method_name)
+                if item_data is not None:
+                    method_name = item_data.text
+                    method = item_data.func
+                    for pc in self.__parsed_classes:
+                        if method in pc.methods.values():
+                            arg_spec = pc.get_arg_spec(method)
+                            py_file_ui.append_method_call(
+                                field=self.__field,
+                                method_name=method_name,
+                                _method=method,
+                                arg_spec=arg_spec,
+                            )
+                            break
+                    if method_name == "assert":
+                        py_file_ui.append_method_call(method_name=method_name)
             else:
                 show_dialog(
-                    self.GetParent(),
+                    cast("Window", self.GetParent()),
                     "Please create method or test case.",
                     "Class doesn't have any methods or test cases",
                 )
         else:
             show_dialog(
-                self.GetParent(),
+                cast("Window", self.GetParent()),
                 "Please select or create test file.",
                 "Test file was not selected",
             )

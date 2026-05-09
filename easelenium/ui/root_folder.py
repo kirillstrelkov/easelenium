@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from easelenium.ui.file_utils import save_file
@@ -20,7 +19,7 @@ class RootFolder:
     def prepare_folder(cls: type[RootFolder], path: str) -> None:
         """Prepare root folder."""
         if Path(path).is_dir():
-            files_and_folders = os.listdir(path)
+            files_and_folders = {p.name for p in Path(path).iterdir()}
 
             for folder in [cls.PO_FOLDER, cls.TESTS_FOLDER, cls.REPORTS]:
                 if folder not in files_and_folders:

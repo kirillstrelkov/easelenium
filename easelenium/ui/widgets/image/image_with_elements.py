@@ -20,12 +20,12 @@ class ImageWithElements(SelectableImagePanel):
         """Initialize."""
         SelectableImagePanel.__init__(self, parent)
         self.static_bitmap.Bind(EVT_MOTION, self.on_mouse_move)
-        self.__po_fields = None
-        self.selected_field = None
+        self.__po_fields: list[PageObjectClassField] | None = None
+        self.selected_field: PageObjectClassField | None = None
 
     def on_mouse_move(self, evt: Event) -> None:
         """Handle mouse move."""
-        field = self.get_field(evt.GetPosition())
+        field = self.get_field(evt.GetPosition())  # type: ignore[attr-defined]
         if self.selected_field != field:
             self.draw_selected_field(field)
             self.selected_field = field
@@ -36,13 +36,13 @@ class ImageWithElements(SelectableImagePanel):
 
     def draw_selected_field(
         self,
-        field: PageObjectClassField,
+        field: PageObjectClassField | None,
         *,
         focus: bool = False,
     ) -> None:
         """Draw field on image."""
-        end_pos = None
-        start_pos = None
+        end_pos: TypePoint | None = None
+        start_pos: TypePoint | None = None
         if field:
             end_pos = (
                 field.location[0] + field.dimensions[0],
@@ -58,7 +58,7 @@ class ImageWithElements(SelectableImagePanel):
                     self.original_bitmap.GetHeight(),
                 )
             cursor = Cursor(CURSOR_ARROW)
-        if start_pos and end_pos:
+        if start_pos is not None and end_pos is not None:
             self._draw_selected_area(start_pos, end_pos)
         self.static_bitmap.SetCursor(cursor)
 
@@ -66,14 +66,14 @@ class ImageWithElements(SelectableImagePanel):
             size = self.GetClientSize()
             x, y = field.location
             w, h = field.dimensions
-            scroll_x = (x + w / 2 - size.GetWidth() / 2) / self.MIN_SCROLL
-            scroll_y = (y + h / 2 - size.GetHeight() / 2) / self.MIN_SCROLL
+            scroll_x = int((x + w / 2 - size.GetWidth() / 2) / self.MIN_SCROLL)
+            scroll_y = int((y + h / 2 - size.GetHeight() / 2) / self.MIN_SCROLL)
             self.Scroll(scroll_x, scroll_y)
 
     def get_field(self, position: TypePoint) -> PageObjectClassField | None:
         """Return PageObjectClassField based on position from image."""
-        position = self._get_fixed_position(position)
-        position = Point(*position)
+        fixed: TypePoint = self._get_fixed_position(position)
+        pt = Point(fixed[0], fixed[1])
         if self.__po_fields:
             fields_sorted_by_dimensions = sorted(
                 self.__po_fields,
@@ -83,7 +83,7 @@ class ImageWithElements(SelectableImagePanel):
                 field_x, field_y = field.location
                 w, h = field.dimensions
 
-                if Rect(field_x, field_y, w, h).Contains(position):
+                if Rect(field_x, field_y, w, h).Contains(pt):
                     return field
             return None
 

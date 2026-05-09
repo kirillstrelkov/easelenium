@@ -15,18 +15,18 @@ class BrowserLoggerTest(BaseTest):
     """Check that browser actions produce log messages."""
 
     BROWSER_NAME = "gc"
-    _captured: list[str] = []
+    _captured: list[str] = []  # noqa: RUF012
 
     @classmethod
-    def setUpClass(cls) -> None:
+    def setUpClass(cls, **kwargs: object) -> None:  # noqa: D102
         cls._captured = []
         cls.LOGGER = Logger(
             log_to_console=False,
             handler=lambda msg: cls._captured.append(msg.record["message"]),
         )
-        super().setUpClass()
+        super().setUpClass(**kwargs)
 
-    def setUp(self) -> None:
+    def setUp(self) -> None:  # noqa: D102
         super().setUp()
         self._captured.clear()
 

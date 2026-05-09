@@ -16,22 +16,22 @@ class SelectableImagePanel(ImagePanel):
         self.static_bitmap.Bind(EVT_LEFT_DOWN, self.__on_mouse_down)
         self.static_bitmap.Bind(EVT_MOTION, self.on_mouse_move)
 
-        self.__start_position = None
-        self.__selected_area = None
+        self.__start_position: TypePoint | None = None
+        self.__selected_area: TypeArea | None = None
 
     def __on_mouse_down(self, evt: Event) -> None:
-        self.__start_position = evt.GetPosition()
-        if self.was_image_loaded():
+        self.__start_position = evt.GetPosition()  # type: ignore[attr-defined]
+        if self.was_image_loaded() and self.original_bitmap is not None:
             w = self.original_bitmap.GetWidth()
             h = self.original_bitmap.GetHeight()
             self._draw_selected_area((0, 0), (w, h))
 
     def on_mouse_move(self, evt: Event) -> None:
         """Handle mouse move."""
-        if self.was_image_loaded() and evt.Dragging() and self.__start_position:
+        if self.was_image_loaded() and evt.Dragging() and self.__start_position:  # type: ignore[attr-defined]
             # TODO: doesn't work in Windows if window is scrolled  # noqa: TD002, TD003, FIX002
             start_position = self._get_fixed_position(self.__start_position)
-            end_position = self._get_fixed_position(evt.GetPosition())
+            end_position = self._get_fixed_position(evt.GetPosition())  # type: ignore[attr-defined]
             self._draw_selected_area(start_position, end_position)
 
     def _get_fixed_position(self, position: TypePoint) -> TypePoint:
@@ -42,7 +42,7 @@ class SelectableImagePanel(ImagePanel):
             position[1] + scroll_offset[1] * fix_for_scrolling,
         )
 
-    def _draw_selected_area(self, start_pos: int, end_pos: int) -> None:
+    def _draw_selected_area(self, start_pos: TypePoint, end_pos: TypePoint) -> None:
         # TODO: reimplement - remove lagging  # noqa: TD002, FIX002, TD003
         x = min(end_pos[0], start_pos[0])
         y = min(end_pos[1], start_pos[1])
@@ -50,9 +50,10 @@ class SelectableImagePanel(ImagePanel):
         h = abs(end_pos[1] - start_pos[1])
 
         self.__selected_area = (x, y, w, h)
-        selected_bitmap = self.original_bitmap.GetSubBitmap(Rect(x, y, w, h))
-        bitmap = self._get_bitmap(self.greyscaled_bitmap, selected_bitmap, x, y, w, h)
-        self.static_bitmap.SetBitmap(bitmap)
+        if self.original_bitmap is not None:
+            selected_bitmap = self.original_bitmap.GetSubBitmap(Rect(x, y, w, h))
+            bitmap = self._get_bitmap(self.greyscaled_bitmap, selected_bitmap, x, y, w, h)
+            self.static_bitmap.SetBitmap(bitmap)
 
     def get_selected_area(self) -> TypeArea:
         """Get selected area."""
