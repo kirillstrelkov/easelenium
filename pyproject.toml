@@ -18,6 +18,8 @@ dependencies = [
     "pytest-html",
     "loguru",
     "webdriver-manager",
+    "undetected-chromedriver",
+    "setuptools",
 ]
 
 [project.optional-dependencies]

@@ -202,12 +202,35 @@ class Browser:
         headless: bool,
         webdriver_kwargs: dict[str, Any],
     ) -> None:
-        options = webdriver_kwargs.get("options", ChromeOptions())
+        is_uc = webdriver_kwargs.get("uc", False)
+        if is_uc:
+            import undetected_chromedriver as uc_module  # noqa: PLC0415
+
+            options = webdriver_kwargs.get("options")
+            if not options:
+                options = uc_module.ChromeOptions()
+            elif not isinstance(options, uc_module.ChromeOptions):
+                new_options = uc_module.ChromeOptions()
+                for arg in getattr(options, "arguments", []):
+                    new_options.add_argument(arg)
+                for name, value in getattr(options, "experimental_options", {}).items():
+                    new_options.add_experimental_option(name, value)
+                options = new_options
+        else:
+            options = webdriver_kwargs.get("options", ChromeOptions())
+
         is_root = os.getuid() == 0
         if is_root:
             options.add_argument("--no-sandbox")
         if headless:
-            options.add_argument("--headless")
+            webdriver_kwargs["_headless"] = True
+            if not is_uc:
+                options.add_argument("--headless")
+
+        do_not_track = webdriver_kwargs.get("do_not_track", False)
+        if do_not_track:
+            options.add_experimental_option("prefs", {"enable_do_not_track": True})
+
         webdriver_kwargs["options"] = options
 
     def __set_firefox_kwargs(
@@ -262,6 +285,34 @@ class Browser:
         """Return browser initials."""
         return self.__browser_name
 
+    def __create_uc_driver(
+        self,
+        *,
+        driver_path: str | None,
+        is_headless: bool,
+        uc_subprocess: bool | None,
+        user_data_dir: str | None,
+        webdriver_kwargs: dict[str, Any],
+    ) -> WebDriver:
+        import undetected_chromedriver as uc_module  # noqa: PLC0415
+
+        uc_kwargs = {}
+        if driver_path:
+            uc_kwargs["driver_executable_path"] = driver_path
+        if is_headless:
+            uc_kwargs["headless"] = True
+        if uc_subprocess is not None:
+            uc_kwargs["use_subprocess"] = uc_subprocess
+        if user_data_dir:
+            uc_kwargs["user_data_dir"] = user_data_dir
+
+        options = webdriver_kwargs.pop("options", None)
+        if options:
+            uc_kwargs["options"] = options
+
+        webdriver_kwargs.pop("executable_path", None)
+        return uc_module.Chrome(**uc_kwargs, **webdriver_kwargs)
+
     def __create_driver(self, name: str, webdriver_kwargs: dict[str, Any]) -> WebDriver:
         if os.environ.get("TMPDIR") is None:
             # fix TMPDIR if not exists
@@ -276,9 +327,26 @@ class Browser:
 
         _driver_filename, constructor, service_klass = driver_filename_and_constructor
 
+        # Extract uc-specific arguments
+        is_uc = name.startswith(self.GC) and webdriver_kwargs.pop("uc", False)
+        uc_subprocess = webdriver_kwargs.pop("uc_subprocess", None)
+        webdriver_kwargs.pop("do_not_track", None)
+        user_data_dir = webdriver_kwargs.pop("user_data_dir", None)
+        is_headless = webdriver_kwargs.pop("_headless", False) or "headless" in name
+
         driver_path = webdriver_kwargs.get("executable_path") or self._find_driver_path(
             name,
         )
+
+        if is_uc:
+            return self.__create_uc_driver(
+                driver_path=driver_path,
+                is_headless=is_headless,
+                uc_subprocess=uc_subprocess,
+                user_data_dir=user_data_dir,
+                webdriver_kwargs=webdriver_kwargs,
+            )
+
         if not driver_path:
             msg = f"Failed to find driver manager for {name}"
             raise ValueError(msg)

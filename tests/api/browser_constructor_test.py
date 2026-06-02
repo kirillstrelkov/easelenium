@@ -145,3 +145,16 @@ class ChromeTest(BrowserConstrutorTest):
             browser_name="gc",
             webdriver_kwargs={"executable_path": new_driver_path},
         )
+
+    def test_constructor_uc(self) -> None:
+        """Test constructor with uc options."""
+        self.browser = Browser(
+            browser_name="gc",
+            headless=True,
+            webdriver_kwargs={
+                "uc": True,
+                "uc_subprocess": True,
+                "do_not_track": True,
+            },
+        )
+        assert self.browser.is_gc()
