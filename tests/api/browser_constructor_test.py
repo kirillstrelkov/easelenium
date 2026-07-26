@@ -120,6 +120,7 @@ class ChromeTest(BrowserConstrutorTest):
         self.browser = Browser(
             browser_name="gc",
             headless=True,
+            maximize=False,
             webdriver_kwargs={"options": options},
         )
         assert self.browser.is_gc()

@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "easelenium"
 version = "0.8.2"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = { file = "README.md", content-type = "text/markdown" }
 description = "easelenium - Selenium-based Test Automation Framework."
 authors = [
@@ -35,6 +35,7 @@ dev = [
     "pytest-cov",
     "pytest-dotenv",
     "pytest-profiling",
+    "pytest-retry>=1.7.0",
     "ruff",
 ]
 

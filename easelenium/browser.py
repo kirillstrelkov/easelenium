@@ -6,10 +6,10 @@ import os
 import tempfile
 import traceback
 from contextlib import contextmanager
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from tempfile import gettempdir
-from typing import TYPE_CHECKING, Any, Final, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Union
 
 from selenium.common.exceptions import (
     NoSuchElementException,
@@ -41,15 +41,16 @@ if TYPE_CHECKING:
     from loguru import Logger
     from selenium.webdriver.remote.webdriver import WebDriver
 
-TypeElement = Union[WebElement, Tuple[str, str]]
+TypeElement = Union[WebElement, tuple[str, str]]
 
 
-def browser_decorator(
+def browser_decorator(  # noqa: PLR0913
     browser_name: str | None = None,
     timeout: float = 5,
     logger: Logger | None = None,
     *,
     headless: bool = False,
+    maximize: bool = True,
     webdriver_kwargs: dict[str, Any] | None = None,
 ) -> Any:  # noqa: ANN401
     """Wrap a function with browser setup, screenshot on failure, and teardown."""
@@ -64,6 +65,7 @@ def browser_decorator(
                     logger=logger,
                     timeout=timeout,
                     headless=headless,
+                    maximize=maximize,
                     webdriver_kwargs=webdriver_kwargs,
                 )
 
@@ -186,7 +188,12 @@ class Browser:
 
         self._driver = self.__create_driver(self.__browser_name, webdriver_kwargs)
         if maximize:
-            self._driver.maximize_window()
+            try:
+                self._driver.maximize_window()
+            except WebDriverException as e:
+                if self.logger:
+                    msg = f"Failed to maximize_window use options to set window size: {e}"
+                    self.logger.warning(msg)
 
         screenshot_path = Path(gettempdir()) / "easelenium_screenshots"
         self.__screenshot_path = str(screenshot_path)
@@ -250,7 +257,7 @@ class Browser:
         return cls._find_driver_path(browser_name) is not None
 
     @classmethod
-    @lru_cache(maxsize=None)
+    @cache
     def _find_driver_path(cls: type[Browser], browser_name: str) -> str | None:
         """Return driver path."""
         assert browser_name in cls.__BROWSERS  # noqa: S101

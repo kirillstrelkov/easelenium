@@ -94,6 +94,8 @@ class Logger:
         """Log warning message."""
         self.__logger.warning(msg, *args, **kwargs)
 
+    warning = warn
+
 
 def get_class_name_from_file(path: str) -> str:
     """Return class name from file."""

@@ -44,10 +44,10 @@ class BrowserTest(BaseTest):
         self.browser.get("https://duckduckgo.com/")
 
         css_search_field = "input[class*='search-input']"
-        css_search_btn = "button[title='Search']"
+        css_search_btn = "button[data-mode='search']"
         css_results = "article h2"
 
-        self.browser.type(by_css=css_search_field, text="selenium python docs")
+        self.browser.type(by_css=css_search_field, text="selenium python io")
         self.browser.click(by_css=css_search_btn)
 
         self.browser.wait_for_visible(by_css=css_results)

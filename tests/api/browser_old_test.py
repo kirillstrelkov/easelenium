@@ -32,7 +32,7 @@ class BrowserTest(BaseTest):
         self.browser.get("https://duckduckgo.com/")
 
         css_search_field = (By.CSS_SELECTOR, "input[class*='search-input']")
-        css_search_btn = (By.CSS_SELECTOR, "button[title='Search']")
+        css_search_btn = (By.CSS_SELECTOR, "button[data-mode='search']")
         css_results = (By.CSS_SELECTOR, "article h2")
 
         self.browser.type(css_search_field, "selenium python io")

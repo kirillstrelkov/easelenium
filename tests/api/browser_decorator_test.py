@@ -22,19 +22,21 @@ def func_default_decorator_gc(browser: Browser) -> bool:
 
 def _make_chrome_options() -> webdriver.ChromeOptions:
     options = webdriver.ChromeOptions()
-    options.add_argument("window-size=1366,768")
+    options.add_argument("--window-size=1366,768")
     return options
 
 
 @browser_decorator(
     browser_name="gc",
     headless=True,
-    webdriver_kwargs={"options": _make_chrome_options()},
+    maximize=False,  # xvfb-run: if maximize is True, _driver.maximize_window() sets window to 800x600
+    webdriver_kwargs={
+        "options": _make_chrome_options(),
+    },
 )
 def func_decorator_gc_with_params(browser: Browser) -> bool:
     """Chrome decorator with options."""
     assert is_headless(browser), "headless not found"
-    # window-size resets to screen size (800px) after any navigation in headless Chrome
     assert browser.execute_js("return window.innerWidth") == 1366  # noqa: PLR2004
     return __open_duck_and_assert_title(browser)
 

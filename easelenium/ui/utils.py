@@ -7,7 +7,7 @@ import tempfile
 import traceback
 from pathlib import Path
 from threading import Thread
-from typing import TYPE_CHECKING, Any, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Union
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -20,9 +20,9 @@ from easelenium.ui.parser.parsed_class import ParsedClass
 FLAG_ALL_AND_EXPAND = ALL | EXPAND
 
 
-TypeArea = Union[Tuple[int, int, int, int], List[int]]
-TypePoint = Union[Tuple[int, int], List[int]]
-TypeBy = Union[Tuple[str, str], List[str]]
+TypeArea = Union[tuple[int, int, int, int], list[int]]
+TypePoint = Union[tuple[int, int], list[int]]
+TypeBy = Union[tuple[str, str], list[str]]
 
 
 def run_in_separate_thread(

@@ -22,6 +22,12 @@ init:
 test:
     uv run pytest
 
+test-ci:
+	xvfb-run --server-args="-screen 0 1366x768x24" uv run pytest --retries 10 tests
+
 bump part="patch":
     uv version --bump {{part}}
     git tag "$(uv version --short)"
+
+install-wx-u24:
+	uv pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-24.04 wxPython
