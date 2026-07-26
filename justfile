@@ -27,6 +27,8 @@ test-ci:
 
 bump part="patch":
     uv version --bump {{part}}
+    git add pyproject.toml
+    git commit -m 'build: bump version'
     git tag "$(uv version --short)"
 
 install-wx-u24:
